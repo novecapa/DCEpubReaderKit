@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		724B361D2E9FFB200022E944 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = 724B361C2E9FFB200022E944 /* ZIPFoundation */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		72FB42772E9F822B00E2D840 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				724B361D2E9FFB200022E944 /* ZIPFoundation in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +117,7 @@
 			);
 			name = DCEpubReaderKit;
 			packageProductDependencies = (
+				724B361C2E9FFB200022E944 /* ZIPFoundation */,
 			);
 			productName = DCEpubReaderKit;
 			productReference = 72FB42692E9F822A00E2D840 /* DCEpubReaderKit.app */;
@@ -195,6 +201,9 @@
 			);
 			mainGroup = 72FB42602E9F822A00E2D840;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				724B361B2E9FFB200022E944 /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 72FB426A2E9F822A00E2D840 /* Products */;
 			projectDirPath = "";
@@ -550,6 +559,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		724B361B2E9FFB200022E944 /* XCRemoteSwiftPackageReference "ZIPFoundation" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/weichsel/ZIPFoundation.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.9.20;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		724B361C2E9FFB200022E944 /* ZIPFoundation */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 724B361B2E9FFB200022E944 /* XCRemoteSwiftPackageReference "ZIPFoundation" */;
+			productName = ZIPFoundation;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 72FB42612E9F822A00E2D840 /* Project object */;
 }
