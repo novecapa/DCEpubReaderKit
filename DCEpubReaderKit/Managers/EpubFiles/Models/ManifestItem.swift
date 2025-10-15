@@ -6,8 +6,8 @@
 //
 
 public struct ManifestItem {
-    public var id: String
-    public var href: String
-    public var mediaType: String
+    public let id: String
+    public let href: String
+    public let mediaType: String
     public var properties: String?
 }

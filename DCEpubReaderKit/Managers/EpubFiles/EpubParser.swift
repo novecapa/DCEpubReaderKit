@@ -7,48 +7,65 @@
 
 import Foundation
 
+/// High-level EPUB parser that orchestrates:
+/// 1) Reading `META-INF/container.xml` to locate the OPF,
+/// 2) Parsing the OPF for metadata, manifest and spine,
+/// 3) Resolving the Table of Contents (EPUB2 NCX or EPUB3 nav.xhtml).
+
 struct EpubParser {
 
+    /// Parses an unzipped EPUB directory and returns a fully populated `EpubBook`.
+    /// - Parameter unzipRoot: Root folder of the **unzipped** EPUB.
+    /// - Returns: `EpubBook` containing metadata, manifest, spine and TOC.
+    /// - Throws: `EpubError` variants when required files are missing or cannot be parsed.
     static func parse(from unzipRoot: URL) throws -> EpubBook {
-        // container.xml
+        // 1) container.xml → OPF relative path
         let container = ContainerXMLParser()
-        let opfRelPath = try container.parse(url: unzipRoot)
-        let opfURL = unzipRoot.appendingPathComponent(opfRelPath)
-        guard FileManager.default.fileExists(atPath: opfURL.path) else { throw EpubError.missingOPF }
-        
-        // OPF → metadata, manifest, spine
-        let opf = OPFParser()
-        try opf.parse(opfURL: opfURL)
-        
-        // TOC → epub2 (ncx) or epub3 (nav.xhtml)
-        let manifest = opf.manifest
-        let opfDir = opfURL.deletingLastPathComponent()
-        
-        // epub2: item whith media-type = application/x-dtbncx+xml
+        let opfRelativePath = try container.parse(url: unzipRoot)
+
+        let opfURL = unzipRoot.appendingPathComponent(opfRelativePath)
+        guard FileManager.default.fileExists(atPath: opfURL.path) else {
+            throw EpubError.missingOPF
+        }
+
+        // 2) OPF → package (metadata, manifest, spine)
+        let opf = OPFParser(opfURL: opfURL)
+        let package = try opf.parse()
+
+        // 3) TOC → EPUB2 (NCX) or EPUB3 (nav.xhtml)
+        let manifest = package.manifest
+        let opfDirectory = opfURL.deletingLastPathComponent()
+
+        // EPUB2: item where media-type == application/x-dtbncx+xml
         let ncxItem = manifest.first { $0.mediaType == "application/x-dtbncx+xml" }
-        // epub3: item whith properties includes "nav"
-        let navItem = manifest.first { ($0.properties ?? "").split(separator: " ").map(String.init).contains("nav") }
-        
+
+        // EPUB3: item where properties include the token "nav"
+        let navItem = manifest.first {
+            guard let props = $0.properties else { return false }
+            return props.split(separator: " ").map(String.init).contains("nav")
+        }
+
         var toc: [TocNode] = []
         if let ncx = ncxItem {
-            let ncxURL = opfDir.appendingPathComponent(ncx.href)
-            let p = NCXParser()
-            toc = (try? p.parse(ncxURL: ncxURL)) ?? []
+            let ncxURL = opfDirectory.appendingPathComponent(ncx.href)
+            let ncxParser = NCXParser()
+            toc = (try? ncxParser.parse(ncxURL: ncxURL)) ?? []
         } else if let nav = navItem {
-            let navURL = opfDir.appendingPathComponent(nav.href)
-            let p = NavXHTMLParser()
-            toc = (try? p.parse(navURL: navURL)) ?? []
+            let navURL = opfDirectory.appendingPathComponent(nav.href)
+            let navParser = NavXHTMLParser()
+            toc = (try? navParser.parse(navURL: navURL)) ?? []
         }
-        
+
+        // 4) Build the final model
         let book = EpubBook(
-            version: opf.version,
-            packagePath: opfRelPath,
-            metadata: opf.metadata,
+            packagePath: opfRelativePath,
+            metadata: package.metadata,
             manifest: manifest,
-            spine: opf.spine,
+            spine: package.spine,
             toc: toc,
             resourcesRoot: unzipRoot
         )
+
         return book
     }
 }

@@ -20,7 +20,7 @@ final class FileHelper {
     }
 
     enum FileType: String {
-        case epub = "epub"
+        case epub
     }
 
     static let shared = FileHelper()

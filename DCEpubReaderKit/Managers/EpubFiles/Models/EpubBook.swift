@@ -8,11 +8,10 @@
 import Foundation
 
 public struct EpubBook {
-    public let version: String
     public let packagePath: String
-    public let metadata: EpubMetadata
+    public let metadata: OPFMetadata
     public let manifest: [ManifestItem]
-    public let spine: [SpineItemRef]
+    public let spine: [SpineItem]
     public let toc: [TocNode]
     public let resourcesRoot: URL
 }
