@@ -14,7 +14,6 @@ import Foundation
 /// - Parses `<spine>` itemrefs
 /// - Parses `<guide>` references
 /// - Resolves cover image using EPUB2/EPUB3 conventions and sensible fallbacks
-
 public final class OPFParser: NSObject, XMLParserDelegate {
 
     // MARK: Public cover resolution outputs
@@ -90,7 +89,6 @@ public final class OPFParser: NSObject, XMLParserDelegate {
 // MARK: - XMLParserDelegate - attributes
 
 extension OPFParser {
-
     public func parser(_ parser: XMLParser,
                        didStartElement name: String,
                        namespaceURI: String?,
