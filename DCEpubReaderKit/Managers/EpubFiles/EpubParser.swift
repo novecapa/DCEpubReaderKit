@@ -11,7 +11,6 @@ import Foundation
 /// 1) Reading `META-INF/container.xml` to locate the OPF,
 /// 2) Parsing the OPF for metadata, manifest and spine,
 /// 3) Resolving the Table of Contents (EPUB2 NCX or EPUB3 nav.xhtml).
-
 struct EpubParser {
 
     /// Parses an unzipped EPUB directory and returns a fully populated `EpubBook`.

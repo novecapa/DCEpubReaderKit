@@ -9,7 +9,6 @@ import Foundation
 import ZIPFoundation
 
 /// Represents errors that can occur while handling EPUB files.
-
 enum EpubError: Error {
     case invalidEPUB
     case missingContainer
@@ -19,7 +18,6 @@ enum EpubError: Error {
 }
 
 /// Handles unzipping and preparing EPUB files for parsing.
-
 final class EpubFileManager {
 
     static let shared = EpubFileManager()

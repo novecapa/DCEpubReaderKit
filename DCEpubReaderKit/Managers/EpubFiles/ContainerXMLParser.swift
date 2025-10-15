@@ -8,7 +8,6 @@
 import Foundation
 
 /// Parses `META-INF/container.xml` to locate the path of the OPF (rootfile).
-
 final class ContainerXMLParser: NSObject, XMLParserDelegate {
 
     private(set) var rootfilePath: String?
