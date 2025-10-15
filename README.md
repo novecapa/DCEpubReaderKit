@@ -102,10 +102,10 @@ Your support helps fuel the time (and coffee ☕️) needed to keep improving **
 
 ## ⚖️ License
 
-© 2025 Josep Cerdá Penadés. All rights reserved.  
-**Free to use for any purpose, as long as proper credit is given** to the original author or this repository.
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
-Attribution example:
+© 2025 Josep Cerdá Penadés.  
+If you use this library, please acknowledge its origin:
 
 > “This project uses DCEpubReaderKit, developed by Josep Cerdá Penadés (github.com/novecapa).”
 
