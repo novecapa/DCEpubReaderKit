@@ -200,16 +200,8 @@ private struct TocRow: View {
     var body: some View {
         let indent = String(repeating: "  ", count: depth)
         if let idx = book.spineIndex(forTOCHref: node.href ?? "") {
-            NavigationLink {
-                ReaderChapterView(
-                    book: book,
-                    spineIndex: idx,
-                    title: book.chapterTitle(forSpineIndex: idx) ?? node.label
-                )
-            } label: {
-                Text("\(indent)• \(node.label)")
-                    .font(.body)
-            }
+            Text("\(indent)• \(node.label)")
+                .font(.body)
             .accessibilityLabel("\(node.label)")
         } else {
             // Non-addressable TOC node (e.g., section header without href)
