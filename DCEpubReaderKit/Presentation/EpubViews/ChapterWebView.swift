@@ -87,7 +87,7 @@ struct ChapterWebView: UIViewRepresentable {
             HTMLContent = HTMLContent?.replacingOccurrences(of: "</head>", with: headInject)
 
             let fontName = "original"
-            let fontSize = "textSizeFive"
+            let fontSize = "textSizeSeven"
             let nightOrDayMode = "" // nightMode
             HTMLContent = HTMLContent?.replacingOccurrences(
                 of: "<html",

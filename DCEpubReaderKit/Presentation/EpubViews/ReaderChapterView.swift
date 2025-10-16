@@ -27,31 +27,39 @@ struct ReaderChapterView: View {
     }
 
     var body: some View {
-        TabView(selection: $selection) {
-            ForEach(0..<book.spine.count, id: \.self) { idx in
-                Group {
-                    if let chapterURL = book.chapterURL(forSpineIndex: idx) {
-                        ChapterWebView(
-                            chapterURL: chapterURL,
-                            readAccessURL: book.opfDirectoryURL,
-                            opensExternalLinks: true
-                        )
-                        .padding(16)
-                    } else {
-                        Text("Unable to resolve chapter at spine index \(idx).")
-                            .foregroundStyle(.secondary)
-                            .padding()
+        ZStack {
+            Color(.backgroundLight)
+                .ignoresSafeArea(edges: .all)
+            TabView(selection: $selection) {
+                ForEach(0..<book.spine.count, id: \.self) { idx in
+                    Group {
+                        if let chapterURL = book.chapterURL(forSpineIndex: idx) {
+                            ChapterWebView(
+                                chapterURL: chapterURL,
+                                readAccessURL: book.opfDirectoryURL,
+                                opensExternalLinks: true
+                            )
+                            .padding(16)
+                        } else {
+                            Text("Unable to resolve chapter at spine index \(idx).")
+                                .foregroundStyle(.secondary)
+                                .padding()
+                        }
                     }
+                    .tag(idx)
                 }
-                .tag(idx)
             }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .navigationTitle(title ?? book.chapterTitle(forSpineIndex: selection) ?? "Chapter \(selection + 1)")
+            .navigationBarTitleDisplayMode(.inline)
         }
-        .tabViewStyle(.page(indexDisplayMode: .automatic))
-        .navigationTitle(title ?? "Chapter \(selection + 1)")
-        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
 #Preview {
-    Text("ReaderChapterView preview placeholder")
+    ZStack {
+        Color(.backgroundLight)
+            .ignoresSafeArea(edges: .all)
+        Text("ReaderChapterView preview placeholder")
+    }
 }

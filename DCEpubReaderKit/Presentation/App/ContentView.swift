@@ -28,24 +28,18 @@ struct ContentView: View {
                         KeyValueRow(key: "OPF", value: book.packagePath)
                     }
 
-                    Section("Spine (\(book.spine.count))") {
-                        ForEach(Array(book.spine.enumerated()), id: \.offset) { index, spine in
-                            NavigationLink {
-                                ReaderChapterView(
-                                    book: book,
-                                    spineIndex: index,
-                                    title: book.metadata.title ?? "Chapter"
-                                )
-                            } label: {
-                                Text("• \(spine.idref) \(spine.linear ? "" : "(non-linear)")")
-                                    .font(.body.monospaced())
-                                    .accessibilityLabel("\(spine.idref) \(spine.linear ? "" : "non linear")")
-                            }
-                        }
+                    Section("Table of Contents (\(book.toc.count))") {
+                        TocList(book: book, nodes: book.toc, depth: 0)
                     }
 
-                    Section("Table of Contents (\(book.toc.count))") {
-                        TocList(nodes: book.toc, depth: 0)
+                    Section("Spine (\(book.spine.count))") {
+                        ForEach(Array(book.spine.enumerated()), id: \.offset) { index, spine in
+                            let title = book.chapterTitle(forSpineIndex: index)
+                            Text("• \(title ?? "") \(spine.idref) \(spine.linear ? "" : "(non-linear)")")
+                                .font(.body.monospaced())
+                                .accessibilityLabel("\(spine.idref) \(spine.linear ? "" : "non linear")")
+
+                        }
                     }
 
                     Section("Resources (manifest)") {
@@ -171,19 +165,57 @@ private struct ManifestImageRow: View {
 // MARK: - TOC
 
 struct TocList: View {
+    let book: EpubBook
     let nodes: [TocNode]
     let depth: Int
 
     var body: some View {
         ForEach(Array(nodes.enumerated()), id: \.offset) { _, node in
             VStack(alignment: .leading, spacing: 4) {
-                Text("\(String(repeating: "  ", count: depth))• \(node.label) \(node.href ?? "")")
-                    .font(.body.monospaced())
-                    .accessibilityLabel("\(node.label) \(node.href ?? "")")
+
+                if let idx = book.spineIndex(forTOCHref: node.href ?? "") {
+                    NavigationLink {
+                        ReaderChapterView(
+                            book: book,
+                            spineIndex: idx,
+                            title: book.chapterTitle(forSpineIndex: idx) ?? node.label
+                        )
+                    } label: {
+                        TocRow(book: book, node: node, depth: depth)
+                    }
+                }
                 if !node.children.isEmpty {
-                    TocList(nodes: node.children, depth: depth + 1)
+                    TocList(book: book, nodes: node.children, depth: depth + 1)
                 }
             }
+        }
+    }
+}
+
+private struct TocRow: View {
+    let book: EpubBook
+    let node: TocNode
+    let depth: Int
+
+    var body: some View {
+        let indent = String(repeating: "  ", count: depth)
+        if let idx = book.spineIndex(forTOCHref: node.href ?? "") {
+            NavigationLink {
+                ReaderChapterView(
+                    book: book,
+                    spineIndex: idx,
+                    title: book.chapterTitle(forSpineIndex: idx) ?? node.label
+                )
+            } label: {
+                Text("\(indent)• \(node.label)")
+                    .font(.body)
+            }
+            .accessibilityLabel("\(node.label)")
+        } else {
+            // Non-addressable TOC node (e.g., section header without href)
+            Text("\(indent)• \(node.label)")
+                .font(.body.weight(.semibold))
+                .accessibilityLabel("\(node.label)")
         }
     }
 }
