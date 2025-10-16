@@ -1,6 +1,8 @@
 /**
- *  Style.css
- *  EpubReaderKit
+ *  Style.css (refactored v2)
+ *  DCEpubReaderKit
+ *  - Consolidated root rules
+ *  - Fixed typos and duplicates
  */
 
 /* CSS Reset */
@@ -27,16 +29,16 @@ footer, header, hgroup, menu, nav, section {
     display: block;
 }
 
-/* ePUB */
+/* ePUB root */
 html {
     -webkit-text-size-adjust: none; /* Never autoresize text */
     padding: 0 0 !important;
-/*    overflow: hidden;*/
+    -webkit-transition: all 0.6s ease;
+    background-color: #FAFAFA !important;
 }
 
 body {
-    padding: 0px 20px !important;
-/*    overflow: hidden !important;*/
+    padding: 0px 40px !important;
 }
 
 /* Custom padding for tablets */
@@ -51,9 +53,7 @@ table {
     border-collapse: collapse;
     border-spacing: 0;
 }
-/*tbody, tfoot, thead {
-    vertical-align: middle !important;
-}*/
+
 td, th, tr {
     vertical-align: inherit !important;
 }
@@ -109,7 +109,7 @@ code, kbd, pre, samp, tt {
     font-size: 1em;
 }
 button, input, select, textarea { display: inline-block !important; }
-/*h1, h2, h3, h4, h5, h6 { font-weight: 400!important; }*/
+
 del, s, strike { text-decoration: line-through!important; }
 hr {
     background-color: rgba(0,0,0,.1) !important;
@@ -209,11 +209,6 @@ html .highlight-yellow, html .highlight-green, html .highlight-blue, html .highl
  * Night mode
  *
  */
-html {
-    -webkit-transition: all 0.6s ease;
-    background-color: #FAFAFA !important;
-}
-
 body {
     background-color: transparent !important;
 
@@ -333,42 +328,42 @@ html.nightMode .highlight-underline {border-bottom: 2px solid rgba(240, 40, 20, 
     src: url(Lora-Bold.ttf);
 }
 
-@font-face { /* boldItalic*/
+@font-face {
     font-family: "Lora";
     font-weight: bold;
     font-style: italic;
     src: url(Lora-BoldItalic.ttf);
 }
 
-@font-face { /* regular */
+@font-face {
     font-family: "Raleway";
     font-weight: normal;
     font-style: normal;
     src: url(Raleway-Regular.ttf);
 }
 
-@font-face { /* italic */
+@font-face {
     font-family: "Raleway";
     font-weight: normal;
     font-style: italic;
     src: url(Raleway-Italic.ttf);
 }
 
-@font-face { /* bold */
+@font-face {
     font-family: "Raleway";
     font-weight: bold;
     font-style: normal;
     src: url(Raleway-Bold.ttf);
 }
 
-@font-face { /* boldItalic*/
+@font-face {
     font-family: "Raleway";
     font-weight: bold;
     font-style: italic;
     src: url(Raleway-BoldItalic.ttf);
 }
 
-@font-face { /* Raleway-Bold*/
+@font-face {
     font-family: "Sans Forgetica";
     font-weight: normal;
     font-style: normal;
@@ -413,18 +408,3 @@ body {
     -webkit-hyphens: auto !important;
     hyphens: auto !important;
 }
-/*
-p, span, div {
-    font-size: 1em;
-    line-height: 1.5 !important;
-}
-@media only screen and (min-device-width: 600px) {
-    div {
-        font-size: 1em;
-        line-height: 1.438em !important;
-    }
-    body {
-        -webkit-hyphens: none !important;
-        hyphens: none !important;
-    }
-}*/
