@@ -28,6 +28,13 @@ struct ContentView: View {
                         KeyValueRow(key: "OPF", value: book.packagePath)
                     }
 
+                    // Dentro del List / toolbar de ContentView, cuando `book` existe:
+                    Section("Reader") {
+                        NavigationLink("Open first chapter") {
+                            ReaderChapterView(book: book, spineIndex: 10, title: book.metadata.title ?? "Chapter")
+                        }
+                    }
+
                     Section("Spine (\(book.spine.count))") {
                         ForEach(Array(book.spine.enumerated()), id: \.offset) { _, spine in
                             Text("• \(spine.idref) \(spine.linear ? "" : "(non-linear)")")

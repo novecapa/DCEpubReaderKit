@@ -1,0 +1,430 @@
+/**
+ *  Style.css
+ *  EpubReaderKit
+ */
+
+/* CSS Reset */
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+    margin: 0;
+    vertical-align: baseline;
+}
+
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+    display: block;
+}
+
+/* ePUB */
+html {
+    -webkit-text-size-adjust: none; /* Never autoresize text */
+    padding: 0 0 !important;
+/*    overflow: hidden;*/
+}
+
+body {
+    padding: 0px 20px !important;
+/*    overflow: hidden !important;*/
+}
+
+/* Custom padding for tablets */
+@media only screen and (min-device-width: 768px){
+    body {
+        padding: 0px 80px !important;
+    }
+}
+
+/* Table */
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+/*tbody, tfoot, thead {
+    vertical-align: middle !important;
+}*/
+td, th, tr {
+    vertical-align: inherit !important;
+}
+
+/* List */
+dd, dir, menu, ol, ul { margin-left: 30px !important; }
+ol { list-style-type: decimal !important; }
+li { display: list-item !important; }
+ol ol, ol ul, ul ol, ul ul {
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+}
+
+/* Links */
+a { -webkit-touch-callout: none; } /* Disable link callback */
+* { -webkit-user-select: text; }
+img { -webkit-user-select: none; }
+p {
+    /*margin: 1.3em 0 1.5em 0;*/
+    /* line-height: 1.65em !important;*/
+    line-height: 1.65em;
+    /*text-indent: 1.25em;*/
+}
+a:link {
+  color: #017cff;
+  background-color: transparent;
+  text-decoration: none;
+}
+
+a:visited {
+  color: #017cff;
+  background-color: transparent;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #017cff;
+  background-color: transparent;
+  text-decoration: none;
+}
+
+a:active {
+  color: #017cff;
+  background-color: transparent;
+  text-decoration: none;
+}
+
+b, strong, th {font-weight: bolder !important;}
+
+/* Forced font overrides */
+code, kbd, pre, samp, tt {
+    font-family: monospace, monospace !important;
+    font-size: 1em;
+}
+button, input, select, textarea { display: inline-block !important; }
+/*h1, h2, h3, h4, h5, h6 { font-weight: 400!important; }*/
+del, s, strike { text-decoration: line-through!important; }
+hr {
+    background-color: rgba(0,0,0,.1) !important;
+    border: none !important;
+    height: 1px !important;
+}
+
+
+/* Sub and Super */
+big { font-size: 1.15em !important; }
+small, sub, sup { font-size: .65em !important; }
+sub { vertical-align: sub !important; }
+sup {
+    font-family: monospace !important;
+    vertical-align: super !important;
+}
+
+/* iBooks like */
+a { text-decoration: none; }
+pre { white-space: pre-wrap; }
+@page { margin: 0 0 !important; }
+table, ol, il { text-align: -webkit-auto; }
+h1 ,h2 ,h3 ,h4 ,h5 ,h6 {
+    text-align: -webkit-auto;
+    text-rendering: optimizelegibility;
+}
+
+/* allow breaking of words on headers and anchors as they tend to be larger font size or contain longer words */
+a, h1, h2, h3, h4, h5, h6 {
+    word-break: break-word !important;
+    -webkit-hyphens: none !important;
+    hyphens: none !important;
+}
+
+/* Begin Ted */
+img, svg, audio, video {
+    max-height: 80% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+    object-fit: contain;
+    page-break-inside: avoid;
+}
+
+/* End Ted */
+
+/* Divs are also used to size images so make sure the authors get what they intended */
+/* which is for the images boxed in them to be completely visible on screen */
+div { max-width: 100%; }
+aside[epub|type~="footnote"] { display: none !important; }
+ruby > rt, ruby > rp { -webkit-user-select: none; }
+* { -webkit-font-smoothing: subpixel-antialiased }
+
+/*
+ *
+ * Highlight classes
+ *
+ */
+lk {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+}
+
+/* Remove tap highlight */
+input, textarea, button, highlight, select, a {
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+
+/* Highlight styles */
+html .highlight-yellow {background:rgb(255, 235, 107)}
+html .highlight-green {background:#C0ED72}
+html .highlight-blue {background:#ADD8FF}
+html .highlight_search {background:#ADD8FF}
+html .highlight-pink {background:#FFB0CA}
+html .highlight-underline {
+    text-decoration: none;
+    border-bottom: 2px solid #F02814;
+}
+
+html .highlight-yellow, html .highlight-green, html .highlight-blue, html .highlight_search, html .highlight-pink, span.epub-media-overlay-playing {
+    border-radius: 3px;
+    padding: 0 2px;
+    margin: 0 -2px;
+}
+
+/* default media overlay style */
+.mediaOverlayStyle0 span.epub-media-overlay-playing {
+    background: #ccc
+}
+
+.mediaOverlayStyle1 .epub-media-overlay-playing {
+    border-bottom: dotted 2px transparent;
+    border-radius: 0;
+}
+
+/*
+ *
+ * Night mode
+ *
+ */
+html {
+    -webkit-transition: all 0.6s ease;
+    background-color: #FAFAFA !important;
+}
+
+body {
+    background-color: transparent !important;
+
+    padding: 0px !important;
+    /* padding-left: 0px !important;
+    padding-right: 0px !important;*/
+
+}
+
+html.nightMode {
+    background-color: #131313 !important;
+}
+
+.nightMode p, .nightMode div, .nightMode span:not(.epub-media-overlay-playing) {
+    color: #949494 !important;
+    background-color: transparent /*!important*/;
+}
+
+.nightMode tr, .nightMode li, .nightMode h1, .nightMode h2, .nightMode h3, .nightMode h4, .nightMode h5, .nightMode h6 {
+    color: #949494 !important;
+}
+
+html.nightMode .highlight-yellow {background:rgba(255, 235, 107, 0.9)}
+html.nightMode .highlight-green {background:rgba(192, 237, 114, 0.9)}
+html.nightMode .highlight-blue {background:rgba(173, 216, 255, 0.9)}
+html.nightMode .highlight_search {background:rgba(173, 216, 255, 0.9)}
+html.nightMode .highlight-pink {background:rgba(255, 176, 202, 0.9)}
+html.nightMode .highlight-underline {border-bottom: 2px solid rgba(240, 40, 20, 0.6)}
+
+/*
+ *
+ * Font classes
+ *
+ */
+/* .original, .original p, .original span, .original div { } */
+.original, .original p, .original span, .original div, .original h1, .original h2, .original h3 .original li, .original tr {}
+.andada, .andada p, .andada span, .andada div, .andada h1, .andada h2, .andada h3, .andada li, .andada tr { font-family: "Andada", sans-serif !important; }
+.lato, .lato p, .lato span, .lato div, .lato h1, .lato h2, .lato h3, .lato li, .lato tr { font-family: "Lato", serif !important; }
+.lora, .lora p, .lora span, .lora div, .lora h1, .lora h2, .lora h3, .lora li, .lora tr { font-family: "Lora", serif !important; }
+.raleway, .raleway p, .raleway span, .raleway div, .raleway h1, .raleway h2, .raleway h3, .raleway li, .raleway tr  { font-family: "Raleway", sans-serif !important; }
+.forgetica, .forgetica p, .forgetica span, .forgetica div, .forgetica h1, .forgetica h2, .forgetica h3, .forgetica li, .forgetica tr { font-family: "Sans Forgetica", sans-serif !important; }
+
+@font-face { /* regular */
+    font-family: "Andada";
+    font-weight: normal;
+    font-style: normal;
+    src: url(Andada-Regular.otf);
+}
+
+@font-face { /* italic */
+    font-family: "Andada";
+    font-weight: normal;
+    font-style: italic;
+    src: url(Andada-Italic.otf);
+}
+
+@font-face { /* bold */
+    font-family: "Andada";
+    font-weight: bold;
+    font-style: normal;
+    src: url(Andada-Bold.otf);
+}
+
+@font-face { /* boldItalic*/
+    font-family: "Andada";
+    font-weight: bold;
+    font-style: italic;
+    src: url(Andada-BoldItalic.otf);
+}
+
+@font-face { /* regular */
+    font-family: "Lato";
+    font-weight: normal;
+    font-style: normal;
+    src: url(Lato-Regular.ttf);
+}
+
+@font-face { /* italic */
+    font-family: "Lato";
+    font-weight: normal;
+    font-style: italic;
+    src: url(Lato-Italic.ttf);
+}
+
+@font-face { /* bold */
+    font-family: "Lato";
+    font-weight: bold;
+    font-style: normal;
+    src: url(Lato-Bold.ttf);
+}
+
+@font-face { /* boldItalic*/
+    font-family: "Lato";
+    font-weight: bold;
+    font-style: italic;
+    src: url(Lato-BoldItalic.ttf);
+}
+
+@font-face { /* regular */
+    font-family: "Lora";
+    font-weight: normal;
+    font-style: normal;
+    src: url(Lora-Regular.ttf);
+}
+
+@font-face { /* italic */
+    font-family: "Lora";
+    font-weight: normal;
+    font-style: italic;
+    src: url(Lora-Italic.ttf);
+}
+
+@font-face { /* bold */
+    font-family: "Lora";
+    font-weight: bold;
+    font-style: normal;
+    src: url(Lora-Bold.ttf);
+}
+
+@font-face { /* boldItalic*/
+    font-family: "Lora";
+    font-weight: bold;
+    font-style: italic;
+    src: url(Lora-BoldItalic.ttf);
+}
+
+@font-face { /* regular */
+    font-family: "Raleway";
+    font-weight: normal;
+    font-style: normal;
+    src: url(Raleway-Regular.ttf);
+}
+
+@font-face { /* italic */
+    font-family: "Raleway";
+    font-weight: normal;
+    font-style: italic;
+    src: url(Raleway-Italic.ttf);
+}
+
+@font-face { /* bold */
+    font-family: "Raleway";
+    font-weight: bold;
+    font-style: normal;
+    src: url(Raleway-Bold.ttf);
+}
+
+@font-face { /* boldItalic*/
+    font-family: "Raleway";
+    font-weight: bold;
+    font-style: italic;
+    src: url(Raleway-BoldItalic.ttf);
+}
+
+@font-face { /* Raleway-Bold*/
+    font-family: "Sans Forgetica";
+    font-weight: normal;
+    font-style: normal;
+    src: url(SansForgetica-Regular.otf);
+}
+
+html.textSizeOne, .textSizeOne body, .textSizeOne table { font-size: 13px !important; }
+html.textSizeTwo, .textSizeTwo body, .textSizeTwo table { font-size: 15px !important; }
+html.textSizeThree, .textSizeThree body, .textSizeThree table { font-size: 17px !important; }
+html.textSizeFour, .textSizeFour body, .textSizeFour table { font-size: 19px !important; }
+html.textSizeFive, .textSizeFive body, .textSizeFive table { font-size: 21px !important; }
+html.textSizeSix, .textSizeSix body, .textSizeSix table { font-size: 24px !important; }
+html.textSizeSeven, .textSizeSeven body, .textSizeSeven table { font-size: 27px !important; }
+html.textSizeEight, .textSizeEight body, .textSizeEight table { font-size: 30px !important; }
+
+h1 {
+    font-size: 2em;
+    line-height: 1.2;
+}
+h2 {
+    font-size: 1.5em;
+    line-height: 1.2;
+}
+h3 {
+    font-size: 1.17em;
+    line-height: 1.2;
+}
+h4 {
+    font-size: 1em;
+    line-height: 1.2;
+}
+h5 {
+    font-size: 0.83em;
+    line-height: 1.2;
+}
+h6 {
+    font-size: 0.67em;
+    line-height: 1.2;
+}
+body {
+    word-break: break-word !important;
+    -webkit-hyphens: auto !important;
+    hyphens: auto !important;
+}
+/*
+p, span, div {
+    font-size: 1em;
+    line-height: 1.5 !important;
+}
+@media only screen and (min-device-width: 600px) {
+    div {
+        font-size: 1em;
+        line-height: 1.438em !important;
+    }
+    body {
+        -webkit-hyphens: none !important;
+        hyphens: none !important;
+    }
+}*/
