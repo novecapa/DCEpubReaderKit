@@ -28,18 +28,19 @@ struct ContentView: View {
                         KeyValueRow(key: "OPF", value: book.packagePath)
                     }
 
-                    // Dentro del List / toolbar de ContentView, cuando `book` existe:
-                    Section("Reader") {
-                        NavigationLink("Open first chapter") {
-                            ReaderChapterView(book: book, spineIndex: 10, title: book.metadata.title ?? "Chapter")
-                        }
-                    }
-
                     Section("Spine (\(book.spine.count))") {
-                        ForEach(Array(book.spine.enumerated()), id: \.offset) { _, spine in
-                            Text("• \(spine.idref) \(spine.linear ? "" : "(non-linear)")")
-                                .font(.body.monospaced())
-                                .accessibilityLabel("\(spine.idref) \(spine.linear ? "" : "non linear")")
+                        ForEach(Array(book.spine.enumerated()), id: \.offset) { index, spine in
+                            NavigationLink {
+                                ReaderChapterView(
+                                    book: book,
+                                    spineIndex: index,
+                                    title: book.metadata.title ?? "Chapter"
+                                )
+                            } label: {
+                                Text("• \(spine.idref) \(spine.linear ? "" : "(non-linear)")")
+                                    .font(.body.monospaced())
+                                    .accessibilityLabel("\(spine.idref) \(spine.linear ? "" : "non linear")")
+                            }
                         }
                     }
 

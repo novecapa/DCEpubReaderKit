@@ -2,11 +2,10 @@
 
 function applyHorizontalPagination() {
     
-    let margin_top = 40;
-    let margin_bottom = 30;
-    let columnGap = 20;
-    let columnGapTop = 40;
-    let stylemargin = 10;
+    let marginTop = 0;
+    let columnGap = 0;
+    let columnGapTop = 0;
+    let stylemargin = 0;
 
     var d = document.getElementsByTagName('body')[0];
 
@@ -16,10 +15,11 @@ function applyHorizontalPagination() {
     var pageCount = Math.ceil((fullH/ourW) == 1 ? 1 : (fullH/ourH));
 
     var newW = (ourW * pageCount) - columnGap;
-    d.style.height = `${(ourH - ((columnGapTop + margin_top) / 2)) + stylemargin}px`;
+    d.style.height = `${(ourH - ((columnGapTop + marginTop) / 2)) + stylemargin}px`;
     d.style.width = `${newW}px`;
     
     d.style.margin = `${stylemargin}px`;
+    d.style.marginLeft = `${stylemargin}px`;
     
     d.style.webkitColumnCount = pageCount;
     d.style.textAlign = 'justify'

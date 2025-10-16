@@ -16,28 +16,42 @@ struct ReaderChapterView: View {
     /// Optional heading/title to show in nav bar.
     var title: String?
 
+    /// Current selected spine for the pager.
+    @State private var selection: Int
+
+    init(book: EpubBook, spineIndex: Int, title: String?) {
+        self.book = book
+        self.spineIndex = spineIndex
+        self.title = title
+        _selection = State(initialValue: spineIndex)
+    }
+
     var body: some View {
-        Group {
-            if let chapterURL = book.chapterURL(forSpineIndex: spineIndex) {
-                ChapterWebView(
-                    chapterURL: chapterURL,
-                    readAccessURL: book.opfDirectoryURL,
-                    opensExternalLinks: true
-                )
-                .ignoresSafeArea(edges: .bottom)
-            } else {
-                Text("Unable to resolve chapter at spine index \(spineIndex).")
-                    .foregroundStyle(.secondary)
-                    .padding()
+        TabView(selection: $selection) {
+            ForEach(0..<book.spine.count, id: \.self) { idx in
+                Group {
+                    if let chapterURL = book.chapterURL(forSpineIndex: idx) {
+                        ChapterWebView(
+                            chapterURL: chapterURL,
+                            readAccessURL: book.opfDirectoryURL,
+                            opensExternalLinks: true
+                        )
+                        .padding(16)
+                    } else {
+                        Text("Unable to resolve chapter at spine index \(idx).")
+                            .foregroundStyle(.secondary)
+                            .padding()
+                    }
+                }
+                .tag(idx)
             }
         }
-        .navigationTitle(title ?? "Chapter \(spineIndex + 1)")
+        .tabViewStyle(.page(indexDisplayMode: .automatic))
+        .navigationTitle(title ?? "Chapter \(selection + 1)")
         .navigationBarTitleDisplayMode(.inline)
     }
 }
 
 #Preview {
-    // Minimal stub to preview layout without real file URLs.
-    // Replace with a real `EpubBook` and index in app runtime.
     Text("ReaderChapterView preview placeholder")
 }
