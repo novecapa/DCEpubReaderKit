@@ -171,8 +171,7 @@ struct TocList: View {
 
     var body: some View {
         ForEach(Array(nodes.enumerated()), id: \.offset) { _, node in
-            VStack(alignment: .leading, spacing: 4) {
-
+            Group {
                 if let idx = book.spineIndex(forTOCHref: node.href ?? "") {
                     NavigationLink {
                         ReaderChapterView(
@@ -198,15 +197,19 @@ private struct TocRow: View {
     let depth: Int
 
     var body: some View {
-        let indent = String(repeating: "  ", count: depth)
-        if let idx = book.spineIndex(forTOCHref: node.href ?? "") {
-            Text("\(indent)• \(node.label)")
+        let hasHref = (book.spineIndex(forTOCHref: node.href ?? "") != nil)
+        let text = Text("• \(node.label)")
+
+        if hasHref {
+            text
                 .font(.body)
-            .accessibilityLabel("\(node.label)")
+                .padding(.leading, CGFloat(depth) * 12)
+                .accessibilityLabel("\(node.label)")
         } else {
             // Non-addressable TOC node (e.g., section header without href)
-            Text("\(indent)• \(node.label)")
+            text
                 .font(.body.weight(.semibold))
+                .padding(.leading, CGFloat(depth) * 12)
                 .accessibilityLabel("\(node.label)")
         }
     }

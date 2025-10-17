@@ -2,9 +2,9 @@
 
 function applyHorizontalPagination() {
     
-    let marginTop = 0;
+    let marginTop = 20;
     let columnGap = 0;
-    let columnGapTop = 0;
+    let columnGapTop = 20;
     let stylemargin = 0;
 
     var d = document.getElementsByTagName('body')[0];

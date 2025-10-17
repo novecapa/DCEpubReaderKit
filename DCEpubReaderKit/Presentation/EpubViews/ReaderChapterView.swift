@@ -39,7 +39,8 @@ struct ReaderChapterView: View {
                                 readAccessURL: book.opfDirectoryURL,
                                 opensExternalLinks: true
                             )
-                            .padding(16)
+                            .padding(.horizontal, 24)
+                            .padding(.top, 24)
                         } else {
                             Text("Unable to resolve chapter at spine index \(idx).")
                                 .foregroundStyle(.secondary)
