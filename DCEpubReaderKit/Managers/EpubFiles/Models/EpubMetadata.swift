@@ -15,4 +15,16 @@ public struct OPFMetadata {
     public var publisher: String?
     public var descriptionHTML: String?
     public var coverHint: String?
+
+    static let mock: OPFMetadata = OPFMetadata(
+        version: "2",
+        title: "Mock",
+        creators: ["DC Creator"],
+        language: "es",
+        identifiers: [""],
+        date: "222",
+        publisher: "publisher",
+        descriptionHTML: "",
+        coverHint: ""
+    )
 }

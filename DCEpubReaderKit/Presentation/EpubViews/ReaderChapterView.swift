@@ -19,7 +19,11 @@ struct ReaderChapterView: View {
     /// Current selected spine for the pager.
     @State private var selection: Int
 
-    init(book: EpubBook, spineIndex: Int, title: String?) {
+    init(
+        book: EpubBook,
+        spineIndex: Int,
+        title: String?
+    ) {
         self.book = book
         self.spineIndex = spineIndex
         self.title = title
@@ -34,13 +38,19 @@ struct ReaderChapterView: View {
                 ForEach(0..<book.spine.count, id: \.self) { idx in
                     Group {
                         if let chapterURL = book.chapterURL(forSpineIndex: idx) {
-                            ChapterWebView(
-                                chapterURL: chapterURL,
-                                readAccessURL: book.opfDirectoryURL,
-                                opensExternalLinks: true
-                            )
-                            .padding(.horizontal, 24)
-                            .padding(.top, 24)
+                            VStack {
+                                Text("titulo")
+                                ChapterWebView(
+                                    chapterURL: chapterURL,
+                                    readAccessURL: book.opfDirectoryURL,
+                                    opensExternalLinks: true
+                                ) { action in
+                                    print("action: \(action)")
+                                }
+                                .padding(.horizontal, 24)
+                                .padding(.top, 24)
+                                Text("página")
+                            }
                         } else {
                             Text("Unable to resolve chapter at spine index \(idx).")
                                 .foregroundStyle(.secondary)
@@ -58,9 +68,7 @@ struct ReaderChapterView: View {
 }
 
 #Preview {
-    ZStack {
-        Color(.backgroundLight)
-            .ignoresSafeArea(edges: .all)
-        Text("ReaderChapterView preview placeholder")
-    }
+    ReaderChapterView(book: .mock,
+                      spineIndex: 0,
+                      title: "Title")
 }

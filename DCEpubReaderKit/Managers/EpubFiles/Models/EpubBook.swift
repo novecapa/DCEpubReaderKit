@@ -14,6 +14,17 @@ public struct EpubBook {
     public let spine: [SpineItem]
     public let toc: [TocNode]
     public let resourcesRoot: URL
+
+    static let mock: EpubBook = EpubBook(
+        packagePath: "",
+        metadata: .mock,
+        manifest: [.mock],
+        spine: [.mock],
+        toc: [.mock],
+        resourcesRoot: URL(
+            string: "https:www.google.com"
+        )!
+    )
 }
 
 // MARK: - Helpers to resolve absolute URLs for chapters and resources.

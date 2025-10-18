@@ -8,4 +8,6 @@
 public struct SpineItem {
     public let idref: String
     public let linear: Bool
+
+    static let mock: SpineItem = SpineItem(idref: "", linear: false)
 }

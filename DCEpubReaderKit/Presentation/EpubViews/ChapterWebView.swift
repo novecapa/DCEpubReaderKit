@@ -19,6 +19,20 @@ struct ChapterWebView: UIViewRepresentable {
     /// Whether to allow opening external HTTP/HTTPS links outside the web view.
     var opensExternalLinks: Bool = true
 
+    let onAction: (String) -> Void
+
+    init(
+        chapterURL: URL,
+        readAccessURL: URL,
+        opensExternalLinks: Bool,
+        onAction: @escaping (String) -> Void
+    ) {
+        self.chapterURL = chapterURL
+        self.readAccessURL = readAccessURL
+        self.opensExternalLinks = opensExternalLinks
+        self.onAction = onAction
+    }
+
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         config.allowsAirPlayForMediaPlayback = false
@@ -54,8 +68,8 @@ struct ChapterWebView: UIViewRepresentable {
         // Avoid redundant loads.
         if webView.url != chapterURL {
             // LOAD from url path: webView.loadFileURL(chapterURL, allowingReadAccessTo: readAccessURL)
-            let HTMLContent = prepareHTMLString(pathtofile: chapterURL.path)
-            webView.loadHTMLString(HTMLContent, baseURL: chapterURL.deletingLastPathComponent())
+            let htmlContent = prepareHTMLString(pathtofile: chapterURL.path)
+            webView.loadHTMLString(htmlContent, baseURL: chapterURL.deletingLastPathComponent())
         }
         context.coordinator.opensExternalLinks = opensExternalLinks
         context.coordinator.readAccessURL = readAccessURL
@@ -68,48 +82,62 @@ struct ChapterWebView: UIViewRepresentable {
         let bundle = Bundle.main
         #endif
 
-        if let style = bundle.url(forResource: "Style", withExtension: "css"),
-           let utils = bundle.url(forResource: "EpubUtil", withExtension: "js") {
-
-            let headInject =
-            """
-            <link rel='stylesheet' type='text/css' href=\"\(style)\">\n
-            <script type='text/javascript' src=\"\(utils)\"></script>\n
-            <meta name='viewport'
-                content='width=device-width,
-                height=device-height,
-                initial-scale=1.0,
-                maximum-scale=1.0,
-                user-scalable=no'>\n
-            </head>
-            """
-            var HTMLContent = try? String(contentsOfFile: pathtofile, encoding: .utf8)
-            HTMLContent = HTMLContent?.replacingOccurrences(of: "</head>", with: headInject)
-
-            let fontName = "original"
-            let fontSize = "textSizeSeven"
-            let nightOrDayMode = "" // nightMode
-            HTMLContent = HTMLContent?.replacingOccurrences(
-                of: "<html",
-                with: "<html class=\"\(fontName) \(fontSize) \(nightOrDayMode) mediaOverlayStyle0'"
-            )
-            return HTMLContent ?? ""
+        guard let style = bundle.url(forResource: "Style", withExtension: "css"),
+              let utils = bundle.url(forResource: "EpubUtil", withExtension: "js"),
+              let contentsOfFile = pathtofile.removingPercentEncoding,
+              var htmlContent = try? String(contentsOfFile: contentsOfFile, encoding: .utf8) else {
+            return ""
         }
-        return ""
+
+        let headInject =
+        """
+        <link rel='stylesheet' type='text/css' href=\"\(style)\">\n
+        <script type='text/javascript' src=\"\(utils)\"></script>\n
+        <meta name='viewport'
+            content='width=device-width,
+            height=device-height,
+            initial-scale=1.0,
+            maximum-scale=1.0,
+            user-scalable=no'>\n
+        </head>
+        """
+
+        htmlContent = htmlContent.replacingOccurrences(of: "</head>", with: headInject)
+
+        // TODO: Get config from preferences
+        let fontName = "original"
+        let fontSize = "textSizeSeven"
+        let nightOrDayMode = "" // nightMode
+        htmlContent = htmlContent.replacingOccurrences(
+            of: "<html",
+            with: "<html class=\"\(fontName) \(fontSize) \(nightOrDayMode) mediaOverlayStyle0'"
+        )
+        return htmlContent
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator()
+        Coordinator(onAction: onAction)
     }
 
     final class Coordinator: NSObject, WKNavigationDelegate {
-        var opensExternalLinks: Bool = true
+        var opensExternalLinks: Bool
         var readAccessURL: URL?
+        let onAction: (String) -> Void
 
-        // Dentro de Coordinator
+        init(opensExternalLinks: Bool = true,
+             readAccessURL: URL? = nil,
+             onAction: @escaping (String) -> Void) {
+            self.opensExternalLinks = opensExternalLinks
+            self.readAccessURL = readAccessURL
+            self.onAction = onAction
+        }
+
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            webView.evaluateJavaScript("applyHorizontalPagination()") { _, _ in
-                print("-> applyHorizontalPagination()")
+            Task {
+                if let result = await applyHorizontalPagination(webView) {
+                    print("-> applyHorizontalPagination(): \(result)")
+                    self.onAction(result)
+                }
             }
         }
 
@@ -149,18 +177,26 @@ struct ChapterWebView: UIViewRepresentable {
     }
 }
 
+// MARK: - ChapterWebView.Coordinator JS Methods
+
 extension ChapterWebView.Coordinator {
-    func nextPage(_ webView: WKWebView) {
-        webView.evaluateJavaScript("EPUBUtil.next()")
+    func applyHorizontalPagination(_ webView: WKWebView) async -> String? {
+        try? await webView.evaluateJavaScriptAsync("applyHorizontalPagination()") as? String
     }
+}
 
-    func prevPage(_ webView: WKWebView) {
-        webView.evaluateJavaScript("EPUBUtil.prev()")
-    }
+// MARK: - WKWebView evaluateJavaScript with async/await
 
-    func currentPageIndex(_ webView: WKWebView, completion: @escaping (Int) -> Void) {
-        webView.evaluateJavaScript("EPUBUtil.pageIndex()") { value, _ in
-            completion(value as? Int ?? 0)
+private extension WKWebView {
+    func evaluateJavaScriptAsync(_ javaScript: String) async throws -> Any? {
+        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Any?, Error>) in
+            self.evaluateJavaScript(javaScript) { result, error in
+                if let error = error {
+                    cont.resume(throwing: error)
+                } else {
+                    cont.resume(returning: result)
+                }
+            }
         }
     }
 }

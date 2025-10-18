@@ -27,5 +27,5 @@ function applyHorizontalPagination() {
 
     let totalPages = newW / (ourW-columnGapTop-stylemargin)
     
-    return Math.round(totalPages);
+    return `${Math.round(totalPages)}`
 }

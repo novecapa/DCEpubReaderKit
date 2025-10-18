@@ -9,4 +9,6 @@ public struct TocNode {
     public let label: String
     public let href: String?
     public var children: [TocNode]
+
+    static let mock: TocNode = TocNode(label: "TocNode", href: "", children: [.mock])
 }

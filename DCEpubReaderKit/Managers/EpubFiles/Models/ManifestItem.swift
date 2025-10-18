@@ -10,4 +10,6 @@ public struct ManifestItem {
     public let href: String
     public let mediaType: String
     public var properties: String?
+
+    static let mock: ManifestItem = ManifestItem(id: "", href: "", mediaType: "")
 }
