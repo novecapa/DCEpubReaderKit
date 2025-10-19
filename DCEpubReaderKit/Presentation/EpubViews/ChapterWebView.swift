@@ -8,6 +8,11 @@
 import SwiftUI
 import WebKit
 
+enum ChapterViewAction {
+    case totalPageCount(count: Int, spineIndex: Int)
+    case currentPage(index: Int, spineIndex: Int)
+}
+
 struct ChapterWebView: UIViewRepresentable {
 
     /// Absolute file URL of the HTML/XHTML chapter.
@@ -17,19 +22,22 @@ struct ChapterWebView: UIViewRepresentable {
     let readAccessURL: URL
 
     /// Whether to allow opening external HTTP/HTTPS links outside the web view.
-    var opensExternalLinks: Bool = true
+    let opensExternalLinks: Bool
 
-    let onAction: (String) -> Void
+    /// Index of the spine that this view represents (used for disambiguating async callbacks).
+    let spineIndex: Int
 
-    init(
-        chapterURL: URL,
-        readAccessURL: URL,
-        opensExternalLinks: Bool,
-        onAction: @escaping (String) -> Void
-    ) {
+    let onAction: (ChapterViewAction) -> Void
+
+    init(chapterURL: URL,
+         readAccessURL: URL,
+         opensExternalLinks: Bool,
+         spineIndex: Int,
+         onAction: @escaping (ChapterViewAction) -> Void) {
         self.chapterURL = chapterURL
         self.readAccessURL = readAccessURL
         self.opensExternalLinks = opensExternalLinks
+        self.spineIndex = spineIndex
         self.onAction = onAction
     }
 
@@ -60,16 +68,19 @@ struct ChapterWebView: UIViewRepresentable {
         webView.scrollView.alwaysBounceVertical = false
         webView.scrollView.bounces = false
         webView.scrollView.isDirectionalLockEnabled = true
+        webView.scrollView.delegate = context.coordinator
+        webView.alpha = 0
 
         return webView
     }
 
     func updateUIView(_ webView: WKWebView, context: Context) {
-        // Avoid redundant loads.
-        if webView.url != chapterURL {
-            // LOAD from url path: webView.loadFileURL(chapterURL, allowingReadAccessTo: readAccessURL)
+        // Avoid redundant loads using a tracker on the coordinator
+        // (webView.url is unreliable with loadHTMLString)
+        if context.coordinator.currentChapterURL != chapterURL {
             let htmlContent = prepareHTMLString(pathtofile: chapterURL.path)
             webView.loadHTMLString(htmlContent, baseURL: chapterURL.deletingLastPathComponent())
+            context.coordinator.currentChapterURL = chapterURL
         }
         context.coordinator.opensExternalLinks = opensExternalLinks
         context.coordinator.readAccessURL = readAccessURL
@@ -116,28 +127,38 @@ struct ChapterWebView: UIViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(onAction: onAction)
+        Coordinator(spineIndex: spineIndex, onAction: onAction)
     }
 
     final class Coordinator: NSObject, WKNavigationDelegate {
+
         var opensExternalLinks: Bool
         var readAccessURL: URL?
-        let onAction: (String) -> Void
+        var currentChapterURL: URL?
+        let onAction: (ChapterViewAction) -> Void
+        let spineIndex: Int
+        weak var lazyWebview: WKWebView?
 
         init(opensExternalLinks: Bool = true,
              readAccessURL: URL? = nil,
-             onAction: @escaping (String) -> Void) {
+             spineIndex: Int,
+             onAction: @escaping (ChapterViewAction) -> Void) {
             self.opensExternalLinks = opensExternalLinks
             self.readAccessURL = readAccessURL
+            self.spineIndex = spineIndex
             self.onAction = onAction
         }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             Task {
-                if let result = await applyHorizontalPagination(webView) {
-                    print("-> applyHorizontalPagination(): \(result)")
-                    self.onAction(result)
+                if let result = await applyHorizontalPagination(webView),
+                   let pageCount = Int(result) {
+                    self.onAction(.totalPageCount(count: pageCount, spineIndex: self.spineIndex))
                 }
+                withAnimation {
+                    webView.alpha = 1
+                }
+                lazyWebview = webView
             }
         }
 
@@ -177,11 +198,42 @@ struct ChapterWebView: UIViewRepresentable {
     }
 }
 
+// MARK: - Webview Scroll listener
+
+extension ChapterWebView.Coordinator: UIScrollViewDelegate {
+
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        // Update current page when the scroll settles
+        let pageWidth = scrollView.bounds.width
+        guard pageWidth > 0 else { return }
+
+        // Use floor so exact boundaries map to the correct zero-based page index
+        let zeroBasedIndex = Int(floor(scrollView.contentOffset.x / pageWidth))
+        let currentPageOneBased = zeroBasedIndex + 1
+
+        onAction(.currentPage(index: currentPageOneBased, spineIndex: spineIndex))
+    }
+
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        if !decelerate {
+            let pageWidth = scrollView.bounds.width
+            guard pageWidth > 0 else { return }
+            let zeroBasedIndex = Int(floor(scrollView.contentOffset.x / pageWidth))
+            let currentPageOneBased = zeroBasedIndex + 1
+            onAction(.currentPage(index: currentPageOneBased, spineIndex: spineIndex))
+        }
+    }
+}
+
 // MARK: - ChapterWebView.Coordinator JS Methods
 
 extension ChapterWebView.Coordinator {
     func applyHorizontalPagination(_ webView: WKWebView) async -> String? {
         try? await webView.evaluateJavaScriptAsync("applyHorizontalPagination()") as? String
+    }
+
+    func scrollToLastPage(_ webView: WKWebView) async {
+        _ = try? await webView.evaluateJavaScriptAsync("scrollToLastHorizontalPage()")
     }
 }
 

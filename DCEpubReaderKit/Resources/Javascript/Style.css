@@ -19,7 +19,8 @@ article, aside, canvas, details, embed,
 figure, figcaption, footer, header, hgroup,
 menu, nav, output, ruby, section, summary,
 time, mark, audio, video {
-/*    margin: 0px;*/
+    margin-top: 0px;
+    margin-bottom: 0px;
     vertical-align: baseline;
 }
 
@@ -211,7 +212,6 @@ html .highlight-yellow, html .highlight-green, html .highlight-blue, html .highl
  */
 body {
     background-color: transparent !important;
-
     padding: 0px !important;
     /* padding-left: 0px !important;
     padding-right: 0px !important;*/

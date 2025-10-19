@@ -2,9 +2,9 @@
 
 function applyHorizontalPagination() {
     
-    let marginTop = 20;
+    let marginTop = 10;
     let columnGap = 0;
-    let columnGapTop = 20;
+    let columnGapTop = 10;
     let stylemargin = 0;
 
     var d = document.getElementsByTagName('body')[0];
@@ -29,3 +29,37 @@ function applyHorizontalPagination() {
     
     return `${Math.round(totalPages)}`
 }
+
+function scrollToLastHorizontalPage() {
+
+    let columnGap = 0;
+    let stylemargin = 0;
+
+    var d = document.getElementsByTagName('body')[0];
+
+    console.log(d)
+
+    let pageWidth = window.innerWidth
+    let totalWebWidth = d.offsetWidth
+
+    let adjustFinalWeb = d.style.columnCount * (stylemargin + columnGap)
+
+    let totalscroll = totalWebWidth+adjustFinalWeb+pageWidth+columnGap+stylemargin+stylemargin;
+    console.log(totalscroll);
+
+    scrollTo(totalscroll, 0)
+
+    return totalscroll
+}
+
+/*
+ (function(){
+     if (typeof window.scrollToLastPage === 'function') {
+         window.scrollToLastPage();
+         return 'ok-helper';
+     }
+     var el = document.scrollingElement || document.documentElement;
+     el.scrollLeft = el.scrollWidth;
+     return 'ok-fallback';
+ })();
+ */

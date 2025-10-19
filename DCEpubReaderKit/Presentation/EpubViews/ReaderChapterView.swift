@@ -17,39 +17,57 @@ struct ReaderChapterView: View {
     var title: String?
 
     /// Current selected spine for the pager.
-    @State private var selection: Int
+    @State private var currentSelection: Int
+    @State private var previousSelection: Int
 
-    init(
-        book: EpubBook,
-        spineIndex: Int,
-        title: String?
-    ) {
+    @State var totalPages: Int = 1
+    @State var currentPage: Int = 1
+
+    init(book: EpubBook,
+         spineIndex: Int,
+         title: String?) {
         self.book = book
         self.spineIndex = spineIndex
         self.title = title
-        _selection = State(initialValue: spineIndex)
+        _currentSelection = State(initialValue: spineIndex)
+        _previousSelection = State(initialValue: spineIndex)
     }
 
     var body: some View {
         ZStack {
             Color(.backgroundLight)
                 .ignoresSafeArea(edges: .all)
-            TabView(selection: $selection) {
+            TabView(selection: $currentSelection) {
                 ForEach(0..<book.spine.count, id: \.self) { idx in
                     Group {
                         if let chapterURL = book.chapterURL(forSpineIndex: idx) {
                             VStack {
-                                Text("titulo")
+                                if let title = book.metadata.title {
+                                    Text(title)
+                                }
                                 ChapterWebView(
                                     chapterURL: chapterURL,
                                     readAccessURL: book.opfDirectoryURL,
-                                    opensExternalLinks: true
+                                    opensExternalLinks: true,
+                                    spineIndex: idx
                                 ) { action in
-                                    print("action: \(action)")
+                                    switch action {
+                                    case .totalPageCount(let count, let spineIndex):
+                                        if spineIndex == self.currentSelection {
+                                            self.totalPages = count
+                                            if self.currentPage > count {
+                                                self.currentPage = count
+                                            }
+                                        }
+                                    case .currentPage(index: let index, spineIndex: let spineIndex):
+                                        if spineIndex == self.currentSelection {
+                                            self.currentPage = index
+                                        }
+                                    }
                                 }
                                 .padding(.horizontal, 24)
                                 .padding(.top, 24)
-                                Text("página")
+                                Text("página \(currentPage) de \(totalPages)")
                             }
                         } else {
                             Text("Unable to resolve chapter at spine index \(idx).")
@@ -61,8 +79,16 @@ struct ReaderChapterView: View {
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
-            .navigationTitle(title ?? book.chapterTitle(forSpineIndex: selection) ?? "Chapter \(selection + 1)")
+            .navigationTitle(title ?? book.chapterTitle(
+                forSpineIndex: currentSelection
+            ) ?? "Chapter \(currentSelection + 1)")
             .navigationBarTitleDisplayMode(.inline)
+        }
+        .onChange(of: currentSelection) { _ in
+            defer { previousSelection = currentSelection }
+            if currentSelection < previousSelection {
+                print("scroll to back")
+            }
         }
     }
 }
