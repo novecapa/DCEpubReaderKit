@@ -10,7 +10,11 @@ import WebKit
 
 enum ChapterViewAction {
     case totalPageCount(count: Int, spineIndex: Int)
-    case currentPage(index: Int, spineIndex: Int)
+    case currentPage(index: Int, totalPages: Int, spineIndex: Int)
+}
+
+private extension Notification.Name {
+    static let chapterShouldScrollToLastPage = Notification.Name("chapterShouldScrollToLastPage")
 }
 
 struct ChapterWebView: UIViewRepresentable {
@@ -21,9 +25,6 @@ struct ChapterWebView: UIViewRepresentable {
     /// Directory granting read access to all relative resources (usually `opfDirectoryURL`).
     let readAccessURL: URL
 
-    /// Whether to allow opening external HTTP/HTTPS links outside the web view.
-    let opensExternalLinks: Bool
-
     /// Index of the spine that this view represents (used for disambiguating async callbacks).
     let spineIndex: Int
 
@@ -31,12 +32,10 @@ struct ChapterWebView: UIViewRepresentable {
 
     init(chapterURL: URL,
          readAccessURL: URL,
-         opensExternalLinks: Bool,
          spineIndex: Int,
          onAction: @escaping (ChapterViewAction) -> Void) {
         self.chapterURL = chapterURL
         self.readAccessURL = readAccessURL
-        self.opensExternalLinks = opensExternalLinks
         self.spineIndex = spineIndex
         self.onAction = onAction
     }
@@ -82,7 +81,6 @@ struct ChapterWebView: UIViewRepresentable {
             webView.loadHTMLString(htmlContent, baseURL: chapterURL.deletingLastPathComponent())
             context.coordinator.currentChapterURL = chapterURL
         }
-        context.coordinator.opensExternalLinks = opensExternalLinks
         context.coordinator.readAccessURL = readAccessURL
     }
 
@@ -117,7 +115,7 @@ struct ChapterWebView: UIViewRepresentable {
 
         // TODO: Get config from preferences
         let fontName = "original"
-        let fontSize = "textSizeSeven"
+        let fontSize = "textSizeSix"
         let nightOrDayMode = "" // nightMode
         htmlContent = htmlContent.replacingOccurrences(
             of: "<html",
@@ -132,12 +130,16 @@ struct ChapterWebView: UIViewRepresentable {
 
     final class Coordinator: NSObject, WKNavigationDelegate {
 
+        private var scrollObserver: Any?
+
         var opensExternalLinks: Bool
         var readAccessURL: URL?
         var currentChapterURL: URL?
         let onAction: (ChapterViewAction) -> Void
         let spineIndex: Int
         weak var lazyWebview: WKWebView?
+        var scrollToLast: Bool = false
+        var note: Notification?
 
         init(opensExternalLinks: Bool = true,
              readAccessURL: URL? = nil,
@@ -147,18 +149,46 @@ struct ChapterWebView: UIViewRepresentable {
             self.readAccessURL = readAccessURL
             self.spineIndex = spineIndex
             self.onAction = onAction
+            super.init()
+            scrollObserver = NotificationCenter.default.addObserver(
+                forName: .chapterShouldScrollToLastPage,
+                object: nil,
+                queue: .main
+            ) { [weak self] note in
+                self?.note = note
+                self?.scrollToLast = true
+            }
+        }
+
+        deinit {
+            if let scrollObserver {
+                NotificationCenter.default.removeObserver(scrollObserver)
+            }
         }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            Task {
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.lazyWebview = webView
                 if let result = await applyHorizontalPagination(webView),
-                   let pageCount = Int(result) {
-                    self.onAction(.totalPageCount(count: pageCount, spineIndex: self.spineIndex))
+                   let totalPages = Int(result) {
+                    self.onAction(.currentPage(index: 1,
+                                               totalPages: totalPages,
+                                               spineIndex: self.spineIndex))
                 }
-                withAnimation {
+                if let target = note?.userInfo?["spineIndex"] as? Int,
+                      target == self.spineIndex {
+                    await self.scrollToLastPage(webView)
+                    self.note = nil
+                    self.scrollToLast = false
+                }
+                try? await Task.sleep(nanoseconds: 250_000_000)
+                self.scrollViewDidEndDecelerating(webView.scrollView)
+                try? await Task.sleep(nanoseconds: 250_000_000)
+                UIView.animate(withDuration: 0.15, delay: 0,
+                               options: [.curveEaseInOut]) {
                     webView.alpha = 1
                 }
-                lazyWebview = webView
             }
         }
 
@@ -201,27 +231,26 @@ struct ChapterWebView: UIViewRepresentable {
 // MARK: - Webview Scroll listener
 
 extension ChapterWebView.Coordinator: UIScrollViewDelegate {
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        if !decelerate {
+            scrollViewDidEndDecelerating(scrollView)
+        }
+    }
 
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         // Update current page when the scroll settles
+        let totalWebWidth = scrollView.contentSize.width
         let pageWidth = scrollView.bounds.width
         guard pageWidth > 0 else { return }
 
         // Use floor so exact boundaries map to the correct zero-based page index
-        let zeroBasedIndex = Int(floor(scrollView.contentOffset.x / pageWidth))
+        let zeroBasedIndex = Int(floor(scrollView.contentOffset.x / (pageWidth - 20)))
         let currentPageOneBased = zeroBasedIndex + 1
 
-        onAction(.currentPage(index: currentPageOneBased, spineIndex: spineIndex))
-    }
-
-    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        if !decelerate {
-            let pageWidth = scrollView.bounds.width
-            guard pageWidth > 0 else { return }
-            let zeroBasedIndex = Int(floor(scrollView.contentOffset.x / pageWidth))
-            let currentPageOneBased = zeroBasedIndex + 1
-            onAction(.currentPage(index: currentPageOneBased, spineIndex: spineIndex))
-        }
+        let totalPages = Int((totalWebWidth/pageWidth).rounded(.up))
+        onAction(.currentPage(index: currentPageOneBased,
+                              totalPages: totalPages,
+                              spineIndex: spineIndex))
     }
 }
 

@@ -7,6 +7,10 @@
 
 import SwiftUI
 
+private extension Notification.Name {
+    static let chapterShouldScrollToLastPage = Notification.Name("chapterShouldScrollToLastPage")
+}
+
 struct ReaderChapterView: View {
 
     let book: EpubBook
@@ -48,7 +52,6 @@ struct ReaderChapterView: View {
                                 ChapterWebView(
                                     chapterURL: chapterURL,
                                     readAccessURL: book.opfDirectoryURL,
-                                    opensExternalLinks: true,
                                     spineIndex: idx
                                 ) { action in
                                     switch action {
@@ -59,8 +62,11 @@ struct ReaderChapterView: View {
                                                 self.currentPage = count
                                             }
                                         }
-                                    case .currentPage(index: let index, spineIndex: let spineIndex):
+                                    case .currentPage(index: let index,
+                                                      totalPages: let totalPages,
+                                                      spineIndex: let spineIndex):
                                         if spineIndex == self.currentSelection {
+                                            self.totalPages = totalPages
                                             self.currentPage = index
                                         }
                                     }
@@ -88,6 +94,12 @@ struct ReaderChapterView: View {
             defer { previousSelection = currentSelection }
             if currentSelection < previousSelection {
                 print("scroll to back")
+                // Notify the web view of the newly selected spine to scroll to its last page.
+                NotificationCenter.default.post(
+                    name: .chapterShouldScrollToLastPage,
+                    object: nil,
+                    userInfo: ["spineIndex": currentSelection]
+                )
             }
         }
     }

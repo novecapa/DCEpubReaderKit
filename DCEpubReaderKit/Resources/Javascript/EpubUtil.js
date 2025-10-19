@@ -3,7 +3,7 @@
 function applyHorizontalPagination() {
     
     let marginTop = 10;
-    let columnGap = 0;
+    let columnGap = 10;
     let columnGapTop = 10;
     let stylemargin = 0;
 
@@ -36,8 +36,6 @@ function scrollToLastHorizontalPage() {
     let stylemargin = 0;
 
     var d = document.getElementsByTagName('body')[0];
-
-    console.log(d)
 
     let pageWidth = window.innerWidth
     let totalWebWidth = d.offsetWidth
