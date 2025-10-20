@@ -29,6 +29,8 @@ struct ChapterWebView: UIViewRepresentable {
     /// Index of the spine that this view represents (used for disambiguating async callbacks).
     let spineIndex: Int
 
+    var webView: WKWebView?
+
     let onAction: (ChapterViewAction) -> Void
 
     init(chapterURL: URL,
@@ -93,6 +95,10 @@ struct ChapterWebView: UIViewRepresentable {
         #endif
 
         guard let style = bundle.url(forResource: "Style", withExtension: "css"),
+              let bridge = bundle.url(forResource: "Bridge", withExtension: "js"),
+              let dohighlight = bundle.url(forResource: "dohighlight", withExtension: "js"),
+              let jquery = bundle.url(forResource: "jquery-1.10.2", withExtension: "js"),
+              let jqueryhighlight = bundle.url(forResource: "jquery.highlight", withExtension: "js"),
               let utils = bundle.url(forResource: "EpubUtil", withExtension: "js"),
               let contentsOfFile = pathtofile.removingPercentEncoding,
               var htmlContent = try? String(contentsOfFile: contentsOfFile, encoding: .utf8) else {
@@ -102,6 +108,10 @@ struct ChapterWebView: UIViewRepresentable {
         let headInject =
         """
         <link rel='stylesheet' type='text/css' href=\"\(style)\">\n
+        <script type='text/javascript' src=\"\(bridge)\"></script>\n
+        <script type='text/javascript' src=\"\(dohighlight)\"></script>\n
+        <script type='text/javascript' src=\"\(jquery)\"></script>\n
+        <script type='text/javascript' src=\"\(jqueryhighlight)\"></script>\n
         <script type='text/javascript' src=\"\(utils)\"></script>\n
         <meta name='viewport'
             content='width=device-width,
@@ -126,7 +136,7 @@ struct ChapterWebView: UIViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(spineIndex: spineIndex, onAction: onAction)
+        Coordinator(spineIndex: spineIndex, webView: webView, onAction: onAction)
     }
 
     final class Coordinator: NSObject, WKNavigationDelegate {
@@ -139,17 +149,19 @@ struct ChapterWebView: UIViewRepresentable {
         var currentChapterURL: URL?
         let onAction: (ChapterViewAction) -> Void
         let spineIndex: Int
-        weak var lazyWebview: WKWebView?
+        let webView: WKWebView?
         var note: Notification?
         var totalPagesCache: Int?
 
         init(opensExternalLinks: Bool = true,
              readAccessURL: URL? = nil,
              spineIndex: Int,
+             webView: WKWebView?,
              onAction: @escaping (ChapterViewAction) -> Void) {
             self.opensExternalLinks = opensExternalLinks
             self.readAccessURL = readAccessURL
             self.spineIndex = spineIndex
+            self.webView = webView
             self.onAction = onAction
             super.init()
             scrollObserver = NotificationCenter.default.addObserver(
@@ -173,7 +185,6 @@ struct ChapterWebView: UIViewRepresentable {
                 guard let self else { return }
                 self.onAction(.canTouch(enable: false))
                 webView.alpha = 0
-                self.lazyWebview = webView
                 if let result = await applyHorizontalPagination(webView),
                    let totalPages = Int(result) {
                     self.totalPagesCache = totalPages
