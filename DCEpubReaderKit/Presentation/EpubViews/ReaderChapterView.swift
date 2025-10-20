@@ -100,6 +100,8 @@ struct ReaderChapterView: View {
                     object: nil,
                     userInfo: ["spineIndex": currentSelection]
                 )
+            } else {
+                // Forward navigation: no notification needed
             }
         }
     }

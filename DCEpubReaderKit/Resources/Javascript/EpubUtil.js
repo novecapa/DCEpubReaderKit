@@ -12,11 +12,13 @@ function applyHorizontalPagination() {
     var ourH = window.innerHeight;
     var ourW = window.innerWidth;
     var fullH = d.offsetHeight;
-    var pageCount = Math.ceil((fullH/ourW) == 1 ? 1 : (fullH/ourH));
+    var pageCount = Math.max(1, Math.ceil(fullH / ourH));
 
-    var newW = (ourW * pageCount) - columnGap;
+    var newW = (ourW * pageCount);
     d.style.height = `${(ourH - ((columnGapTop + marginTop) / 2)) + stylemargin}px`;
     d.style.width = `${newW}px`;
+    d.style.webkitColumnGap = `${columnGap}px`;
+    d.style.columnGap = `${columnGap}px`;
     
     d.style.margin = `${stylemargin}px`;
     d.style.marginLeft = `${stylemargin}px`;
@@ -25,9 +27,7 @@ function applyHorizontalPagination() {
     d.style.textAlign = 'justify'
     d.style.overflow = 'visible';
 
-    let totalPages = newW / (ourW-columnGapTop-stylemargin)
-    
-    return `${Math.round(totalPages)}`
+    return `${pageCount}`
 }
 
 function scrollToLastHorizontalPage() {
@@ -35,29 +35,15 @@ function scrollToLastHorizontalPage() {
     let columnGap = 0;
     let stylemargin = 0;
 
-    var d = document.getElementsByTagName('body')[0];
+    var d = document.scrollingElement || document.documentElement || document.body;
 
-    let pageWidth = window.innerWidth
-    let totalWebWidth = d.offsetWidth
+    let pageWidth = window.innerWidth;
+    // Derive pageCount from scrollWidth to avoid counting an extra blank column
+    let pageCount = Math.max(1, Math.ceil(d.scrollWidth / pageWidth));
 
-    let adjustFinalWeb = d.style.columnCount * (stylemargin + columnGap)
+    let totalscroll = (pageCount - 1) * pageWidth + stylemargin;
 
-    let totalscroll = totalWebWidth+adjustFinalWeb+pageWidth+columnGap+stylemargin+stylemargin;
-    console.log(totalscroll);
+    d.scrollLeft = totalscroll;
 
-    scrollTo(totalscroll, 0)
-
-    return totalscroll
+    return totalscroll;
 }
-
-/*
- (function(){
-     if (typeof window.scrollToLastPage === 'function') {
-         window.scrollToLastPage();
-         return 'ok-helper';
-     }
-     var el = document.scrollingElement || document.documentElement;
-     el.scrollLeft = el.scrollWidth;
-     return 'ok-fallback';
- })();
- */
