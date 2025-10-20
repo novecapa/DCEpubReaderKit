@@ -138,7 +138,6 @@ struct ChapterWebView: UIViewRepresentable {
         let onAction: (ChapterViewAction) -> Void
         let spineIndex: Int
         weak var lazyWebview: WKWebView?
-        var scrollToLast: Bool = false
         var note: Notification?
         var totalPagesCache: Int?
 
@@ -158,11 +157,6 @@ struct ChapterWebView: UIViewRepresentable {
             ) { [weak self] note in
                 guard let self else { return }
                 self.note = note
-                self.scrollToLast = true
-                if let webView = lazyWebview,
-                   nil == note.userInfo?["spineIndex"] as? Int {
-                    self.scrollViewDidEndDecelerating(webView.scrollView)
-                }
             }
         }
 
@@ -188,7 +182,6 @@ struct ChapterWebView: UIViewRepresentable {
                       target == self.spineIndex {
                     await self.scrollToLastPage(webView)
                     self.note = nil
-                    self.scrollToLast = false
                 }
                 try? await Task.sleep(nanoseconds: 500_000_000)
                 self.scrollViewDidEndDecelerating(webView.scrollView)
@@ -280,30 +273,30 @@ extension ChapterWebView.Coordinator {
         let pageWidth = scrollView.bounds.width
         guard pageWidth > 0 else { return }
 
-        var lastWidth: CGFloat = -1
-        var stableCount = 0
-        for _ in 0..<20 { // ~600ms max
-            let width = scrollView.contentSize.width
-            if width == lastWidth && width > pageWidth {
-                stableCount += 1
-                if stableCount >= 2 { break } // two consecutive stable reads
-            } else {
-                stableCount = 0
-                lastWidth = width
-            }
-            try? await Task.sleep(nanoseconds: 30_000_000)
-        }
+//        var lastWidth: CGFloat = -1
+//        var stableCount = 0
+//        for _ in 0..<20 { // ~600ms max
+//            let width = scrollView.contentSize.width
+//            if width == lastWidth && width > pageWidth {
+//                stableCount += 1
+//                if stableCount >= 2 { break } // two consecutive stable reads
+//            } else {
+//                stableCount = 0
+//                lastWidth = width
+//            }
+//            try? await Task.sleep(nanoseconds: 30_000_000)
+//        }
 
         // 2) Ask JS to jump to the last page based on scrollWidth (column-layout aware)
         _ = try? await webView.evaluateJavaScriptAsync("scrollToLastHorizontalPage()")
 
         // 3) Verify and hard-correct if needed (fallback for edge races)
         try? await Task.sleep(nanoseconds: 50_000_000)
-        let totalW = scrollView.contentSize.width
-        let targetX = max(0, totalW - pageWidth)
-        if abs(scrollView.contentOffset.x - targetX) > 1 {
-            scrollView.setContentOffset(CGPoint(x: targetX, y: 0), animated: false)
-        }
+//        let totalW = scrollView.contentSize.width
+//        let targetX = max(0, totalW - pageWidth)
+//        if abs(scrollView.contentOffset.x - targetX) > 1 {
+//            scrollView.setContentOffset(CGPoint(x: targetX, y: 0), animated: false)
+//        }
 
         // 4) Emit the updated page index/total
         scrollViewDidEndDecelerating(scrollView)
