@@ -60,7 +60,7 @@ td, th, tr {
 }
 
 /* List */
-dd, dir, menu, ol, ul { margin-left: 30px !important; }
+dd, dir, menu, ol, ul { margin-left: 20px !important; }
 ol { list-style-type: decimal !important; }
 li { display: list-item !important; }
 ol ol, ol ul, ul ol, ul ul {

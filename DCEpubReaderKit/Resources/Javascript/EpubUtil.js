@@ -3,7 +3,7 @@
 function applyHorizontalPagination() {
     
     let marginTop = 10;
-    let columnGap = 10;
+    let columnGap = 20;
     let columnGapTop = 10;
     let stylemargin = 0;
 

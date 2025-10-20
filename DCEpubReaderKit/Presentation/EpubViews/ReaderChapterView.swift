@@ -26,6 +26,7 @@ struct ReaderChapterView: View {
 
     @State var totalPages: Int = 1
     @State var currentPage: Int = 1
+    @State private var canTouch: Bool = false
 
     init(book: EpubBook,
          spineIndex: Int,
@@ -69,6 +70,8 @@ struct ReaderChapterView: View {
                                             self.totalPages = totalPages
                                             self.currentPage = index
                                         }
+                                    case .canTouch(let enabled):
+                                        self.canTouch = enabled
                                     }
                                 }
                                 .padding(.horizontal, 24)
@@ -85,16 +88,14 @@ struct ReaderChapterView: View {
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
-            .navigationTitle(title ?? book.chapterTitle(
-                forSpineIndex: currentSelection
-            ) ?? "Chapter \(currentSelection + 1)")
+//            .navigationTitle(title ?? book.chapterTitle(
+//                forSpineIndex: currentSelection
+//            ) ?? "Chapter \(currentSelection + 1)")
             .navigationBarTitleDisplayMode(.inline)
         }
         .onChange(of: currentSelection) { _ in
             defer { previousSelection = currentSelection }
             if currentSelection < previousSelection {
-                print("scroll to back")
-                // Notify the web view of the newly selected spine to scroll to its last page.
                 NotificationCenter.default.post(
                     name: .chapterShouldScrollToLastPage,
                     object: nil,
