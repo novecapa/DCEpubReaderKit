@@ -70,7 +70,6 @@ struct ChapterWebView: UIViewRepresentable {
         webView.scrollView.isDirectionalLockEnabled = true
         webView.scrollView.delegate = context.coordinator
         webView.scrollView.contentInsetAdjustmentBehavior = .never
-        webView.alpha = 0
         webView.isUserInteractionEnabled = true // (scrolling stays managed by TabView disable)
 
         return webView
@@ -126,7 +125,7 @@ struct ChapterWebView: UIViewRepresentable {
 
         // TODO: Get config from preferences
         let fontName = "original"
-        let fontSize = "textSizeSix"
+        let fontSize = "textSizeFive"
         let nightOrDayMode = "" // nightMode
         let classAttr = "class=\"\(fontName) \(fontSize) \(nightOrDayMode) mediaOverlayStyle0\""
         if htmlContent.range(of: "<html class=") == nil {
@@ -151,6 +150,7 @@ struct ChapterWebView: UIViewRepresentable {
         let spineIndex: Int
         var note: Notification?
         var totalPagesCache: Int?
+        weak var lazyWebView: WKWebView?
 
         init(opensExternalLinks: Bool = true,
              readAccessURL: URL? = nil,
@@ -168,6 +168,7 @@ struct ChapterWebView: UIViewRepresentable {
             ) { [weak self] note in
                 guard let self else { return }
                 self.note = note
+                updateCurrentPage(note: note)
             }
         }
 
@@ -181,13 +182,12 @@ struct ChapterWebView: UIViewRepresentable {
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 self.onAction(.canTouch(enable: false))
-                webView.alpha = 0
                 if let result = await applyHorizontalPagination(webView),
                    let totalPages = Int(result) {
                     self.totalPagesCache = totalPages
-                    self.onAction(.currentPage(index: 1,
-                                               totalPages: totalPages,
-                                               spineIndex: self.spineIndex))
+//                    self.onAction(.currentPage(index: 1,
+//                                               totalPages: totalPages,
+//                                               spineIndex: self.spineIndex))
                 }
                 if let target = note?.userInfo?["spineIndex"] as? Int,
                       target == self.spineIndex {
@@ -200,12 +200,8 @@ struct ChapterWebView: UIViewRepresentable {
                 }
                 try? await Task.sleep(nanoseconds: 250_000_000)
                 self.scrollViewDidEndDecelerating(webView.scrollView)
-                try? await Task.sleep(nanoseconds: 250_000_000)
-                UIView.animate(withDuration: 0.15, delay: 0, options: [.curveEaseInOut]) {
-                    webView.alpha = 1
-                } completion: { _ in
-                    self.onAction(.canTouch(enable: true))
-                }
+                self.onAction(.canTouch(enable: true))
+                self.lazyWebView = webView
             }
         }
 
@@ -241,6 +237,14 @@ struct ChapterWebView: UIViewRepresentable {
             }
 
             decisionHandler(.allow)
+        }
+
+        private func updateCurrentPage(note: Notification?) {
+            guard let webView = lazyWebView else { return }
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 250_000_000)
+                self.scrollViewDidEndDecelerating(webView.scrollView)
+            }
         }
     }
 }

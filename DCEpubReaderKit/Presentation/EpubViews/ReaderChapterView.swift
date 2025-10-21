@@ -26,7 +26,7 @@ struct ReaderChapterView: View {
 
     @State var totalPages: Int = 1
     @State var currentPage: Int = 1
-    @State private var canTouch: Bool = false
+    @State private var canTouch: Bool = true
 
     init(book: EpubBook,
          spineIndex: Int,
@@ -72,12 +72,16 @@ struct ReaderChapterView: View {
                                         }
                                     case .canTouch(let enabled):
                                         self.canTouch = enabled
+                                        print("Can touch: \(enabled)")
                                     }
                                 }
                                 .padding(.horizontal, 24)
                                 .padding(.top, 24)
                                 Text("página \(currentPage) de \(totalPages)")
                             }
+                            .opacity(canTouch ? 1 : 0)
+                            .animation(.easeInOut(duration: 0.75), value: canTouch)
+
                         } else {
                             Text("Unable to resolve chapter at spine index \(idx).")
                                 .foregroundStyle(.secondary)
@@ -88,11 +92,12 @@ struct ReaderChapterView: View {
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
-            .disabled(!canTouch)
             .navigationBarTitleDisplayMode(.inline)
         }
         .onChange(of: currentSelection) { _ in
-            defer { previousSelection = currentSelection }
+            defer {
+                previousSelection = currentSelection
+            }
             NotificationCenter.default.post(
                 name: .chapterShouldScrollToLastPage,
                 object: nil,
