@@ -47,3 +47,8 @@ function scrollToLastHorizontalPage() {
 
     return totalscroll;
 }
+
+function scrollToFirstHorizontalPage() {
+    var d = document.scrollingElement || document.documentElement || document.body;
+    d.scrollLeft = 0;
+}

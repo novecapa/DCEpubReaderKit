@@ -88,20 +88,16 @@ struct ReaderChapterView: View {
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
-//            .navigationTitle(title ?? book.chapterTitle(
-//                forSpineIndex: currentSelection
-//            ) ?? "Chapter \(currentSelection + 1)")
+            .disabled(!canTouch)
             .navigationBarTitleDisplayMode(.inline)
         }
         .onChange(of: currentSelection) { _ in
             defer { previousSelection = currentSelection }
-            if currentSelection < previousSelection {
-                NotificationCenter.default.post(
-                    name: .chapterShouldScrollToLastPage,
-                    object: nil,
-                    userInfo: ["spineIndex": currentSelection]
-                )
-            }
+            NotificationCenter.default.post(
+                name: .chapterShouldScrollToLastPage,
+                object: nil,
+                userInfo: currentSelection < previousSelection ? ["spineIndex": currentSelection] : nil
+            )
         }
     }
 }

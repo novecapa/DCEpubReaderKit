@@ -29,8 +29,6 @@ struct ChapterWebView: UIViewRepresentable {
     /// Index of the spine that this view represents (used for disambiguating async callbacks).
     let spineIndex: Int
 
-    var webView: WKWebView?
-
     let onAction: (ChapterViewAction) -> Void
 
     init(chapterURL: URL,
@@ -71,7 +69,9 @@ struct ChapterWebView: UIViewRepresentable {
         webView.scrollView.bounces = false
         webView.scrollView.isDirectionalLockEnabled = true
         webView.scrollView.delegate = context.coordinator
+        webView.scrollView.contentInsetAdjustmentBehavior = .never
         webView.alpha = 0
+        webView.isUserInteractionEnabled = true // (scrolling stays managed by TabView disable)
 
         return webView
     }
@@ -128,15 +128,15 @@ struct ChapterWebView: UIViewRepresentable {
         let fontName = "original"
         let fontSize = "textSizeSix"
         let nightOrDayMode = "" // nightMode
-        htmlContent = htmlContent.replacingOccurrences(
-            of: "<html",
-            with: "<html class=\"\(fontName) \(fontSize) \(nightOrDayMode) mediaOverlayStyle0'"
-        )
+        let classAttr = "class=\"\(fontName) \(fontSize) \(nightOrDayMode) mediaOverlayStyle0\""
+        if htmlContent.range(of: "<html class=") == nil {
+            htmlContent = htmlContent.replacingOccurrences(of: "<html", with: "<html \(classAttr)")
+        }
         return htmlContent
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(spineIndex: spineIndex, webView: webView, onAction: onAction)
+        Coordinator(spineIndex: spineIndex, onAction: onAction)
     }
 
     final class Coordinator: NSObject, WKNavigationDelegate {
@@ -149,19 +149,16 @@ struct ChapterWebView: UIViewRepresentable {
         var currentChapterURL: URL?
         let onAction: (ChapterViewAction) -> Void
         let spineIndex: Int
-        let webView: WKWebView?
         var note: Notification?
         var totalPagesCache: Int?
 
         init(opensExternalLinks: Bool = true,
              readAccessURL: URL? = nil,
              spineIndex: Int,
-             webView: WKWebView?,
              onAction: @escaping (ChapterViewAction) -> Void) {
             self.opensExternalLinks = opensExternalLinks
             self.readAccessURL = readAccessURL
             self.spineIndex = spineIndex
-            self.webView = webView
             self.onAction = onAction
             super.init()
             scrollObserver = NotificationCenter.default.addObserver(
@@ -194,15 +191,20 @@ struct ChapterWebView: UIViewRepresentable {
                 }
                 if let target = note?.userInfo?["spineIndex"] as? Int,
                       target == self.spineIndex {
+                    try? await Task.sleep(nanoseconds: 250_000_000)
                     await self.scrollToLastPage(webView)
                     self.note = nil
+                } else {
+                    try? await Task.sleep(nanoseconds: 250_000_000)
+                    await self.scrollToFirstPage(webView)
                 }
-                try? await Task.sleep(nanoseconds: 500_000_000)
+                try? await Task.sleep(nanoseconds: 250_000_000)
                 self.scrollViewDidEndDecelerating(webView.scrollView)
                 try? await Task.sleep(nanoseconds: 250_000_000)
-                UIView.animate(withDuration: 0.15, delay: 0,
-                               options: [.curveEaseInOut]) {
+                UIView.animate(withDuration: 0.15, delay: 0, options: [.curveEaseInOut]) {
                     webView.alpha = 1
+                } completion: { _ in
+                    self.onAction(.canTouch(enable: true))
                 }
             }
         }
@@ -284,6 +286,12 @@ extension ChapterWebView.Coordinator {
     func scrollToLastPage(_ webView: WKWebView) async {
         let scrollView = webView.scrollView
         _ = try? await webView.evaluateJavaScriptAsync("scrollToLastHorizontalPage()")
+        scrollViewDidEndDecelerating(scrollView)
+    }
+
+    func scrollToFirstPage(_ webView: WKWebView) async {
+        let scrollView = webView.scrollView
+        _ = try? await webView.evaluateJavaScriptAsync("scrollToFirstHorizontalPage()")
         scrollViewDidEndDecelerating(scrollView)
     }
 }
