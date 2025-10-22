@@ -52,3 +52,18 @@ function scrollToFirstHorizontalPage() {
     var d = document.scrollingElement || document.documentElement || document.body;
     d.scrollLeft = 0;
 }
+
+function rectsForSelection() {
+    var i = 0, j = 0;
+    var allSelections = window.getSelection();
+    var result = []; // An empty array right now
+    // Generally, there is only one selection, but the spec allows multiple
+    for (i=0; i < allSelections.rangeCount; i++) {
+        var aRange = allSelections.getRangeAt(i);
+        var rects = aRange.getClientRects();
+        for (j=0; j<rects.length; j++) {
+            result.push(rects[j]);
+        }
+    }
+    return JSON.stringify(result);
+}

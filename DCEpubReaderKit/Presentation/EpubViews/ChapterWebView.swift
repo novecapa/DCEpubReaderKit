@@ -48,7 +48,7 @@ struct ChapterWebView: UIViewRepresentable {
         config.preferences.javaScriptCanOpenWindowsAutomatically = false
         config.preferences.javaScriptEnabled = true
 
-        let webView = WKWebView(frame: .zero, configuration: config)
+        let webView = DCWebView(frame: .zero, configuration: config)
         #if DEBUG
         if #available(iOS 16.4, *) {
             webView.isInspectable = true
@@ -71,7 +71,7 @@ struct ChapterWebView: UIViewRepresentable {
         webView.scrollView.delegate = context.coordinator
         webView.scrollView.contentInsetAdjustmentBehavior = .never
         webView.isUserInteractionEnabled = true // (scrolling stays managed by TabView disable)
-
+        webView.injectSelectionListener()
         return webView
     }
 
@@ -150,7 +150,7 @@ struct ChapterWebView: UIViewRepresentable {
         let spineIndex: Int
         var note: Notification?
         var totalPagesCache: Int?
-        weak var lazyWebView: WKWebView?
+        weak var lazyWebView: DCWebView?
 
         init(opensExternalLinks: Bool = true,
              readAccessURL: URL? = nil,
@@ -173,6 +173,9 @@ struct ChapterWebView: UIViewRepresentable {
         }
 
         deinit {
+            if let webView = lazyWebView {
+                webView.configuration.userContentController.removeScriptMessageHandler(forName: "selectionChanged")
+            }
             if let scrollObserver {
                 NotificationCenter.default.removeObserver(scrollObserver)
             }
@@ -202,7 +205,7 @@ struct ChapterWebView: UIViewRepresentable {
                 try? await Task.sleep(nanoseconds: 250_000_000)
                 self.scrollViewDidEndDecelerating(webView.scrollView)
 //                self.onAction(.canTouch(enable: true))
-                self.lazyWebView = webView
+                self.lazyWebView = webView as? DCWebView
             }
         }
 
@@ -315,5 +318,116 @@ private extension WKWebView {
                 }
             }
         }
+    }
+}
+
+final class DCWebView: WKWebView, WKScriptMessageHandler {
+
+    func teardown() {
+        self.configuration.userContentController.removeScriptMessageHandler(forName: "selectionChanged")
+    }
+
+    func injectSelectionListener() {
+        let js = #"""
+        (function () {
+          function notify() {
+            try {
+              const sel = window.getSelection();
+              const text = sel ? sel.toString() : "";
+              if (!text) {
+                window.webkit.messageHandlers.selectionChanged.postMessage({ text: "", rects: [] });
+                return;
+              }
+              if (!sel.rangeCount) return;
+              const range = sel.getRangeAt(0);
+              const rects = Array.from(range.getClientRects()).map(r => ({
+                x: r.left + window.scrollX,
+                y: r.top  + window.scrollY,
+                w: r.width,
+                h: r.height
+              }));
+              window.webkit.messageHandlers.selectionChanged.postMessage({ text, rects });
+            } catch (e) { /* noop */ }
+          }
+
+          let to = null;
+          function debouncedNotify() {
+            if (to) clearTimeout(to);
+            to = setTimeout(notify, 80);
+          }
+
+          document.addEventListener("selectionchange", debouncedNotify, true);
+          document.addEventListener("mouseup", notify, true);
+          document.addEventListener("touchend", notify, true);
+        })();
+        """#
+
+        let userScript = WKUserScript(source: js, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
+        self.configuration.userContentController.addUserScript(userScript)
+        self.configuration.userContentController.add(self, name: "selectionChanged")
+    }
+
+    // MARK: - WKScriptMessageHandler
+    func userContentController(_ userContentController: WKUserContentController,
+                               didReceive message: WKScriptMessage) {
+        guard message.name == "selectionChanged",
+              let dict = message.body as? [String: Any],
+              let selectedText = dict["text"] as? String else { return }
+
+        guard !selectedText.isEmpty else { return }
+
+        if let rects = dict["rects"] as? [[String: CGFloat]], let first = rects.first,
+           let xValue = first["x"], let yValue = first["y"], let wValue = first["w"], let hValue = first["h"] {
+
+            let offset = self.scrollView.contentOffset
+            let rectInView = CGRect(x: xValue - offset.x, y: yValue - offset.y, width: wValue, height: hValue)
+
+//            self.evaluateJavaScript("window.getSelection().toString()") { [weak self] (result, error) in
+//                guard let self, error == nil, let selected = result as? String, !selected.isEmpty else { return }
+//
+//                self.evaluateJavaScript("rectsForSelection()") { (result, error) in
+//                    guard error == nil, let rectsString = result as? String,
+//                          let rectsData = rectsString.data(using: .utf8),
+//                          let jsonArray = try? JSONSerialization.jsonObject(with: rectsData) as? [[String: Any]],
+//                          let first = jsonArray.first,
+//                          let xValue = first["x"] as? CGFloat,
+//                          let yValue = first["y"] as? CGFloat else {
+//                        return
+//                    }
+//
+//                    let offset = self.scrollView.contentOffset
+//                    let rectInView = CGRect(x: xValue - offset.x, y: yValue - offset.y, width: 0, height: 0)
+//
+//                    self.presentSelectionMenu(at: rectInView, text: selected)
+//                }
+//            }
+
+            presentSelectionMenu(at: rectInView, text: selectedText)
+        }
+    }
+
+    private func presentSelectionMenu(at rect: CGRect, text: String) {
+        let menu = UIMenuController.shared
+        menu.menuItems = [
+            UIMenuItem(title: "Highlight", action: #selector(highlightSelection)),
+            UIMenuItem(title: "Note", action: #selector(addNote))
+        ]
+        menu.showMenu(from: self, rect: rect)
+    }
+
+    @objc private func highlightSelection() {}
+    @objc private func addNote() {}
+
+    override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
+        if action == #selector(highlightSelection) ||
+            action == #selector(addNote) {
+            return true
+        } else {
+            return false
+        }
+    }
+
+    override var canBecomeFirstResponder: Bool {
+        return true
     }
 }

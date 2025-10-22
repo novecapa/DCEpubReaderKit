@@ -72,7 +72,6 @@ struct ReaderChapterView: View {
                                         }
                                     case .canTouch(let enabled):
                                         self.canTouch = enabled
-                                        print("Can touch: \(enabled)")
                                     }
                                 }
                                 .padding(.horizontal, 24)
