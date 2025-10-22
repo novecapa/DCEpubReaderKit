@@ -181,26 +181,27 @@ struct ChapterWebView: UIViewRepresentable {
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             Task { @MainActor [weak self] in
                 guard let self else { return }
-                self.onAction(.canTouch(enable: false))
-                if let result = await applyHorizontalPagination(webView),
+//                self.onAction(.canTouch(enable: false))
+                if lazyWebView == nil,
+                   let result = await applyHorizontalPagination(webView),
                    let totalPages = Int(result) {
                     self.totalPagesCache = totalPages
-//                    self.onAction(.currentPage(index: 1,
-//                                               totalPages: totalPages,
-//                                               spineIndex: self.spineIndex))
+                    self.onAction(.currentPage(index: 1,
+                                               totalPages: totalPages,
+                                               spineIndex: self.spineIndex))
                 }
                 if let target = note?.userInfo?["spineIndex"] as? Int,
                       target == self.spineIndex {
-                    try? await Task.sleep(nanoseconds: 250_000_000)
+                    try? await Task.sleep(nanoseconds: 500_000_000)
                     await self.scrollToLastPage(webView)
                     self.note = nil
                 } else {
-                    try? await Task.sleep(nanoseconds: 250_000_000)
+                    try? await Task.sleep(nanoseconds: 500_000_000)
                     await self.scrollToFirstPage(webView)
                 }
                 try? await Task.sleep(nanoseconds: 250_000_000)
                 self.scrollViewDidEndDecelerating(webView.scrollView)
-                self.onAction(.canTouch(enable: true))
+//                self.onAction(.canTouch(enable: true))
                 self.lazyWebView = webView
             }
         }
@@ -242,6 +243,7 @@ struct ChapterWebView: UIViewRepresentable {
         private func updateCurrentPage(note: Notification?) {
             guard let webView = lazyWebView else { return }
             Task { @MainActor in
+                self.note = nil
                 try? await Task.sleep(nanoseconds: 250_000_000)
                 self.scrollViewDidEndDecelerating(webView.scrollView)
             }
