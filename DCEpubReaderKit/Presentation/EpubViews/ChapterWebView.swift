@@ -71,7 +71,7 @@ struct ChapterWebView: UIViewRepresentable {
         webView.scrollView.delegate = context.coordinator
         webView.scrollView.contentInsetAdjustmentBehavior = .never
         webView.isUserInteractionEnabled = true // (scrolling stays managed by TabView disable)
-        webView.injectSelectionListener()
+
         return webView
     }
 
@@ -321,88 +321,81 @@ private extension WKWebView {
     }
 }
 
-final class DCWebView: WKWebView, WKScriptMessageHandler {
+// MARK: - WKScriptMessageHandler
+
+final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDelegate {
 
     func teardown() {
         self.configuration.userContentController.removeScriptMessageHandler(forName: "selectionChanged")
     }
 
-    func injectSelectionListener() {
-        let js = #"""
-        (function () {
-          function notify() {
-            try {
-              const sel = window.getSelection();
-              const text = sel ? sel.toString() : "";
-              if (!text) {
-                window.webkit.messageHandlers.selectionChanged.postMessage({ text: "", rects: [] });
-                return;
-              }
-              if (!sel.rangeCount) return;
-              const range = sel.getRangeAt(0);
-              const rects = Array.from(range.getClientRects()).map(r => ({
-                x: r.left + window.scrollX,
-                y: r.top  + window.scrollY,
-                w: r.width,
-                h: r.height
-              }));
-              window.webkit.messageHandlers.selectionChanged.postMessage({ text, rects });
-            } catch (e) { /* noop */ }
-          }
+    var gestureCounter: Int = 0
 
-          let to = null;
-          function debouncedNotify() {
-            if (to) clearTimeout(to);
-            to = setTimeout(notify, 80);
-          }
+    override init(frame: CGRect, configuration: WKWebViewConfiguration) {
+        super.init(frame: frame, configuration: configuration)
+        setupTapGesture()
+        injectSelectionListener()
+    }
 
-          document.addEventListener("selectionchange", debouncedNotify, true);
-          document.addEventListener("mouseup", notify, true);
-          document.addEventListener("touchend", notify, true);
-        })();
-        """#
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupTapGesture()
+        injectSelectionListener()
+    }
 
-        let userScript = WKUserScript(source: js, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
-        self.configuration.userContentController.addUserScript(userScript)
+    deinit {
+        teardown()
+    }
+
+    private func setupTapGesture() {
+        let tap = UITapGestureRecognizer(target: self, action: #selector(removeMenuItems))
+        tap.numberOfTapsRequired = 1
+        tap.numberOfTouchesRequired = 1
+        tap.cancelsTouchesInView = false
+        tap.delegate = self
+        self.addGestureRecognizer(tap)
+    }
+
+    // MARK: - UIGestureRecognizerDelegate
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
+                           shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        true
+    }
+
+    @objc private func removeMenuItems() {
+        let menu = UIMenuController.shared
+//        if menu.isMenuVisible {
+            menu.hideMenu()
+            menu.menuItems = nil // opcional: limpia también los items
+//        }
+//        menu.menuItems?.removeAll()
+//        menu.setMenuVisible(false, animated: true)
+    }
+
+    private func injectSelectionListener() {
+        teardown()
         self.configuration.userContentController.add(self, name: "selectionChanged")
     }
 
-    // MARK: - WKScriptMessageHandler
-    func userContentController(_ userContentController: WKUserContentController,
-                               didReceive message: WKScriptMessage) {
-        guard message.name == "selectionChanged",
-              let dict = message.body as? [String: Any],
-              let selectedText = dict["text"] as? String else { return }
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        removeMenuItems()
+        self.evaluateJavaScript("window.getSelection().toString()") { [weak self] (result, error) in
+            guard let self, error == nil, let selected = result as? String, !selected.isEmpty else { return }
+            self.evaluateJavaScript("rectsForSelection()") { (result, error) in
+                guard error == nil, let rectsString = result as? String,
+                      let rectsData = rectsString.data(using: .utf8),
+                      let jsonArray = try? JSONSerialization.jsonObject(with: rectsData) as? [[String: Any]],
+                      let first = jsonArray.first,
+                      let xValue = first["x"] as? CGFloat,
+                      let yValue = first["y"] as? CGFloat else {
+                    return
+                }
 
-        guard !selectedText.isEmpty else { return }
+                let offset = self.scrollView.contentOffset
+                let rectInView = CGRect(x: xValue - offset.x, y: yValue - offset.y, width: 0, height: 0)
 
-        if let rects = dict["rects"] as? [[String: CGFloat]], let first = rects.first,
-           let xValue = first["x"], let yValue = first["y"], let wValue = first["w"], let hValue = first["h"] {
-
-            let offset = self.scrollView.contentOffset
-            let rectInView = CGRect(x: xValue - offset.x, y: yValue - offset.y, width: wValue, height: hValue)
-
-//            self.evaluateJavaScript("window.getSelection().toString()") { [weak self] (result, error) in
-//                guard let self, error == nil, let selected = result as? String, !selected.isEmpty else { return }
-//
-//                self.evaluateJavaScript("rectsForSelection()") { (result, error) in
-//                    guard error == nil, let rectsString = result as? String,
-//                          let rectsData = rectsString.data(using: .utf8),
-//                          let jsonArray = try? JSONSerialization.jsonObject(with: rectsData) as? [[String: Any]],
-//                          let first = jsonArray.first,
-//                          let xValue = first["x"] as? CGFloat,
-//                          let yValue = first["y"] as? CGFloat else {
-//                        return
-//                    }
-//
-//                    let offset = self.scrollView.contentOffset
-//                    let rectInView = CGRect(x: xValue - offset.x, y: yValue - offset.y, width: 0, height: 0)
-//
-//                    self.presentSelectionMenu(at: rectInView, text: selected)
-//                }
-//            }
-
-            presentSelectionMenu(at: rectInView, text: selectedText)
+                self.presentSelectionMenu(at: rectInView, text: selected)
+            }
         }
     }
 
