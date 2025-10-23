@@ -14,10 +14,6 @@ enum ChapterViewAction {
     case canTouch(enable: Bool)
 }
 
-private extension Notification.Name {
-    static let chapterShouldScrollToLastPage = Notification.Name("chapterShouldScrollToLastPage")
-}
-
 struct ChapterWebView: UIViewRepresentable {
 
     /// Absolute file URL of the HTML/XHTML chapter.
@@ -49,11 +45,11 @@ struct ChapterWebView: UIViewRepresentable {
         config.preferences.javaScriptEnabled = true
 
         let webView = DCWebView(frame: .zero, configuration: config)
-#if DEBUG
+        #if DEBUG
         if #available(iOS 16.4, *) {
             webView.isInspectable = true
         }
-#endif
+        #endif
         webView.navigationDelegate = context.coordinator
         webView.scrollView.decelerationRate = .normal
         webView.isOpaque = false
@@ -87,11 +83,11 @@ struct ChapterWebView: UIViewRepresentable {
     }
 
     private func prepareHTMLString(pathtofile: String) -> String {
-#if SWIFT_PACKAGE
+        #if SWIFT_PACKAGE
         let bundle = Bundle.module
-#else
+        #else
         let bundle = Bundle.main
-#endif
+        #endif
 
         guard let style = bundle.url(forResource: "Style", withExtension: "css"),
               let bridge = bundle.url(forResource: "Bridge", withExtension: "js"),
@@ -140,10 +136,19 @@ struct ChapterWebView: UIViewRepresentable {
 
     final class Coordinator: NSObject, WKNavigationDelegate {
 
-        private var scrollObserver: Any?
-        private var selectedText: String = ""
+        private enum Constants {
+            static let spineIndex = "spineIndex"
+        }
 
-        var opensExternalLinks: Bool
+        private enum JSConstants {
+            static let applyHorizontalPagination = "applyHorizontalPagination()"
+            static let scrollToLastHorizontalPage = "scrollToLastHorizontalPage()"
+            static let scrollToFirstHorizontalPage = "scrollToFirstHorizontalPage()"
+        }
+
+        private var scrollObserver: Any?
+
+        let opensExternalLinks: Bool
         var readAccessURL: URL?
         var currentChapterURL: URL?
         let onAction: (ChapterViewAction) -> Void
@@ -173,9 +178,6 @@ struct ChapterWebView: UIViewRepresentable {
         }
 
         deinit {
-            if let webView = lazyWebView {
-                webView.configuration.userContentController.removeScriptMessageHandler(forName: "selectionChanged")
-            }
             if let scrollObserver {
                 NotificationCenter.default.removeObserver(scrollObserver)
             }
@@ -184,7 +186,7 @@ struct ChapterWebView: UIViewRepresentable {
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             Task { @MainActor [weak self] in
                 guard let self else { return }
-                //                self.onAction(.canTouch(enable: false))
+                // self.onAction(.canTouch(enable: false))
                 if lazyWebView == nil,
                    let result = await applyHorizontalPagination(webView),
                    let totalPages = Int(result) {
@@ -193,7 +195,7 @@ struct ChapterWebView: UIViewRepresentable {
                                                totalPages: totalPages,
                                                spineIndex: self.spineIndex))
                 }
-                if let target = note?.userInfo?["spineIndex"] as? Int,
+                if let target = note?.userInfo?[Constants.spineIndex] as? Int,
                    target == self.spineIndex {
                     try? await Task.sleep(nanoseconds: 500_000_000)
                     await self.scrollToLastPage(webView)
@@ -204,7 +206,7 @@ struct ChapterWebView: UIViewRepresentable {
                 }
                 try? await Task.sleep(nanoseconds: 250_000_000)
                 self.scrollViewDidEndDecelerating(webView.scrollView)
-                //                self.onAction(.canTouch(enable: true))
+                // self.onAction(.canTouch(enable: true))
                 self.lazyWebView = webView as? DCWebView
             }
         }
@@ -233,9 +235,9 @@ struct ChapterWebView: UIViewRepresentable {
 
             // External links: open outside if enabled
             if opensExternalLinks, ["http", "https"].contains(url.scheme?.lowercased() ?? "") {
-#if os(iOS)
+                #if os(iOS)
                 UIApplication.shared.open(url, options: [:], completionHandler: nil)
-#endif
+                #endif
                 decisionHandler(.cancel)
                 return
             }
@@ -287,204 +289,20 @@ extension ChapterWebView.Coordinator: UIScrollViewDelegate {
 
 // MARK: - ChapterWebView.Coordinator JS Methods
 
-extension ChapterWebView.Coordinator {
+private extension ChapterWebView.Coordinator {
     func applyHorizontalPagination(_ webView: WKWebView) async -> String? {
-        try? await webView.evaluateJavaScriptAsync("applyHorizontalPagination()") as? String
+        try? await webView.evaluateJavaScriptAsync(JSConstants.applyHorizontalPagination) as? String
     }
 
     func scrollToLastPage(_ webView: WKWebView) async {
         let scrollView = webView.scrollView
-        _ = try? await webView.evaluateJavaScriptAsync("scrollToLastHorizontalPage()")
+        _ = try? await webView.evaluateJavaScriptAsync(JSConstants.scrollToLastHorizontalPage)
         scrollViewDidEndDecelerating(scrollView)
     }
 
     func scrollToFirstPage(_ webView: WKWebView) async {
         let scrollView = webView.scrollView
-        _ = try? await webView.evaluateJavaScriptAsync("scrollToFirstHorizontalPage()")
+        _ = try? await webView.evaluateJavaScriptAsync(JSConstants.scrollToFirstHorizontalPage)
         scrollViewDidEndDecelerating(scrollView)
     }
 }
-
-// MARK: - WKWebView evaluateJavaScript with async/await
-
-private extension WKWebView {
-    func evaluateJavaScriptAsync(_ javaScript: String) async throws -> Any? {
-        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Any?, Error>) in
-            self.evaluateJavaScript(javaScript) { result, error in
-                if let error = error {
-                    cont.resume(throwing: error)
-                } else {
-                    cont.resume(returning: result)
-                }
-            }
-        }
-    }
-}
-
-// MARK: - WKScriptMessageHandler
-
-final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDelegate {
-
-    func teardown() {
-        self.configuration.userContentController.removeScriptMessageHandler(forName: "selectionChanged")
-    }
-
-    var gestureCounter: Int = 0
-
-    override init(frame: CGRect, configuration: WKWebViewConfiguration) {
-        super.init(frame: frame, configuration: configuration)
-        setupTapGesture()
-        injectSelectionListener()
-    }
-
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setupTapGesture()
-        injectSelectionListener()
-    }
-
-    deinit {
-        teardown()
-    }
-
-    private func setupTapGesture() {
-        let tap = UITapGestureRecognizer(target: self, action: #selector(removeMenuItems))
-        tap.numberOfTapsRequired = 1
-        tap.numberOfTouchesRequired = 1
-        tap.cancelsTouchesInView = false
-        tap.delegate = self
-        self.addGestureRecognizer(tap)
-    }
-
-    // MARK: - UIGestureRecognizerDelegate
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
-                           shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        true
-    }
-
-    @objc private func removeMenuItems() {
-        let menu = UIMenuController.shared
-        menu.menuItems?.removeAll()
-        menu.hideMenu()
-        menu.menuItems = nil
-    }
-
-    private func injectSelectionListener() {
-        teardown()
-        self.configuration.userContentController.add(self, name: "selectionChanged")
-    }
-
-    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        removeMenuItems()
-        Task { @MainActor in
-            guard let selected = try? await self.evaluateJavaScriptAsync("window.getSelection().toString()") as? String,
-                  !selected.isEmpty,
-            let rectsString = try? await self.evaluateJavaScriptAsync("rectsForSelection()") as? String,
-                let rectsData = rectsString.data(using: .utf8),
-                let jsonArray = try? JSONSerialization.jsonObject(with: rectsData) as? [[String: Any]],
-                let first = jsonArray.first,
-                let xValue = first["x"] as? CGFloat,
-                let yValue = first["y"] as? CGFloat else { return }
-
-            let rectInView = CGRect(x: xValue, y: yValue, width: 0, height: 0)
-            self.presentSelectionMenu(at: rectInView, text: selected)
-        }
-    }
-
-    private func presentSelectionMenu(at rect: CGRect, text: String) {
-        let menu = UIMenuController.shared
-        menu.menuItems = [
-            UIMenuItem(title: "Highlight", action: #selector(highlightSelection)),
-            UIMenuItem(title: "Note", action: #selector(addNote))
-        ]
-        menu.showMenu(from: self, rect: rect)
-    }
-
-    @objc private func highlightSelection() {
-        self.evaluateJavaScript("getCoordsFromSelection()") { (result, error) in
-            guard let coords = result as? String, error == nil else { return }
-            self.evaluateJavaScript("window.getSelection().toString()") { (result, error) in
-                guard let text = result as? String, error == nil else { return }
-                if text.contains("\n") {
-                    // TODO: -- Show Alert
-                    return
-                }
-                self.evaluateJavaScript("highlightString('highlight-yellow')") { (result, error) in
-                    guard let uuid = result as? String, error == nil else { return }
-                    // TODO: Save highlight
-                    print(
-                        "coords: \(coords) text: \(text) uuid: \(uuid)"
-                    )
-                    self.removeMenuItems()
-                }
-            }
-        }
-    }
-
-    @objc private func addNote() {
-        self.evaluateJavaScript("getCoordsFromSelection()") { (result, error) in
-            guard let coords = result as? String, error == nil else { return }
-            self.evaluateJavaScript("window.getSelection().toString()") { (result, error) in
-                guard let text = result as? String, error == nil else { return }
-                if text.contains("\n") {
-                    // TODO: -- Show Alert
-                    return
-                }
-                self.evaluateJavaScript("highlightString('highlight-underline')") { (result, error) in
-                    guard let uuid = result as? String, error == nil else { return }
-                    // TODO: Save note
-                    print(
-                        "coords: \(coords) text: \(text) uuid: \(uuid)"
-                    )
-                    self.removeMenuItems()
-                }
-            }
-        }
-    }
-
-    override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
-        if action == #selector(highlightSelection) ||
-            action == #selector(addNote) {
-            return true
-        } else {
-            return false
-        }
-    }
-
-    override var canBecomeFirstResponder: Bool {
-        return true
-    }
-}
-//
-// extension DCWebView {
-//    func getRectsFromSelection() async {
-//        guard let selected = await getSelectedText(),
-//              let rectsString = try? await self.evaluateJavaScriptAsync("rectsForSelection()") as? String,
-//            let rectsData = rectsString.data(using: .utf8),
-//            let jsonArray = try? JSONSerialization.jsonObject(with: rectsData) as? [[String: Any]],
-//              let first = jsonArray.first,
-//              let xValue = first["x"] as? CGFloat,
-//              let yValue = first["y"] as? CGFloat else { return }
-//        let rectInView = CGRect(x: xValue, y: yValue, width: 0, height: 0)
-//        self.presentSelectionMenu(at: rectInView, text: selected)
-//    }
-//
-//    func getCoordsFromSelection() async -> String? {
-//        try? await self.evaluateJavaScriptAsync("getCoordsFromSelection()") as? String
-//    }
-//
-//    func getSelectedText() async -> String? {
-//        try? await self.evaluateJavaScriptAsync("window.getSelection().toString()") as? String
-//    }
-//    
-//    func applyHightLight() {
-//        Task { @MainActor in
-//            guard let coords = await getCoordsFromSelection() as? String,
-//                  let selectedText = await getSelectedText() as? String,
-//            let uuid = else {
-//                return
-//            }
-//            
-//        }
-//    }
-// }

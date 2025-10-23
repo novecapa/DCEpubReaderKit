@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-private extension Notification.Name {
+extension Notification.Name {
     static let chapterShouldScrollToLastPage = Notification.Name("chapterShouldScrollToLastPage")
 }
 
