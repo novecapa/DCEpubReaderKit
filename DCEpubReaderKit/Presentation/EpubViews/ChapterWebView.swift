@@ -49,11 +49,11 @@ struct ChapterWebView: UIViewRepresentable {
         config.preferences.javaScriptEnabled = true
 
         let webView = DCWebView(frame: .zero, configuration: config)
-        #if DEBUG
+#if DEBUG
         if #available(iOS 16.4, *) {
             webView.isInspectable = true
         }
-        #endif
+#endif
         webView.navigationDelegate = context.coordinator
         webView.scrollView.decelerationRate = .normal
         webView.isOpaque = false
@@ -87,11 +87,11 @@ struct ChapterWebView: UIViewRepresentable {
     }
 
     private func prepareHTMLString(pathtofile: String) -> String {
-        #if SWIFT_PACKAGE
+#if SWIFT_PACKAGE
         let bundle = Bundle.module
-        #else
+#else
         let bundle = Bundle.main
-        #endif
+#endif
 
         guard let style = bundle.url(forResource: "Style", withExtension: "css"),
               let bridge = bundle.url(forResource: "Bridge", withExtension: "js"),
@@ -184,7 +184,7 @@ struct ChapterWebView: UIViewRepresentable {
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             Task { @MainActor [weak self] in
                 guard let self else { return }
-//                self.onAction(.canTouch(enable: false))
+                //                self.onAction(.canTouch(enable: false))
                 if lazyWebView == nil,
                    let result = await applyHorizontalPagination(webView),
                    let totalPages = Int(result) {
@@ -194,7 +194,7 @@ struct ChapterWebView: UIViewRepresentable {
                                                spineIndex: self.spineIndex))
                 }
                 if let target = note?.userInfo?["spineIndex"] as? Int,
-                      target == self.spineIndex {
+                   target == self.spineIndex {
                     try? await Task.sleep(nanoseconds: 500_000_000)
                     await self.scrollToLastPage(webView)
                     self.note = nil
@@ -204,7 +204,7 @@ struct ChapterWebView: UIViewRepresentable {
                 }
                 try? await Task.sleep(nanoseconds: 250_000_000)
                 self.scrollViewDidEndDecelerating(webView.scrollView)
-//                self.onAction(.canTouch(enable: true))
+                //                self.onAction(.canTouch(enable: true))
                 self.lazyWebView = webView as? DCWebView
             }
         }
@@ -233,9 +233,9 @@ struct ChapterWebView: UIViewRepresentable {
 
             // External links: open outside if enabled
             if opensExternalLinks, ["http", "https"].contains(url.scheme?.lowercased() ?? "") {
-                #if os(iOS)
+#if os(iOS)
                 UIApplication.shared.open(url, options: [:], completionHandler: nil)
-                #endif
+#endif
                 decisionHandler(.cancel)
                 return
             }
@@ -364,12 +364,9 @@ final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDel
 
     @objc private func removeMenuItems() {
         let menu = UIMenuController.shared
-//        if menu.isMenuVisible {
-            menu.hideMenu()
-            menu.menuItems = nil // opcional: limpia también los items
-//        }
-//        menu.menuItems?.removeAll()
-//        menu.setMenuVisible(false, animated: true)
+        menu.menuItems?.removeAll()
+        menu.hideMenu()
+        menu.menuItems = nil
     }
 
     private func injectSelectionListener() {
@@ -379,23 +376,18 @@ final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDel
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         removeMenuItems()
-        self.evaluateJavaScript("window.getSelection().toString()") { [weak self] (result, error) in
-            guard let self, error == nil, let selected = result as? String, !selected.isEmpty else { return }
-            self.evaluateJavaScript("rectsForSelection()") { (result, error) in
-                guard error == nil, let rectsString = result as? String,
-                      let rectsData = rectsString.data(using: .utf8),
-                      let jsonArray = try? JSONSerialization.jsonObject(with: rectsData) as? [[String: Any]],
-                      let first = jsonArray.first,
-                      let xValue = first["x"] as? CGFloat,
-                      let yValue = first["y"] as? CGFloat else {
-                    return
-                }
+        Task { @MainActor in
+            guard let selected = try? await self.evaluateJavaScriptAsync("window.getSelection().toString()") as? String,
+                  !selected.isEmpty,
+            let rectsString = try? await self.evaluateJavaScriptAsync("rectsForSelection()") as? String,
+                let rectsData = rectsString.data(using: .utf8),
+                let jsonArray = try? JSONSerialization.jsonObject(with: rectsData) as? [[String: Any]],
+                let first = jsonArray.first,
+                let xValue = first["x"] as? CGFloat,
+                let yValue = first["y"] as? CGFloat else { return }
 
-                let offset = self.scrollView.contentOffset
-                let rectInView = CGRect(x: xValue - offset.x, y: yValue - offset.y, width: 0, height: 0)
-
-                self.presentSelectionMenu(at: rectInView, text: selected)
-            }
+            let rectInView = CGRect(x: xValue, y: yValue, width: 0, height: 0)
+            self.presentSelectionMenu(at: rectInView, text: selected)
         }
     }
 
@@ -410,31 +402,45 @@ final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDel
 
     @objc private func highlightSelection() {
         self.evaluateJavaScript("getCoordsFromSelection()") { (result, error) in
-
             guard let coords = result as? String, error == nil else { return }
-
             self.evaluateJavaScript("window.getSelection().toString()") { (result, error) in
-
                 guard let text = result as? String, error == nil else { return }
-
                 if text.contains("\n") {
                     // TODO: -- Show Alert
                     return
                 }
-
                 self.evaluateJavaScript("highlightString('highlight-yellow')") { (result, error) in
-
                     guard let uuid = result as? String, error == nil else { return }
-                    // TODO: Save highlight coords
+                    // TODO: Save highlight
                     print(
                         "coords: \(coords) text: \(text) uuid: \(uuid)"
                     )
+                    self.removeMenuItems()
                 }
             }
         }
     }
 
-    @objc private func addNote() {}
+    @objc private func addNote() {
+        self.evaluateJavaScript("getCoordsFromSelection()") { (result, error) in
+            guard let coords = result as? String, error == nil else { return }
+            self.evaluateJavaScript("window.getSelection().toString()") { (result, error) in
+                guard let text = result as? String, error == nil else { return }
+                if text.contains("\n") {
+                    // TODO: -- Show Alert
+                    return
+                }
+                self.evaluateJavaScript("highlightString('highlight-underline')") { (result, error) in
+                    guard let uuid = result as? String, error == nil else { return }
+                    // TODO: Save note
+                    print(
+                        "coords: \(coords) text: \(text) uuid: \(uuid)"
+                    )
+                    self.removeMenuItems()
+                }
+            }
+        }
+    }
 
     override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
         if action == #selector(highlightSelection) ||
@@ -449,3 +455,36 @@ final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDel
         return true
     }
 }
+//
+// extension DCWebView {
+//    func getRectsFromSelection() async {
+//        guard let selected = await getSelectedText(),
+//              let rectsString = try? await self.evaluateJavaScriptAsync("rectsForSelection()") as? String,
+//            let rectsData = rectsString.data(using: .utf8),
+//            let jsonArray = try? JSONSerialization.jsonObject(with: rectsData) as? [[String: Any]],
+//              let first = jsonArray.first,
+//              let xValue = first["x"] as? CGFloat,
+//              let yValue = first["y"] as? CGFloat else { return }
+//        let rectInView = CGRect(x: xValue, y: yValue, width: 0, height: 0)
+//        self.presentSelectionMenu(at: rectInView, text: selected)
+//    }
+//
+//    func getCoordsFromSelection() async -> String? {
+//        try? await self.evaluateJavaScriptAsync("getCoordsFromSelection()") as? String
+//    }
+//
+//    func getSelectedText() async -> String? {
+//        try? await self.evaluateJavaScriptAsync("window.getSelection().toString()") as? String
+//    }
+//    
+//    func applyHightLight() {
+//        Task { @MainActor in
+//            guard let coords = await getCoordsFromSelection() as? String,
+//                  let selectedText = await getSelectedText() as? String,
+//            let uuid = else {
+//                return
+//            }
+//            
+//        }
+//    }
+// }
