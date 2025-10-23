@@ -408,7 +408,32 @@ final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDel
         menu.showMenu(from: self, rect: rect)
     }
 
-    @objc private func highlightSelection() {}
+    @objc private func highlightSelection() {
+        self.evaluateJavaScript("getCoordsFromSelection()") { (result, error) in
+
+            guard let coords = result as? String, error == nil else { return }
+
+            self.evaluateJavaScript("window.getSelection().toString()") { (result, error) in
+
+                guard let text = result as? String, error == nil else { return }
+
+                if text.contains("\n") {
+                    // TODO: -- Show Alert
+                    return
+                }
+
+                self.evaluateJavaScript("highlightString('highlight-yellow')") { (result, error) in
+
+                    guard let uuid = result as? String, error == nil else { return }
+                    // TODO: Save highlight coords
+                    print(
+                        "coords: \(coords) text: \(text) uuid: \(uuid)"
+                    )
+                }
+            }
+        }
+    }
+
     @objc private func addNote() {}
 
     override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
