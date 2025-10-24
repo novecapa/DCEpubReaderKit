@@ -259,6 +259,11 @@ struct ChapterWebView: UIViewRepresentable {
 // MARK: - Webview Scroll listener
 
 extension ChapterWebView.Coordinator: UIScrollViewDelegate {
+
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+
+    }
+
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         if !decelerate {
             scrollViewDidEndDecelerating(scrollView)
@@ -284,6 +289,13 @@ extension ChapterWebView.Coordinator: UIScrollViewDelegate {
         onAction(.currentPage(index: currentPageOneBased,
                               totalPages: totalPages,
                               spineIndex: spineIndex))
+
+        Task {
+            if let coords = await getCoordsFirstNodeOfPage(lazyWebView, currentPage: currentPageOneBased-1) {
+                // TODO: - Save book position
+                print("chapterFile: \(self.currentChapterURL?.lastPathComponent ?? "") coords: \(coords)")
+            }
+        }
     }
 }
 
@@ -304,5 +316,9 @@ private extension ChapterWebView.Coordinator {
         let scrollView = webView.scrollView
         _ = try? await webView.evaluateJavaScriptAsync(JSConstants.scrollToFirstHorizontalPage)
         scrollViewDidEndDecelerating(scrollView)
+    }
+
+    func getCoordsFirstNodeOfPage(_ webView: DCWebView?, currentPage: Int) async -> String? {
+        try? await webView?.evaluateJavaScriptAsync("getCoordsFirstNodeOfPage(\(currentPage))") as? String
     }
 }

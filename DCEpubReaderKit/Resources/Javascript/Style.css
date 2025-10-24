@@ -20,7 +20,7 @@ figure, figcaption, footer, header, hgroup,
 menu, nav, output, ruby, section, summary,
 time, mark, audio, video {
     margin-top: 0px;
-    margin-bottom: 0px;
+    margin-bottom: 10px;
     vertical-align: baseline;
 }
 
@@ -134,7 +134,7 @@ pre { white-space: pre-wrap; }
 @page { margin: 0 0 !important; }
 table, ol, il { text-align: -webkit-auto; }
 h1 ,h2 ,h3 ,h4 ,h5 ,h6 {
-    text-align: -webkit-auto;
+/*    text-align: -webkit-auto;*/
     text-rendering: optimizelegibility;
 }
 
