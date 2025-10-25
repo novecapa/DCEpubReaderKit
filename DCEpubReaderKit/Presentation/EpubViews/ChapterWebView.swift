@@ -12,6 +12,7 @@ enum ChapterViewAction {
     case totalPageCount(count: Int, spineIndex: Int)
     case currentPage(index: Int, totalPages: Int, spineIndex: Int)
     case canTouch(enable: Bool)
+    case coordsFirstNodeOfHPage(spineIndex: Int, coords: String)
 }
 
 struct ChapterWebView: UIViewRepresentable {
@@ -78,6 +79,8 @@ struct ChapterWebView: UIViewRepresentable {
             let htmlContent = prepareHTMLString(pathtofile: chapterURL.path)
             webView.loadHTMLString(htmlContent, baseURL: chapterURL.deletingLastPathComponent())
             context.coordinator.currentChapterURL = chapterURL
+            webView.alpha = 0
+            onAction(.canTouch(enable: false))
         }
         context.coordinator.readAccessURL = readAccessURL
     }
@@ -140,7 +143,7 @@ struct ChapterWebView: UIViewRepresentable {
             static let spineIndex = "spineIndex"
         }
 
-        private enum JSConstants {
+        private enum JSMethod {
             case applyHPagination
             case scrollToLastHPage
             case scrollToFirstHPage
@@ -155,7 +158,7 @@ struct ChapterWebView: UIViewRepresentable {
                 case .scrollToFirstHPage:
                     return "scrollToFirstHorizontalPage()"
                 case .coordsFirstNodeOfHPage(let page):
-                    return "getCoordsFirstNodeOfPage(\(page)"
+                    return "getCoordsFirstNodeOfPage(\(page))"
                 }
             }
         }
@@ -200,7 +203,6 @@ struct ChapterWebView: UIViewRepresentable {
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             Task { @MainActor [weak self] in
                 guard let self else { return }
-                // self.onAction(.canTouch(enable: false))
                 if lazyWebView == nil,
                    let result = await applyHorizontalPagination(webView),
                    let totalPages = Int(result) {
@@ -220,8 +222,11 @@ struct ChapterWebView: UIViewRepresentable {
                 }
                 try? await Task.sleep(nanoseconds: 250_000_000)
                 self.scrollViewDidEndDecelerating(webView.scrollView)
-                // self.onAction(.canTouch(enable: true))
                 self.lazyWebView = webView as? DCWebView
+                UIView.animate(withDuration: 0.25) {
+                    webView.alpha = 1
+                }
+                onAction(.canTouch(enable: true))
             }
         }
 
@@ -262,7 +267,18 @@ struct ChapterWebView: UIViewRepresentable {
         private func updateCurrentPage(note: Notification?) {
             guard let webView = lazyWebView else { return }
             Task { @MainActor in
-                self.note = nil
+                if let target = note?.userInfo?[Constants.spineIndex] as? Int,
+                   target == self.spineIndex {
+                    webView.alpha = 0
+                    onAction(.canTouch(enable: false))
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                    await self.scrollToLastPage(webView)
+                    self.note = nil
+                    UIView.animate(withDuration: 0.25) {
+                        webView.alpha = 1
+                    }
+                    onAction(.canTouch(enable: true))
+                }
                 try? await Task.sleep(nanoseconds: 250_000_000)
                 self.scrollViewDidEndDecelerating(webView.scrollView)
             }
@@ -304,10 +320,9 @@ extension ChapterWebView.Coordinator: UIScrollViewDelegate {
                               totalPages: totalPages,
                               spineIndex: spineIndex))
 
-        Task {
+        Task { @MainActor in
             if let coords = await getCoordsFirstNodeOfPage(lazyWebView, currentPage: currentPageOneBased-1) {
-                // TODO: - Save book position
-                print("chapterFile: \(self.currentChapterURL?.lastPathComponent ?? "") coords: \(coords)")
+                onAction(.coordsFirstNodeOfHPage(spineIndex: spineIndex, coords: coords))
             }
         }
     }
@@ -317,22 +332,24 @@ extension ChapterWebView.Coordinator: UIScrollViewDelegate {
 
 private extension ChapterWebView.Coordinator {
     func applyHorizontalPagination(_ webView: WKWebView) async -> String? {
-        try? await webView.evaluateJavaScriptAsync(JSConstants.applyHPagination.rawValue) as? String
+        try? await webView.evaluateJavaScriptAsync(JSMethod.applyHPagination.rawValue) as? String
     }
 
     func scrollToLastPage(_ webView: WKWebView) async {
         let scrollView = webView.scrollView
-        _ = try? await webView.evaluateJavaScriptAsync(JSConstants.scrollToLastHPage.rawValue)
+        _ = try? await webView.evaluateJavaScriptAsync(JSMethod.scrollToLastHPage.rawValue)
         scrollViewDidEndDecelerating(scrollView)
     }
 
     func scrollToFirstPage(_ webView: WKWebView) async {
         let scrollView = webView.scrollView
-        _ = try? await webView.evaluateJavaScriptAsync(JSConstants.scrollToFirstHPage.rawValue)
+        _ = try? await webView.evaluateJavaScriptAsync(JSMethod.scrollToFirstHPage.rawValue)
         scrollViewDidEndDecelerating(scrollView)
     }
 
     func getCoordsFirstNodeOfPage(_ webView: DCWebView?, currentPage: Int) async -> String? {
-        try? await webView?.evaluateJavaScriptAsync(JSConstants.coordsFirstNodeOfHPage(page: currentPage).rawValue) as? String
+        try? await webView?.evaluateJavaScriptAsync(
+            JSMethod.coordsFirstNodeOfHPage(page: currentPage).rawValue
+        ) as? String
     }
 }

@@ -76,7 +76,7 @@ p {
     /*margin: 1.3em 0 1.5em 0;*/
     /* line-height: 1.65em !important;*/
 /*    line-height: 1.65em;*/
-    text-indent: 1.25em;
+    text-indent: 1.35em;
 }
 a:link {
   color: #017cff;
@@ -147,10 +147,10 @@ a, h1, h2, h3, h4, h5, h6 {
 
 /* Begin Ted */
 img, svg, audio, video {
-    max-height: 80% !important;
+    max-height: 100% !important;
     max-width: 100% !important;
-    box-sizing: border-box;
-    object-fit: contain;
+/*    box-sizing: border-box;*/
+/*    object-fit: contain;*/
     page-break-inside: avoid;
 }
 

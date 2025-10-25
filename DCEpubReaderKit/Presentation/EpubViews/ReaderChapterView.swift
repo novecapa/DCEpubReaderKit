@@ -72,14 +72,22 @@ struct ReaderChapterView: View {
                                         }
                                     case .canTouch(let enabled):
                                         self.canTouch = enabled
+                                    case .coordsFirstNodeOfHPage(spineIndex: let spineIndex,
+                                                                 coords: let coords):
+                                        if spineIndex == self.currentSelection {
+                                            // TODO: - Save book position
+                                            print("chapterFile: \(chapterURL.lastPathComponent) coords: \(coords)")
+                                        }
                                     }
                                 }
                                 .padding(.horizontal, 24)
                                 .padding(.top, 24)
-                                Text("página \(currentPage) de \(totalPages)")
+                                if totalPages > 1 {
+                                    Text("página \(currentPage) de \(totalPages)")
+                                        .opacity(canTouch ? 1 : 0)
+//                                        .animation(.easeInOut(duration: 0.25), value: canTouch)
+                                }
                             }
-                            .opacity(canTouch ? 1 : 0)
-                            .animation(.easeInOut(duration: 0.75), value: canTouch)
 
                         } else {
                             Text("Unable to resolve chapter at spine index \(idx).")
