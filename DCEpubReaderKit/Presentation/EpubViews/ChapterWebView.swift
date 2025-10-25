@@ -141,9 +141,23 @@ struct ChapterWebView: UIViewRepresentable {
         }
 
         private enum JSConstants {
-            static let applyHorizontalPagination = "applyHorizontalPagination()"
-            static let scrollToLastHorizontalPage = "scrollToLastHorizontalPage()"
-            static let scrollToFirstHorizontalPage = "scrollToFirstHorizontalPage()"
+            case applyHPagination
+            case scrollToLastHPage
+            case scrollToFirstHPage
+            case coordsFirstNodeOfHPage(page: Int)
+
+            var rawValue: String {
+                switch self {
+                case .applyHPagination:
+                    return "applyHorizontalPagination()"
+                case .scrollToLastHPage:
+                    return "scrollToLastHorizontalPage()"
+                case .scrollToFirstHPage:
+                    return "scrollToFirstHorizontalPage()"
+                case .coordsFirstNodeOfHPage(let page):
+                    return "getCoordsFirstNodeOfPage(\(page)"
+                }
+            }
         }
 
         private var scrollObserver: Any?
@@ -303,22 +317,22 @@ extension ChapterWebView.Coordinator: UIScrollViewDelegate {
 
 private extension ChapterWebView.Coordinator {
     func applyHorizontalPagination(_ webView: WKWebView) async -> String? {
-        try? await webView.evaluateJavaScriptAsync(JSConstants.applyHorizontalPagination) as? String
+        try? await webView.evaluateJavaScriptAsync(JSConstants.applyHPagination.rawValue) as? String
     }
 
     func scrollToLastPage(_ webView: WKWebView) async {
         let scrollView = webView.scrollView
-        _ = try? await webView.evaluateJavaScriptAsync(JSConstants.scrollToLastHorizontalPage)
+        _ = try? await webView.evaluateJavaScriptAsync(JSConstants.scrollToLastHPage.rawValue)
         scrollViewDidEndDecelerating(scrollView)
     }
 
     func scrollToFirstPage(_ webView: WKWebView) async {
         let scrollView = webView.scrollView
-        _ = try? await webView.evaluateJavaScriptAsync(JSConstants.scrollToFirstHorizontalPage)
+        _ = try? await webView.evaluateJavaScriptAsync(JSConstants.scrollToFirstHPage.rawValue)
         scrollViewDidEndDecelerating(scrollView)
     }
 
     func getCoordsFirstNodeOfPage(_ webView: DCWebView?, currentPage: Int) async -> String? {
-        try? await webView?.evaluateJavaScriptAsync("getCoordsFirstNodeOfPage(\(currentPage))") as? String
+        try? await webView?.evaluateJavaScriptAsync(JSConstants.coordsFirstNodeOfHPage(page: currentPage).rawValue) as? String
     }
 }
