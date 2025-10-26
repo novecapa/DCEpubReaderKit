@@ -176,8 +176,7 @@ struct TocList: View {
                     NavigationLink {
                         ReaderChapterView(
                             book: book,
-                            spineIndex: idx,
-                            title: book.chapterTitle(forSpineIndex: idx) ?? node.label
+                            spineIndex: idx
                         )
                     } label: {
                         TocRow(book: book, node: node, depth: depth)

@@ -79,7 +79,7 @@ struct ChapterWebView: UIViewRepresentable {
             let htmlContent = prepareHTMLString(pathtofile: chapterURL.path)
             webView.loadHTMLString(htmlContent, baseURL: chapterURL.deletingLastPathComponent())
             context.coordinator.currentChapterURL = chapterURL
-            webView.alpha = 0
+            UIView.animate(withDuration: ChapterWebView.Coordinator.Constants.fadeDuration) { webView.alpha = 0 }
             onAction(.canTouch(enable: false))
         }
         context.coordinator.readAccessURL = readAccessURL
@@ -139,8 +139,10 @@ struct ChapterWebView: UIViewRepresentable {
 
     final class Coordinator: NSObject, WKNavigationDelegate {
 
-        private enum Constants {
+        enum Constants {
             static let spineIndex = "spineIndex"
+            static let fadeDuration: TimeInterval = 0.25
+            static let settleDelay: UInt64 = 250_000_000
         }
 
         private enum JSMethod {
@@ -161,6 +163,22 @@ struct ChapterWebView: UIViewRepresentable {
                     return "getCoordsFirstNodeOfPage(\(page))"
                 }
             }
+        }
+
+        @MainActor
+        private func setInteractivity(_ enabled: Bool, on webView: WKWebView?, animated: Bool = true) {
+            guard let webView else { return }
+            onAction(.canTouch(enable: enabled))
+            let duration = animated ? Constants.fadeDuration : 0
+            UIView.animate(withDuration: duration) {
+                webView.alpha = enabled ? 1 : 0
+            }
+        }
+
+        @MainActor
+        private func scrollAndReport(_ method: JSMethod, webView: WKWebView) async {
+            _ = try? await webView.evaluateJavaScriptAsync(method.rawValue)
+            scrollViewDidEndDecelerating(webView.scrollView)
         }
 
         private var scrollObserver: Any?
@@ -211,20 +229,19 @@ struct ChapterWebView: UIViewRepresentable {
                                                totalPages: totalPages,
                                                spineIndex: self.spineIndex))
                 }
-                if let target = note?.userInfo?[Constants.spineIndex] as? Int,
-                   target == self.spineIndex {
-                    await self.scrollToLastPage(webView)
+
+                if let target = note?.userInfo?[Constants.spineIndex] as? Int, target == self.spineIndex {
+                    await self.scrollAndReport(.scrollToLastHPage, webView: webView)
                     self.note = nil
                 } else {
-                    await self.scrollToFirstPage(webView)
+                    await self.scrollAndReport(.scrollToFirstHPage, webView: webView)
                 }
-                try? await Task.sleep(nanoseconds: 250_000_000)
+
+                try? await Task.sleep(nanoseconds: Constants.settleDelay)
                 self.scrollViewDidEndDecelerating(webView.scrollView)
+
                 self.lazyWebView = webView as? DCWebView
-                UIView.animate(withDuration: 0.25) {
-                    webView.alpha = 1
-                }
-                onAction(.canTouch(enable: true))
+                self.setInteractivity(true, on: webView, animated: true)
             }
         }
 
@@ -267,16 +284,12 @@ struct ChapterWebView: UIViewRepresentable {
             Task { @MainActor in
                 if let target = note?.userInfo?[Constants.spineIndex] as? Int,
                    target == self.spineIndex {
-                    webView.alpha = 0
-                    onAction(.canTouch(enable: false))
-                    await self.scrollToLastPage(webView)
+                    self.setInteractivity(false, on: webView, animated: true)
+                    await self.scrollAndReport(.scrollToLastHPage, webView: webView)
                     self.note = nil
-                    UIView.animate(withDuration: 0.25) {
-                        webView.alpha = 1
-                    }
-                    onAction(.canTouch(enable: true))
+                    self.setInteractivity(true, on: webView, animated: true)
                 }
-                try? await Task.sleep(nanoseconds: 250_000_000)
+                try? await Task.sleep(nanoseconds: Constants.settleDelay)
                 self.scrollViewDidEndDecelerating(webView.scrollView)
             }
         }
@@ -330,15 +343,11 @@ private extension ChapterWebView.Coordinator {
     }
 
     func scrollToLastPage(_ webView: WKWebView) async {
-        let scrollView = webView.scrollView
-        _ = try? await webView.evaluateJavaScriptAsync(JSMethod.scrollToLastHPage.rawValue)
-        scrollViewDidEndDecelerating(scrollView)
+        await scrollAndReport(.scrollToLastHPage, webView: webView)
     }
 
     func scrollToFirstPage(_ webView: WKWebView) async {
-        let scrollView = webView.scrollView
-        _ = try? await webView.evaluateJavaScriptAsync(JSMethod.scrollToFirstHPage.rawValue)
-        scrollViewDidEndDecelerating(scrollView)
+        await scrollAndReport(.scrollToFirstHPage, webView: webView)
     }
 
     func getCoordsFirstNodeOfPage(_ webView: DCWebView?, currentPage: Int) async -> String? {

@@ -69,10 +69,11 @@ or add it to your `Package.swift`:
 
 ## 🛠️ Roadmap
 
-- [ ] EPUB2/EPUB3 file parsing
+- [x] EPUB2 file parsing
+- [ ] EPUB3 file parsing
 - [ ] Vertical pagination
-- [ ] Horizontal pagination  
-- [ ] Highlights and bookmarks  
+- [x] Horizontal pagination  
+- [x] Highlights and bookmarks  
 - [ ] Cloud synchronization  
 - [ ] Collaborative notes  
 - [ ] Audio and interactive multimedia support (EPUB3 extended)

@@ -17,9 +17,6 @@ struct ReaderChapterView: View {
     /// Which spine item to load initially.
     let spineIndex: Int
 
-    /// Optional heading/title to show in nav bar.
-    var title: String?
-
     /// Current selected spine for the pager.
     @State private var currentSelection: Int
     @State private var previousSelection: Int
@@ -29,11 +26,9 @@ struct ReaderChapterView: View {
     @State private var canTouch: Bool = true
 
     init(book: EpubBook,
-         spineIndex: Int,
-         title: String?) {
+         spineIndex: Int) {
         self.book = book
         self.spineIndex = spineIndex
-        self.title = title
         _currentSelection = State(initialValue: spineIndex)
         _previousSelection = State(initialValue: spineIndex)
     }
@@ -47,9 +42,6 @@ struct ReaderChapterView: View {
                     Group {
                         if let chapterURL = book.chapterURL(forSpineIndex: idx) {
                             VStack {
-                                if let title = book.metadata.title {
-                                    Text(title)
-                                }
                                 ChapterWebView(
                                     chapterURL: chapterURL,
                                     readAccessURL: book.opfDirectoryURL,
@@ -81,11 +73,11 @@ struct ReaderChapterView: View {
                                     }
                                 }
                                 .padding(.horizontal, 24)
-                                .padding(.top, 24)
+                                .padding(.vertical, 12)
                                 if totalPages > 1 {
                                     Text("página \(currentPage) de \(totalPages)")
                                         .opacity(canTouch ? 1 : 0)
-//                                        .animation(.easeInOut(duration: 0.25), value: canTouch)
+                                        .animation(.easeInOut(duration: 0.25), value: canTouch)
                                 }
                             }
 
@@ -99,7 +91,9 @@ struct ReaderChapterView: View {
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
+            .navigationTitle(book.metadata.title ?? "")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarRole(.editor)
         }
         .onChange(of: currentSelection) { _ in
             defer {
@@ -116,6 +110,5 @@ struct ReaderChapterView: View {
 
 #Preview {
     ReaderChapterView(book: .mock,
-                      spineIndex: 0,
-                      title: "Title")
+                      spineIndex: 0)
 }
