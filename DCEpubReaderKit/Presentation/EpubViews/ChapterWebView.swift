@@ -213,11 +213,9 @@ struct ChapterWebView: UIViewRepresentable {
                 }
                 if let target = note?.userInfo?[Constants.spineIndex] as? Int,
                    target == self.spineIndex {
-                    try? await Task.sleep(nanoseconds: 500_000_000)
                     await self.scrollToLastPage(webView)
                     self.note = nil
                 } else {
-                    try? await Task.sleep(nanoseconds: 500_000_000)
                     await self.scrollToFirstPage(webView)
                 }
                 try? await Task.sleep(nanoseconds: 250_000_000)
@@ -271,7 +269,6 @@ struct ChapterWebView: UIViewRepresentable {
                    target == self.spineIndex {
                     webView.alpha = 0
                     onAction(.canTouch(enable: false))
-                    try? await Task.sleep(nanoseconds: 500_000_000)
                     await self.scrollToLastPage(webView)
                     self.note = nil
                     UIView.animate(withDuration: 0.25) {
@@ -289,10 +286,7 @@ struct ChapterWebView: UIViewRepresentable {
 // MARK: - Webview Scroll listener
 
 extension ChapterWebView.Coordinator: UIScrollViewDelegate {
-
-    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-
-    }
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {}
 
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         if !decelerate {
