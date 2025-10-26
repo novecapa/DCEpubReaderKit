@@ -17,6 +17,8 @@ struct ReaderChapterView: View {
     /// Which spine item to load initially.
     let spineIndex: Int
 
+    private let userPreferences: DCUserPreferencesProtocol
+
     /// Current selected spine for the pager.
     @State private var currentSelection: Int
     @State private var previousSelection: Int
@@ -26,9 +28,11 @@ struct ReaderChapterView: View {
     @State private var canTouch: Bool = true
 
     init(book: EpubBook,
-         spineIndex: Int) {
+         spineIndex: Int,
+         userPreferences: DCUserPreferences) {
         self.book = book
         self.spineIndex = spineIndex
+        self.userPreferences = userPreferences
         _currentSelection = State(initialValue: spineIndex)
         _previousSelection = State(initialValue: spineIndex)
     }
@@ -108,7 +112,7 @@ struct ReaderChapterView: View {
     }
 }
 
-#Preview {
-    ReaderChapterView(book: .mock,
-                      spineIndex: 0)
-}
+//#Preview {
+//    ReaderChapterView(book: .mock,
+//                      spineIndex: 0,)
+//}
