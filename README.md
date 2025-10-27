@@ -73,7 +73,8 @@ or add it to your `Package.swift`:
 - [ ] EPUB3 file parsing
 - [ ] Vertical pagination
 - [x] Horizontal pagination  
-- [x] Highlights and bookmarks  
+- [x] Highlights and bookmarks
+- [ ] Save book states
 - [ ] Cloud synchronization  
 - [ ] Collaborative notes  
 - [ ] Audio and interactive multimedia support (EPUB3 extended)
