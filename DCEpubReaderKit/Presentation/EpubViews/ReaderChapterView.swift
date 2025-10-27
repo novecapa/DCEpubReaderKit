@@ -13,12 +13,6 @@ extension Notification.Name {
 
 struct ReaderChapterView: View {
 
-    let book: EpubBook
-    /// Which spine item to load initially.
-    let spineIndex: Int
-
-    private let userPreferences: DCUserPreferencesProtocol
-
     /// Current selected spine for the pager.
     @State private var currentSelection: Int
     @State private var previousSelection: Int
@@ -27,9 +21,13 @@ struct ReaderChapterView: View {
     @State var currentPage: Int = 1
     @State private var canTouch: Bool = true
 
+    private let book: EpubBook
+    private let spineIndex: Int
+    private let userPreferences: DCUserPreferencesProtocol
+
     init(book: EpubBook,
          spineIndex: Int,
-         userPreferences: DCUserPreferences) {
+         userPreferences: DCUserPreferencesProtocol) {
         self.book = book
         self.spineIndex = spineIndex
         self.userPreferences = userPreferences
@@ -68,8 +66,9 @@ struct ReaderChapterView: View {
                                         }
                                     case .canTouch(let enabled):
                                         self.canTouch = enabled
-                                    case .coordsFirstNodeOfHPage(spineIndex: let spineIndex,
-                                                                 coords: let coords):
+                                    case .coordsFirstNodeOfPage(orientation: let orientation,
+                                                                spineIndex: let spineIndex,
+                                                                coords: let coords):
                                         if spineIndex == self.currentSelection {
                                             // TODO: - Save book position
                                             print("chapterFile: \(chapterURL.lastPathComponent) coords: \(coords)")
@@ -112,7 +111,8 @@ struct ReaderChapterView: View {
     }
 }
 
-//#Preview {
-//    ReaderChapterView(book: .mock,
-//                      spineIndex: 0,)
-//}
+#Preview {
+    ReaderChapterView(book: .mock,
+                      spineIndex: 0,
+                      userPreferences: DCUserPreferencesMock())
+}

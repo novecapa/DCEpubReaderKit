@@ -173,22 +173,6 @@ function getReadingTime() {
     return readingTimeMinutes;
 }
 
-/**
- Get Vertical or Horizontal paged #anchor offset
- */
-//var getAnchorOffset = function(target, horizontal) {
-//    var elem = document.getElementById(target);
-//
-//    if (!elem) {
-//        elem = document.getElementsByName(target)[0];
-//    }
-//
-//    if (horizontal) {
-//        return (document.body.clientWidth * Math.floor(elem.offsetTop / window.innerHeight)) + document.body.clientWidth;
-//    }
-//
-//    return elem.offsetTop;
-//}
 var getAnchorOffset = function(target, horizontal) {
     var elem = document.getElementById(target);
     

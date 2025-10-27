@@ -8,11 +8,16 @@
 import SwiftUI
 import WebKit
 
+enum BookrOrientation: String {
+    case horizontal
+    case vertical
+}
+
 enum ChapterViewAction {
     case totalPageCount(count: Int, spineIndex: Int)
     case currentPage(index: Int, totalPages: Int, spineIndex: Int)
     case canTouch(enable: Bool)
-    case coordsFirstNodeOfHPage(spineIndex: Int, coords: String)
+    case coordsFirstNodeOfPage(orientation: BookrOrientation, spineIndex: Int, coords: String)
 }
 
 struct ChapterWebView: UIViewRepresentable {
@@ -329,7 +334,7 @@ extension ChapterWebView.Coordinator: UIScrollViewDelegate {
 
         Task { @MainActor in
             if let coords = await getCoordsFirstNodeOfPage(lazyWebView, currentPage: currentPageOneBased-1) {
-                onAction(.coordsFirstNodeOfHPage(spineIndex: spineIndex, coords: coords))
+                onAction(.coordsFirstNodeOfPage(orientation: .horizontal, spineIndex: spineIndex, coords: coords))
             }
         }
     }

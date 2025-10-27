@@ -49,8 +49,10 @@ extension UserDefaults: DCUserPreferencesProtocol {
 final class DCUserPreferences: DCUserPreferencesProtocol {
 
     enum CacheKey: String {
-        case currentChapter
-        case currentPage
+        case bookOrientation
+        case fontSize
+        case fontFamily
+        case nightOrDayMode
     }
 
     private let userPreferences: DCUserPreferencesProtocol
