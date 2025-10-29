@@ -174,7 +174,7 @@ struct TocList: View {
             Group {
                 if let idx = book.spineIndex(forTOCHref: node.href ?? "") {
                     NavigationLink {
-                        ReaderChapterView(
+                        DCReaderChapterView(
                             book: book,
                             spineIndex: idx,
                             userPreferences: DCUserPreferences(userPreferences: UserDefaults.standard)
