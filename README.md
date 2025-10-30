@@ -12,6 +12,8 @@ Built for seamless integration into **SwiftUI** or **UIKit** projects, DCEpubRea
 
 ## 🚀 Main Features
 
+> ⚠️ **Project status:** under active development.  
+
 - ✅ **Full EPUB 2 and EPUB 3 compatibility**
   - Reads `container.xml`, `content.opf`, `toc.ncx`, and `nav.xhtml`.
   - Supports metadata, manifest, spine, and internal resources.
@@ -49,6 +51,8 @@ Built for seamless integration into **SwiftUI** or **UIKit** projects, DCEpubRea
 
 ## 🧩 Installation
 
+> ⚠️ **Project status:** under active development.
+
 ### Swift Package Manager
 
 In Xcode:
@@ -68,6 +72,8 @@ or add it to your `Package.swift`:
 ---
 
 ## 🛠️ Roadmap
+
+> ⚠️ **Project status:** under active development.
 
 - [x] EPUB2 file parsing
 - [ ] EPUB3 file parsing
