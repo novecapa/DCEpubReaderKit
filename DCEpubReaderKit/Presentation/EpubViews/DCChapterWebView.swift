@@ -31,15 +31,19 @@ struct DCChapterWebView: UIViewRepresentable {
     /// Index of the spine that this view represents (used for disambiguating async callbacks).
     let spineIndex: Int
 
+    private let userPreferences: DCUserPreferencesProtocol
+
     let onAction: (DCChapterViewAction) -> Void
 
     init(chapterURL: URL,
          readAccessURL: URL,
          spineIndex: Int,
+         userPreferences: DCUserPreferencesProtocol = DCUserPreferences(userPreferences: UserDefaults.standard),
          onAction: @escaping (DCChapterViewAction) -> Void) {
         self.chapterURL = chapterURL
         self.readAccessURL = readAccessURL
         self.spineIndex = spineIndex
+        self.userPreferences = userPreferences
         self.onAction = onAction
     }
 
@@ -128,9 +132,9 @@ struct DCChapterWebView: UIViewRepresentable {
         htmlContent = htmlContent.replacingOccurrences(of: "</head>", with: headInject)
 
         // TODO: Get config from preferences
-        let fontName = "original"
-        let fontSize = "textSizeFive"
-        let nightOrDayMode = "" // nightMode
+        let fontName = userPreferences.getString(for: .fontFamily) ?? "original"
+        let fontSize = userPreferences.getString(for: .fontSize) ?? "textSizeFive"
+        let nightOrDayMode = userPreferences.getString(for: .desktopMode) ?? "" // "redMode" // "nightMode"
         let classAttr = "class=\"\(fontName) \(fontSize) \(nightOrDayMode) mediaOverlayStyle0\""
         if htmlContent.range(of: "<html class=") == nil {
             htmlContent = htmlContent.replacingOccurrences(of: "<html", with: "<html \(classAttr)")

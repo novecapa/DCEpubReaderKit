@@ -6,14 +6,12 @@
 //
 
 import Foundation
+import CoreGraphics
 
 protocol DCUserPreferencesProtocol {
     func setValue(key: DCUserPreferences.CacheKey, type: Any)
-    func getBool(for key: DCUserPreferences.CacheKey) -> Bool
     func getString(for key: DCUserPreferences.CacheKey) -> String?
-    func getDouble(for key: DCUserPreferences.CacheKey) -> Double?
-    func getInt(for key: DCUserPreferences.CacheKey) -> Int
-    func getData<T>(for key: DCUserPreferences.CacheKey, of type: T.Type) -> T? where T: Decodable
+    func getCGFloat(for key: DCUserPreferences.CacheKey) -> CGFloat?
 }
 
 extension UserDefaults: DCUserPreferencesProtocol {
@@ -30,19 +28,11 @@ extension UserDefaults: DCUserPreferencesProtocol {
         string(forKey: key.rawValue)
     }
 
-    func getDouble(for key: DCUserPreferences.CacheKey) -> Double? {
-        double(forKey: key.rawValue)
-    }
-
-    func getInt(for key: DCUserPreferences.CacheKey) -> Int {
-        integer(forKey: key.rawValue)
-    }
-
-    func getData<T>(for key: DCUserPreferences.CacheKey, of type: T.Type) -> T? where T: Decodable {
-        guard let data = data(forKey: key.rawValue) else {
-            return nil
+    func getCGFloat(for key: DCUserPreferences.CacheKey) -> CGFloat? {
+        if let number = object(forKey: key.rawValue) as? NSNumber {
+            return CGFloat(truncating: number)
         }
-        return try? JSONDecoder().decode(type, from: data)
+        return nil
     }
 }
 
@@ -52,7 +42,7 @@ final class DCUserPreferences: DCUserPreferencesProtocol {
         case bookOrientation
         case fontSize
         case fontFamily
-        case nightOrDayMode
+        case desktopMode
     }
 
     private let userPreferences: DCUserPreferencesProtocol
@@ -65,23 +55,30 @@ final class DCUserPreferences: DCUserPreferencesProtocol {
         userPreferences.setValue(key: key, type: type)
     }
 
-    func getBool(for key: CacheKey) -> Bool {
-        userPreferences.getBool(for: key)
-    }
-
     func getString(for key: CacheKey) -> String? {
-        userPreferences.getString(for: key)
+        switch key {
+        case .fontSize:
+            let index = Int(getCGFloat(for: key) ?? 4)
+            let tokens = [
+                "textSizeOne",
+                "textSizeTwo",
+                "textSizeThree",
+                "textSizeFour",
+                "textSizeFive",
+                "textSizeSix",
+                "textSizeSeven",
+                "textSizeEight"
+            ]
+            if (0..<tokens.count).contains(index) {
+                return tokens[index]
+            }
+            return "textSizeFive"
+        default:
+            return userPreferences.getString(for: key)
+        }
     }
 
-    func getDouble(for key: CacheKey) -> Double? {
-        userPreferences.getDouble(for: key)
-    }
-
-    func getInt(for key: CacheKey) -> Int {
-        userPreferences.getInt(for: key)
-    }
-
-    func getData<T>(for key: CacheKey, of type: T.Type) -> T? where T: Decodable {
-        userPreferences.getData(for: key, of: type)
+    func getCGFloat(for key: CacheKey) -> CGFloat? {
+        userPreferences.getCGFloat(for: key)
     }
 }

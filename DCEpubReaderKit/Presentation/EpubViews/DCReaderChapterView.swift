@@ -22,6 +22,7 @@ struct DCReaderChapterView: View {
     // MARK: Config values
     @State var textSize: CGFloat = 4
     @State var textFont: String = "original"
+    @State var desktopMode: String = ""
 
     /// Current selected spine for the pager.
     @State private var currentSelection: Int
@@ -38,6 +39,26 @@ struct DCReaderChapterView: View {
     private let spineIndex: Int
     private let userPreferences: DCUserPreferencesProtocol
 
+    var backgroundColor: Color {
+        let desktopMode = userPreferences.getString(for: .desktopMode) ?? ""
+        switch desktopMode {
+        case "nightMode", "redMode":
+            return Color(.backgroundNight)
+        default:
+            return Color(.backgroundLight)
+        }
+    }
+
+    var textColor: Color {
+        let desktopMode = userPreferences.getString(for: .desktopMode) ?? ""
+        switch desktopMode {
+        case "nightMode", "redMode":
+            return Color(.backgroundLight)
+        default:
+            return Color(.backgroundNight)
+        }
+    }
+
     init(book: EpubBook,
          spineIndex: Int,
          userPreferences: DCUserPreferencesProtocol) {
@@ -50,7 +71,7 @@ struct DCReaderChapterView: View {
 
     var body: some View {
         ZStack {
-            Color(.backgroundLight)
+            backgroundColor
                 .ignoresSafeArea(edges: .all)
             TabView(selection: $currentSelection) {
                 ForEach(0..<book.spine.count, id: \.self) { idx in
@@ -92,6 +113,8 @@ struct DCReaderChapterView: View {
                                 .padding(.vertical, 12)
                                 if totalPages > 1 {
                                     Text("página \(currentPage) de \(totalPages)")
+                                        .font(.system(size: 14))
+                                        .foregroundStyle(textColor)
                                         .opacity(canTouch ? 1 : 0)
                                         .animation(.easeInOut(duration: 0.25), value: canTouch)
                                 }
@@ -99,7 +122,7 @@ struct DCReaderChapterView: View {
 
                         } else {
                             Text("Unable to resolve chapter at spine index \(idx).")
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(textColor)
                                 .padding()
                         }
                     }
@@ -107,8 +130,6 @@ struct DCReaderChapterView: View {
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
-            .navigationTitle(book.metadata.title ?? "")
-            .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden(true)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -118,6 +139,11 @@ struct DCReaderChapterView: View {
                         Image(systemName: "chevron.backward")
                             .tint(.gray)
                     }
+                }
+                ToolbarItem(placement: .principal) {
+                    Text(book.metadata.title ?? "")
+                        .font(.system(size: 14))
+                        .foregroundStyle(textColor)
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
@@ -129,20 +155,24 @@ struct DCReaderChapterView: View {
                 }
             }
             .sheet(isPresented: $showSettings) {
-                DCReaderSettingsView(textSize: $textSize, textFont: $textFont)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .onHeightChange { height in
-                        settingsSheetHeight = height
-                    }
-                    .presentationDetents([
-                        .height(
-                            min(
-                                max(settingsSheetHeight + 1, 100),
-                                UIScreen.main.bounds.height * 0.9
+                ZStack {
+                    backgroundColor
+                        .ignoresSafeArea(edges: .all)
+                    DCReaderSettingsView()
+                        .fixedSize(horizontal: false, vertical: true)
+                        .onHeightChange { height in
+                            settingsSheetHeight = height
+                        }
+                        .presentationDetents([
+                            .height(
+                                min(
+                                    max(settingsSheetHeight + 1, 100),
+                                    UIScreen.main.bounds.height * 0.9
+                                )
                             )
-                        )
-                    ])
-                    .presentationDragIndicator(.visible)
+                        ])
+                        .presentationDragIndicator(.visible)
+                }
             }
         }
         .onChange(of: currentSelection) { _ in
@@ -155,26 +185,6 @@ struct DCReaderChapterView: View {
                 userInfo: currentSelection < previousSelection ? ["spineIndex": currentSelection] : nil
             )
         }
-    }
-}
-
-// Helper types for measuring view height
-private struct ViewHeightKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = max(value, nextValue())
-    }
-}
-
-private extension View {
-    func onHeightChange(_ perform: @escaping (CGFloat) -> Void) -> some View {
-        background(
-            GeometryReader { geo in
-                Color.clear
-                    .preference(key: ViewHeightKey.self, value: geo.size.height)
-            }
-        )
-        .onPreferenceChange(ViewHeightKey.self, perform: perform)
     }
 }
 
