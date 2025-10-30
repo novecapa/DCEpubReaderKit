@@ -19,6 +19,10 @@ struct DCReaderChapterView: View {
 
     @Environment(\.dismiss) var dismiss
 
+    // MARK: Config values
+    @State var textSize: CGFloat = 4
+    @State var textFont: String = "original"
+
     /// Current selected spine for the pager.
     @State private var currentSelection: Int
     @State private var previousSelection: Int
@@ -75,7 +79,7 @@ struct DCReaderChapterView: View {
                                         }
                                     case .canTouch(let enabled):
                                         self.canTouch = enabled
-                                    case .coordsFirstNodeOfPage(orientation: let orientation,
+                                    case .coordsFirstNodeOfPage(orientation: _,
                                                                 spineIndex: let spineIndex,
                                                                 coords: let coords):
                                         if spineIndex == self.currentSelection {
@@ -105,7 +109,6 @@ struct DCReaderChapterView: View {
             .tabViewStyle(.page(indexDisplayMode: .never))
             .navigationTitle(book.metadata.title ?? "")
             .navigationBarTitleDisplayMode(.inline)
-//            .toolbarRole(.editor)
             .navigationBarBackButtonHidden(true)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -126,7 +129,7 @@ struct DCReaderChapterView: View {
                 }
             }
             .sheet(isPresented: $showSettings) {
-                DCReaderSettingsView()
+                DCReaderSettingsView(textSize: $textSize, textFont: $textFont)
                     .fixedSize(horizontal: false, vertical: true)
                     .onHeightChange { height in
                         settingsSheetHeight = height

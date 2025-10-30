@@ -9,44 +9,33 @@ import SwiftUI
 
 struct DCReaderSettingsView: View {
 
+    @Binding var textSize: CGFloat
+    @Binding var textFont: String
+
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 0) {
-                Button {
-                    // TODO: --
-                } label: {
-                    Text("A")
-                        .frame(height: 44)
-                        .font(.callout)
-                        .foregroundStyle(.black)
-                        .frame(maxWidth: .infinity)
-                        .overlay(
-                            Rectangle()
-                                .stroke(Color.gray, lineWidth: 1)
-                        )
-                        .padding(.leading, 0.5)
-                }
-                Button {
-                    // TODO: --
-                } label: {
-                    Text("A")
-                        .frame(height: 44)
-                        .font(.largeTitle)
-                        .foregroundStyle(.black)
-                        .frame(maxWidth: .infinity)
-                        .overlay(
-                            Rectangle()
-                                .stroke(Color.gray, lineWidth: 1)
-                        )
-                        .padding(.trailing, 0.5)
-                }
+                Text("A")
+                    .frame(height: 54)
+                    .font(.callout)
+                    .foregroundStyle(.black)
+                    .padding(.leading, 12)
+                Slider(value: $textSize, in: 0...8, step: 1)
+                    .tint(.gray)
+                    .frame(height: 8)
+                    .padding(.horizontal)
+                Text("A")
+                    .frame(height: 54)
+                    .font(.largeTitle)
+                    .foregroundStyle(.black)
+                    .padding(.trailing, 12)
             }
             HStack(spacing: 0) {
                 Button {
-                    // TODO: --
+                    textFont = "andada"
                 } label: {
                     Text("AndadaPro")
-                        .frame(height: 44)
+                        .frame(height: 54)
                         .font(.fontType(.andadaPro(12)))
                         .foregroundStyle(.black)
                         .frame(maxWidth: .infinity)
@@ -55,11 +44,12 @@ struct DCReaderSettingsView: View {
                                 .stroke(Color.gray, lineWidth: 1)
                         )
                 }
+                .buttonStyle(.plain)
                 Button {
-                    // TODO: --
+                    textFont = "lato"
                 } label: {
                     Text("Lato")
-                        .frame(height: 44)
+                        .frame(height: 54)
                         .font(.fontType(.lato(12)))
                         .foregroundStyle(.black)
                         .frame(maxWidth: .infinity)
@@ -68,11 +58,12 @@ struct DCReaderSettingsView: View {
                                 .stroke(Color.gray, lineWidth: 1)
                         )
                 }
+                .buttonStyle(.plain)
                 Button {
-                    // TODO:
+                    textFont = "lora"
                 } label: {
                     Text("Lora")
-                        .frame(height: 44)
+                        .frame(height: 54)
                         .font(.fontType(.lora(12)))
                         .foregroundStyle(.black)
                         .frame(maxWidth: .infinity)
@@ -81,11 +72,12 @@ struct DCReaderSettingsView: View {
                                 .stroke(Color.gray, lineWidth: 1)
                         )
                 }
+                .buttonStyle(.plain)
                 Button {
-                    // TODO:
+                    textFont = "raleway"
                 } label: {
                     Text("Raleway")
-                        .frame(height: 44)
+                        .frame(height: 54)
                         .font(.fontType(.raleway(12)))
                         .foregroundStyle(.black)
                         .frame(maxWidth: .infinity)
@@ -94,11 +86,12 @@ struct DCReaderSettingsView: View {
                                 .stroke(Color.gray, lineWidth: 1)
                         )
                 }
+                .buttonStyle(.plain)
                 Button {
-                    // TODO:
+                    textFont = "roboto"
                 } label: {
                     Text("Roboto")
-                        .frame(height: 44)
+                        .frame(height: 54)
                         .font(.fontType(.roboto(12)))
                         .foregroundStyle(.black)
                         .frame(maxWidth: .infinity)
@@ -107,6 +100,7 @@ struct DCReaderSettingsView: View {
                                 .stroke(Color.gray, lineWidth: 1)
                         )
                 }
+                .buttonStyle(.plain)
             }
             HStack(spacing: 0) {
                 Button {
@@ -124,13 +118,14 @@ struct DCReaderSettingsView: View {
                             .frame(width: 24,
                                    height: 24)
                     }
-                    .frame(height: 44)
+                    .frame(height: 54)
                     .frame(maxWidth: .infinity)
                     .overlay(
                         Rectangle()
                             .stroke(Color.gray, lineWidth: 1)
                     )
                 }
+                .buttonStyle(.plain)
                 Button {
                     // TODO:
                 } label: {
@@ -146,13 +141,14 @@ struct DCReaderSettingsView: View {
                             .frame(width: 24,
                                    height: 24)
                     }
-                    .frame(height: 44)
+                    .frame(height: 54)
                     .frame(maxWidth: .infinity)
                     .overlay(
                         Rectangle()
                             .stroke(Color.gray, lineWidth: 1)
                     )
                 }
+                .buttonStyle(.plain)
             }
         }
         .padding(.top, 16)
@@ -162,7 +158,8 @@ struct DCReaderSettingsView: View {
 #if DEBUG
 
 #Preview {
-    DCReaderSettingsView()
+    DCReaderSettingsView(textSize: .constant(4),
+                         textFont: .constant("original"))
 }
 
 #endif
