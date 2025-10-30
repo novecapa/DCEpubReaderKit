@@ -28,6 +28,7 @@ struct DCReaderChapterView: View {
     @State private var canTouch: Bool = true
 
     @State private var showSettings: Bool = false
+    @State private var settingsSheetHeight: CGFloat = 0
 
     private let book: EpubBook
     private let spineIndex: Int
@@ -112,12 +113,7 @@ struct DCReaderChapterView: View {
                         dismiss()
                     } label: {
                         Image(systemName: "chevron.backward")
-                            .resizable()
-                            .scaledToFit()
                             .tint(.gray)
-                            .frame(width: Constants.frameSize,
-                                   height: Constants.frameSize)
-                            .padding(8)
                     }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -125,19 +121,25 @@ struct DCReaderChapterView: View {
                         showSettings.toggle()
                     } label: {
                         Image(systemName: "gear")
-                            .resizable()
-                            .scaledToFit()
                             .tint(.gray)
-                            .frame(width: Constants.frameSize,
-                                   height: Constants.frameSize)
                     }
                 }
             }
             .sheet(isPresented: $showSettings) {
-                // TODO: --
-            } content: {
                 DCReaderSettingsView()
-                    .presentationDetents([.medium])
+                    .fixedSize(horizontal: false, vertical: true)
+                    .onHeightChange { height in
+                        settingsSheetHeight = height
+                    }
+                    .presentationDetents([
+                        .height(
+                            min(
+                                max(settingsSheetHeight + 1, 100),
+                                UIScreen.main.bounds.height * 0.9
+                            )
+                        )
+                    ])
+                    .presentationDragIndicator(.visible)
             }
         }
         .onChange(of: currentSelection) { _ in
@@ -150,6 +152,26 @@ struct DCReaderChapterView: View {
                 userInfo: currentSelection < previousSelection ? ["spineIndex": currentSelection] : nil
             )
         }
+    }
+}
+
+// Helper types for measuring view height
+private struct ViewHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
+private extension View {
+    func onHeightChange(_ perform: @escaping (CGFloat) -> Void) -> some View {
+        background(
+            GeometryReader { geo in
+                Color.clear
+                    .preference(key: ViewHeightKey.self, value: geo.size.height)
+            }
+        )
+        .onPreferenceChange(ViewHeightKey.self, perform: perform)
     }
 }
 
