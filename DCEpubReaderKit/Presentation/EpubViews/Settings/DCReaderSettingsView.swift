@@ -9,18 +9,20 @@ import SwiftUI
 
 struct DCReaderSettingsView: View {
 
-    @State private var fontSizeBinding: CGFloat = 4
+    @Binding var fontSize: CGFloat
+    @Binding var textFont: String
+    @Binding var desktopMode: String
 
-    private var textFont: String = ""
-    private var desktopMode: String = ""
     private let userPreferences: DCUserPreferencesProtocol
 
-    init(userPreferences: DCUserPreferencesProtocol = DCUserPreferences(userPreferences: UserDefaults.standard)) {
+    init(fontSize: Binding<CGFloat>,
+         textFont: Binding<String>,
+         desktopMode: Binding<String>,
+         userPreferences: DCUserPreferencesProtocol = DCUserPreferences(userPreferences: UserDefaults.standard)) {
+        self._fontSize = fontSize
+        self._textFont = textFont
+        self._desktopMode = desktopMode
         self.userPreferences = userPreferences
-        let savedFontSize = userPreferences.getCGFloat(for: .fontSize) ?? 4
-        _fontSizeBinding = State(initialValue: savedFontSize)
-        textFont = userPreferences.getString(for: .fontFamily) ?? "original"
-        desktopMode = userPreferences.getString(for: .desktopMode) ?? ""
     }
 
     private var backgroundColor: Color {
@@ -51,12 +53,12 @@ struct DCReaderSettingsView: View {
                         .font(.system(size: 13))
                         .foregroundStyle(textColor)
                         .padding(.leading, 16)
-                    Slider(value: $fontSizeBinding,
+                    Slider(value: $fontSize,
                            in: 0...7, step: 1)
                     .tint(textColor)
                     .frame(height: 8)
                     .padding(.horizontal)
-                    .onChange(of: fontSizeBinding) { newValue in
+                    .onChange(of: fontSize) { newValue in
                         userPreferences.setValue(key: .fontSize, type: newValue)
                     }
                     Text("A")
@@ -68,6 +70,7 @@ struct DCReaderSettingsView: View {
                 HStack(spacing: 0) {
                     Button {
                         userPreferences.setValue(key: .fontFamily, type: "original")
+                        textFont = "original"
                     } label: {
                         Text("Original")
                             .frame(height: 54)
@@ -82,6 +85,7 @@ struct DCReaderSettingsView: View {
                     .buttonStyle(.plain)
                     Button {
                         userPreferences.setValue(key: .fontFamily, type: "andada")
+                        textFont = "andada"
                     } label: {
                         Text("AndadaPro")
                             .frame(height: 54)
@@ -96,6 +100,7 @@ struct DCReaderSettingsView: View {
                     .buttonStyle(.plain)
                     Button {
                         userPreferences.setValue(key: .fontFamily, type: "lato")
+                        textFont = "lato"
                     } label: {
                         Text("Lato")
                             .frame(height: 54)
@@ -110,6 +115,7 @@ struct DCReaderSettingsView: View {
                     .buttonStyle(.plain)
                     Button {
                         userPreferences.setValue(key: .fontFamily, type: "lora")
+                        textFont = "lora"
                     } label: {
                         Text("Lora")
                             .frame(height: 54)
@@ -124,6 +130,7 @@ struct DCReaderSettingsView: View {
                     .buttonStyle(.plain)
                     Button {
                         userPreferences.setValue(key: .fontFamily, type: "raleway")
+                        textFont = "raleway"
                     } label: {
                         Text("Raleway")
                             .frame(height: 54)
@@ -140,6 +147,7 @@ struct DCReaderSettingsView: View {
                 HStack(spacing: 0) {
                     Button {
                         userPreferences.setValue(key: .desktopMode, type: "")
+                        desktopMode = ""
                     } label: {
                         HStack(spacing: 0) {
                             Text("Day")
@@ -159,6 +167,7 @@ struct DCReaderSettingsView: View {
                     .buttonStyle(.plain)
                     Button {
                         userPreferences.setValue(key: .desktopMode, type: "nightMode")
+                        desktopMode = "nightMode"
                     } label: {
                         HStack(spacing: 0) {
                             Text("Night")
@@ -178,6 +187,7 @@ struct DCReaderSettingsView: View {
                     .buttonStyle(.plain)
                     Button {
                         userPreferences.setValue(key: .desktopMode, type: "redMode")
+                        desktopMode = "redMode"
                     } label: {
                         HStack(spacing: 0) {
                             Text("Red")
@@ -241,8 +251,8 @@ struct DCReaderSettingsView: View {
 
 #if DEBUG
 
-#Preview {
-    DCReaderSettingsView(userPreferences: DCUserPreferencesMock())
-}
+// #Preview {
+//    DCReaderSettingsView(userPreferences: DCUserPreferencesMock())
+// }
 
 #endif

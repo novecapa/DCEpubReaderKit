@@ -11,7 +11,7 @@ extension Notification.Name {
     static let chapterShouldScrollToLastPage = Notification.Name("chapterShouldScrollToLastPage")
 }
 
-struct DCReaderChapterView: View {
+struct DCReaderView: View {
 
     private enum Constants {
         static let frameSize: CGFloat = 32
@@ -20,9 +20,9 @@ struct DCReaderChapterView: View {
     @Environment(\.dismiss) var dismiss
 
     // MARK: Config values
-    @State var textSize: CGFloat = 4
-    @State var textFont: String = "original"
-    @State var desktopMode: String = ""
+    @State var textSize: CGFloat
+    @State var textFont: String
+    @State var desktopMode: String
 
     /// Current selected spine for the pager.
     @State private var currentSelection: Int
@@ -32,12 +32,12 @@ struct DCReaderChapterView: View {
     @State var currentPage: Int = 1
     @State private var canTouch: Bool = true
 
-    @State private var showSettings: Bool = false
-    @State private var settingsSheetHeight: CGFloat = 0
+    @State var showSettings: Bool = false
+    @State var settingsSheetHeight: CGFloat = 0
 
     private let book: EpubBook
     private let spineIndex: Int
-    private let userPreferences: DCUserPreferencesProtocol
+    private let userPreferencesProtocol: DCUserPreferencesProtocol
 
     var backgroundColor: Color {
         let desktopMode = userPreferences.getString(for: .desktopMode) ?? ""
@@ -59,14 +59,25 @@ struct DCReaderChapterView: View {
         }
     }
 
+    var bookTitle: String {
+        book.metadata.title ?? ""
+    }
+
+    var userPreferences: DCUserPreferencesProtocol {
+        userPreferencesProtocol
+    }
+
     init(book: EpubBook,
          spineIndex: Int,
-         userPreferences: DCUserPreferencesProtocol) {
+         userPreferencesProtocol: DCUserPreferencesProtocol = DCUserPreferences(userPreferences: UserDefaults.standard)) {
         self.book = book
         self.spineIndex = spineIndex
-        self.userPreferences = userPreferences
+        self.userPreferencesProtocol = userPreferencesProtocol
         _currentSelection = State(initialValue: spineIndex)
         _previousSelection = State(initialValue: spineIndex)
+        _textFont = State(initialValue: userPreferencesProtocol.getString(for: .fontFamily) ?? "original")
+        _desktopMode = State(initialValue: userPreferencesProtocol.getString(for: .desktopMode) ?? "")
+        _textSize = State(initialValue: userPreferencesProtocol.getCGFloat(for: .fontSize) ?? 4)
     }
 
     var body: some View {
@@ -111,6 +122,7 @@ struct DCReaderChapterView: View {
                                 }
                                 .padding(.horizontal, 24)
                                 .padding(.vertical, 12)
+                                .id("\(idx)-\(textFont)-\(desktopMode)-\(textSize)")
                                 if totalPages > 1 {
                                     Text("página \(currentPage) de \(totalPages)")
                                         .font(.system(size: 14))
@@ -132,47 +144,10 @@ struct DCReaderChapterView: View {
             .tabViewStyle(.page(indexDisplayMode: .never))
             .navigationBarBackButtonHidden(true)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "chevron.backward")
-                            .tint(.gray)
-                    }
-                }
-                ToolbarItem(placement: .principal) {
-                    Text(book.metadata.title ?? "")
-                        .font(.system(size: 14))
-                        .foregroundStyle(textColor)
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        showSettings.toggle()
-                    } label: {
-                        Image(systemName: "gear")
-                            .tint(.gray)
-                    }
-                }
+                toolbarView
             }
             .sheet(isPresented: $showSettings) {
-                ZStack {
-                    backgroundColor
-                        .ignoresSafeArea(edges: .all)
-                    DCReaderSettingsView()
-                        .fixedSize(horizontal: false, vertical: true)
-                        .onHeightChange { height in
-                            settingsSheetHeight = height
-                        }
-                        .presentationDetents([
-                            .height(
-                                min(
-                                    max(settingsSheetHeight + 1, 100),
-                                    UIScreen.main.bounds.height * 0.9
-                                )
-                            )
-                        ])
-                        .presentationDragIndicator(.visible)
-                }
+                sheetSettingsView
             }
         }
         .onChange(of: currentSelection) { _ in
@@ -191,9 +166,9 @@ struct DCReaderChapterView: View {
 #if DEBUG
 
 #Preview {
-    DCReaderChapterView(book: .mock,
-                        spineIndex: 0,
-                        userPreferences: DCUserPreferencesMock())
+    DCReaderView(book: .mock,
+                 spineIndex: 0,
+                 userPreferencesProtocol: DCUserPreferencesMock())
 }
 
 #endif
