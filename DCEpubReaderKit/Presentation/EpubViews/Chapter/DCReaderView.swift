@@ -19,102 +19,47 @@ struct DCReaderView: View {
 
     @Environment(\.dismiss) var dismiss
 
-    // MARK: Config values
-    @State var textSize: CGFloat
-    @State var textFont: String
-    @State var desktopMode: String
+    @ObservedObject var viewModel: DCReaderViewModel
 
-    /// Current selected spine for the pager.
-    @State private var currentSelection: Int
-    @State private var previousSelection: Int
-
-    @State var totalPages: Int = 1
-    @State var currentPage: Int = 1
-    @State private var canTouch: Bool = true
-
-    @State var showSettings: Bool = false
-    @State var settingsSheetHeight: CGFloat = 0
-
-    private let book: EpubBook
-    private let spineIndex: Int
-    private let userPreferencesProtocol: DCUserPreferencesProtocol
-
-    var backgroundColor: Color {
-        let desktopMode = userPreferences.getString(for: .desktopMode) ?? ""
-        switch desktopMode {
-        case "nightMode", "redMode":
-            return Color(.backgroundNight)
-        default:
-            return Color(.backgroundLight)
-        }
-    }
-
-    var textColor: Color {
-        let desktopMode = userPreferences.getString(for: .desktopMode) ?? ""
-        switch desktopMode {
-        case "nightMode", "redMode":
-            return Color(.backgroundLight)
-        default:
-            return Color(.backgroundNight)
-        }
-    }
-
-    var bookTitle: String {
-        book.metadata.title ?? ""
-    }
-
-    var userPreferences: DCUserPreferencesProtocol {
-        userPreferencesProtocol
-    }
-
-    init(book: EpubBook,
-         spineIndex: Int,
-         userPreferencesProtocol: DCUserPreferencesProtocol = DCUserPreferences(userPreferences: UserDefaults.standard)) {
-        self.book = book
-        self.spineIndex = spineIndex
-        self.userPreferencesProtocol = userPreferencesProtocol
-        _currentSelection = State(initialValue: spineIndex)
-        _previousSelection = State(initialValue: spineIndex)
-        _textFont = State(initialValue: userPreferencesProtocol.getString(for: .fontFamily) ?? "original")
-        _desktopMode = State(initialValue: userPreferencesProtocol.getString(for: .desktopMode) ?? "")
-        _textSize = State(initialValue: userPreferencesProtocol.getCGFloat(for: .fontSize) ?? 4)
+    init(viewModel: DCReaderViewModel) {
+        self.viewModel = viewModel
     }
 
     var body: some View {
         ZStack {
-            backgroundColor
+            viewModel.backgroundColor
                 .ignoresSafeArea(edges: .all)
-            TabView(selection: $currentSelection) {
-                ForEach(0..<book.spine.count, id: \.self) { idx in
+            TabView(selection: $viewModel.currentSelection) {
+                ForEach(0..<viewModel.bookSpines.count, id: \.self) { idx in
                     Group {
-                        if let chapterURL = book.chapterURL(forSpineIndex: idx) {
+                        if let chapterURL = viewModel.chapterURL(for: idx) {
                             VStack {
                                 DCChapterWebView(
                                     chapterURL: chapterURL,
-                                    readAccessURL: book.opfDirectoryURL,
+                                    readAccessURL: viewModel.opfDirectoryURL,
                                     spineIndex: idx
                                 ) { action in
                                     switch action {
                                     case .totalPageCount(let count, let spineIndex):
-                                        if spineIndex == self.currentSelection {
-                                            self.totalPages = count
-                                            if self.currentPage > count {
-                                                self.currentPage = count
+                                        if spineIndex == viewModel.currentSelection {
+                                            viewModel.totalPages = count
+                                            if viewModel.currentPage > count {
+                                                viewModel.currentPage = count
                                             }
                                         }
                                     case .currentPage(index: let index,
                                                       totalPages: let totalPages,
                                                       spineIndex: let spineIndex):
-                                        if spineIndex == self.currentSelection {
-                                            self.totalPages = totalPages
-                                            self.currentPage = index
+                                        if spineIndex == viewModel.currentSelection {
+                                            viewModel.totalPages = totalPages
+                                            viewModel.currentPage = index
                                         }
                                     case .canTouch(let enabled):
-                                        self.canTouch = enabled
+                                        viewModel.canTouch = enabled
                                     case .coordsFirstNodeOfPage(orientation: _,
                                                                 spineIndex: let spineIndex,
                                                                 coords: let coords):
-                                        if spineIndex == self.currentSelection {
+                                        if spineIndex == viewModel.currentSelection {
                                             // TODO: - Save book position
                                             print("chapterFile: \(chapterURL.lastPathComponent) coords: \(coords)")
                                         }
@@ -122,19 +67,20 @@ struct DCReaderView: View {
                                 }
                                 .padding(.horizontal, 24)
                                 .padding(.vertical, 12)
-                                .id("\(idx)-\(textFont)-\(desktopMode)-\(textSize)")
-                                if totalPages > 1 {
-                                    Text("página \(currentPage) de \(totalPages)")
+                                .id(viewModel.readerConfigId(for: idx))
+                                if viewModel.totalPages > 1 {
+                                    Text(viewModel.pageInfo)
                                         .font(.system(size: 14))
-                                        .foregroundStyle(textColor)
-                                        .opacity(canTouch ? 1 : 0)
-                                        .animation(.easeInOut(duration: 0.25), value: canTouch)
+                                        .foregroundStyle(viewModel.textColor)
+                                        .opacity(viewModel.canTouch ? 1 : 0)
+                                        .animation(.easeInOut(duration: 0.25),
+                                                   value: viewModel.canTouch)
                                 }
                             }
 
                         } else {
                             Text("Unable to resolve chapter at spine index \(idx).")
-                                .foregroundStyle(textColor)
+                                .foregroundStyle(viewModel.textColor)
                                 .padding()
                         }
                     }
@@ -146,18 +92,18 @@ struct DCReaderView: View {
             .toolbar {
                 toolbarView
             }
-            .sheet(isPresented: $showSettings) {
+            .sheet(isPresented: $viewModel.showSettings) {
                 sheetSettingsView
             }
         }
-        .onChange(of: currentSelection) { _ in
+        .onChange(of: viewModel.currentSelection) { _ in
             defer {
-                previousSelection = currentSelection
+                viewModel.previousSelection = viewModel.currentSelection
             }
             NotificationCenter.default.post(
                 name: .chapterShouldScrollToLastPage,
                 object: nil,
-                userInfo: currentSelection < previousSelection ? ["spineIndex": currentSelection] : nil
+                userInfo: viewModel.currentSelection < viewModel.previousSelection ? ["spineIndex": viewModel.currentSelection] : nil
             )
         }
     }
@@ -165,10 +111,10 @@ struct DCReaderView: View {
 
 #if DEBUG
 
-#Preview {
-    DCReaderView(book: .mock,
-                 spineIndex: 0,
-                 userPreferencesProtocol: DCUserPreferencesMock())
-}
+ #Preview {
+     NavigationStack {
+         DCReaderViewBuilderMock().build(.mock, spineIndex: 0)
+     }
+ }
 
 #endif

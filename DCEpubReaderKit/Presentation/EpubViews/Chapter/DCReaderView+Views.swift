@@ -21,13 +21,13 @@ extension DCReaderView {
             }
         }
         ToolbarItem(placement: .principal) {
-            Text(bookTitle)
+            Text(viewModel.bookTitle)
                 .font(.system(size: 14))
-                .foregroundStyle(textColor)
+                .foregroundStyle(viewModel.textColor)
         }
         ToolbarItem(placement: .navigationBarTrailing) {
             Button {
-                showSettings.toggle()
+                viewModel.showSettings.toggle()
             } label: {
                 Image(systemName: "gear")
                     .tint(.gray)
@@ -41,22 +41,22 @@ extension DCReaderView {
 extension DCReaderView {
     var sheetSettingsView: some View {
         ZStack {
-            backgroundColor
+            viewModel.backgroundColor
                 .ignoresSafeArea(edges: .all)
             DCReaderSettingsView(
-                fontSize: $textSize,
-                textFont: $textFont,
-                desktopMode: $desktopMode,
-                userPreferences: userPreferences
+                fontSize: $viewModel.textSize,
+                textFont: $viewModel.textFont,
+                desktopMode: $viewModel.desktopMode,
+                userPreferences: viewModel.userPreferences
             )
             .fixedSize(horizontal: false, vertical: true)
             .onHeightChange { height in
-                settingsSheetHeight = height
+                viewModel.settingsSheetHeight = height
             }
             .presentationDetents([
                 .height(
                     min(
-                        max(settingsSheetHeight + 1, 100),
+                        max(viewModel.settingsSheetHeight + 1, 100),
                         UIScreen.main.bounds.height * 0.9
                     )
                 )

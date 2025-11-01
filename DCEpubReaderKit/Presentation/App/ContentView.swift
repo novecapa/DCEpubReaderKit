@@ -174,11 +174,7 @@ struct TocList: View {
             Group {
                 if let idx = book.spineIndex(forTOCHref: node.href ?? "") {
                     NavigationLink {
-                        DCReaderView(
-                            book: book,
-                            spineIndex: idx,
-                            userPreferencesProtocol: DCUserPreferences(userPreferences: UserDefaults.standard)
-                        )
+                        DCReaderViewBuilder().build(book, spineIndex: idx)
                     } label: {
                         TocRow(book: book, node: node, depth: depth)
                     }

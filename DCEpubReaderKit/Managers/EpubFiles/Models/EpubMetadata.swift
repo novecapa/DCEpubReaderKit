@@ -18,7 +18,7 @@ public struct OPFMetadata {
 
     static let mock: OPFMetadata = OPFMetadata(
         version: "2",
-        title: "Mock",
+        title: "Book title",
         creators: ["DC Creator"],
         language: "es",
         identifiers: [""],
