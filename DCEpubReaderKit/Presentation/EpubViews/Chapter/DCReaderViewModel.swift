@@ -10,20 +10,20 @@ import SwiftUI
 final class DCReaderViewModel: ObservableObject {
 
     // MARK: Config values
-    @State var textSize: CGFloat
-    @State var textFont: String
-    @State var desktopMode: String
+    @Published var textSize: CGFloat
+    @Published var textFont: String
+    @Published var desktopMode: String
 
     // Current selected spine for the pager
-    @State var currentSelection: Int
-    @State var previousSelection: Int
+    @Published var currentSelection: Int
+    @Published var previousSelection: Int
 
-    @State var totalPages: Int = 1
-    @State var currentPage: Int = 1
-    @State var canTouch: Bool = true
+    @Published var totalPages: Int = 1
+    @Published var currentPage: Int = 1
+    @Published var canTouch: Bool = true
 
-    @State var showSettings: Bool = false
-    @State var settingsSheetHeight: CGFloat = 0
+    @Published var showSettings: Bool = false
+    @Published var settingsSheetHeight: CGFloat = 0
 
     private let book: EpubBook
     private let spineIndex: Int
@@ -35,11 +35,20 @@ final class DCReaderViewModel: ObservableObject {
         self.book = book
         self.spineIndex = spineIndex
         self.userPreferencesProtocol = userPreferencesProtocol
-        _currentSelection = State(initialValue: spineIndex)
-        _previousSelection = State(initialValue: spineIndex)
-        _textFont = State(initialValue: userPreferencesProtocol.getString(for: .fontFamily) ?? "original")
-        _desktopMode = State(initialValue: userPreferencesProtocol.getString(for: .desktopMode) ?? "")
-        _textSize = State(initialValue: userPreferencesProtocol.getCGFloat(for: .fontSize) ?? 4)
+
+        // Initial values
+        self.currentSelection = spineIndex
+        self.previousSelection = spineIndex
+        self.textFont = userPreferencesProtocol.getString(for: .fontFamily) ?? "original"
+        self.desktopMode = userPreferencesProtocol.getString(for: .desktopMode) ?? ""
+        self.textSize = userPreferencesProtocol.getCGFloat(for: .fontSize) ?? 4
+
+        // Defaults
+        self.totalPages = 1
+        self.currentPage = 1
+        self.canTouch = true
+        self.showSettings = false
+        self.settingsSheetHeight = 0
     }
 
     var bookSpines: [SpineItem] {
