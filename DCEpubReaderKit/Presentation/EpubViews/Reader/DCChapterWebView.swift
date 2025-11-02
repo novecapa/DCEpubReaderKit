@@ -22,30 +22,7 @@ enum DCChapterViewAction {
 
 struct DCChapterWebView: UIViewRepresentable {
 
-    /// Absolute file URL of the HTML/XHTML chapter.
-    let chapterURL: URL
-
-    /// Directory granting read access to all relative resources (usually `opfDirectoryURL`).
-    let readAccessURL: URL
-
-    /// Index of the spine that this view represents (used for disambiguating async callbacks).
-    let spineIndex: Int
-
-    private let userPreferences: DCUserPreferencesProtocol
-
-    let onAction: (DCChapterViewAction) -> Void
-
-    init(chapterURL: URL,
-         readAccessURL: URL,
-         spineIndex: Int,
-         userPreferences: DCUserPreferencesProtocol = DCUserPreferences(userPreferences: UserDefaults.standard),
-         onAction: @escaping (DCChapterViewAction) -> Void) {
-        self.chapterURL = chapterURL
-        self.readAccessURL = readAccessURL
-        self.spineIndex = spineIndex
-        self.userPreferences = userPreferences
-        self.onAction = onAction
-    }
+    @ObservedObject var viewModel: DCChapterWebViewModel
 
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
@@ -84,14 +61,14 @@ struct DCChapterWebView: UIViewRepresentable {
     func updateUIView(_ webView: WKWebView, context: Context) {
         // Avoid redundant loads using a tracker on the coordinator
         // (webView.url is unreliable with loadHTMLString)
-        if context.coordinator.currentChapterURL != chapterURL {
-            let htmlContent = prepareHTMLString(pathtofile: chapterURL.path)
-            webView.loadHTMLString(htmlContent, baseURL: chapterURL.deletingLastPathComponent())
-            context.coordinator.currentChapterURL = chapterURL
+        if context.coordinator.currentChapterURL != viewModel.chapterURL {
+            let htmlContent = prepareHTMLString(pathtofile: viewModel.chapterURL.path)
+            webView.loadHTMLString(htmlContent, baseURL: viewModel.chapterURL.deletingLastPathComponent())
+            context.coordinator.currentChapterURL = viewModel.chapterURL
             UIView.animate(withDuration: DCChapterWebView.Coordinator.Constants.fadeDuration) { webView.alpha = 0 }
-            onAction(.canTouch(enable: false))
+            viewModel.onAction(.canTouch(enable: false))
         }
-        context.coordinator.readAccessURL = readAccessURL
+        context.coordinator.readAccessURL = viewModel.readAccessURL
     }
 
     private func prepareHTMLString(pathtofile: String) -> String {
@@ -131,10 +108,9 @@ struct DCChapterWebView: UIViewRepresentable {
 
         htmlContent = htmlContent.replacingOccurrences(of: "</head>", with: headInject)
 
-        // TODO: Get config from preferences
-        let fontName = userPreferences.getString(for: .fontFamily) ?? "original"
-        let fontSize = userPreferences.getString(for: .fontSize) ?? "textSizeFive"
-        let nightOrDayMode = userPreferences.getString(for: .desktopMode) ?? "" // "redMode" // "nightMode"
+        let fontName = viewModel.userPreferences.getString(for: .fontFamily) ?? "original"
+        let fontSize = viewModel.userPreferences.getString(for: .fontSize) ?? "textSizeFive"
+        let nightOrDayMode = viewModel.userPreferences.getString(for: .desktopMode) ?? ""
         let classAttr = "class=\"\(fontName) \(fontSize) \(nightOrDayMode) mediaOverlayStyle0\""
         if htmlContent.range(of: "<html class=") == nil {
             htmlContent = htmlContent.replacingOccurrences(of: "<html", with: "<html \(classAttr)")
@@ -143,10 +119,13 @@ struct DCChapterWebView: UIViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(spineIndex: spineIndex, onAction: onAction)
+        let coordinator = Coordinator(spineIndex: viewModel.spineIndex,
+                    onAction: viewModel.onAction)
+        viewModel.inbound.target = coordinator
+        return coordinator
     }
 
-    final class Coordinator: NSObject, WKNavigationDelegate {
+    final class Coordinator: NSObject, WKNavigationDelegate, DCReaderViewModelProtocol {
 
         enum Constants {
             static let spineIndex = "spineIndex"
@@ -174,6 +153,24 @@ struct DCChapterWebView: UIViewRepresentable {
             }
         }
 
+        var totalPagesCache: Int?
+        var currentChapterURL: URL?
+        var readAccessURL: URL?
+        weak var lazyWebView: DCWebView?
+
+        let opensExternalLinks: Bool
+        let spineIndex: Int
+        let onAction: (DCChapterViewAction) -> Void
+
+        init(opensExternalLinks: Bool = true,
+             spineIndex: Int,
+             onAction: @escaping (DCChapterViewAction) -> Void) {
+            self.opensExternalLinks = opensExternalLinks
+            self.spineIndex = spineIndex
+            self.onAction = onAction
+            super.init()
+        }
+
         @MainActor
         private func setInteractivity(_ enabled: Bool, on webView: WKWebView?, animated: Bool = true) {
             guard let webView else { return }
@@ -190,43 +187,6 @@ struct DCChapterWebView: UIViewRepresentable {
             scrollViewDidEndDecelerating(webView.scrollView)
         }
 
-        private var scrollObserver: Any?
-
-        let opensExternalLinks: Bool
-        var readAccessURL: URL?
-        var currentChapterURL: URL?
-        let onAction: (DCChapterViewAction) -> Void
-        let spineIndex: Int
-        var note: Notification?
-        var totalPagesCache: Int?
-        weak var lazyWebView: DCWebView?
-
-        init(opensExternalLinks: Bool = true,
-             readAccessURL: URL? = nil,
-             spineIndex: Int,
-             onAction: @escaping (DCChapterViewAction) -> Void) {
-            self.opensExternalLinks = opensExternalLinks
-            self.readAccessURL = readAccessURL
-            self.spineIndex = spineIndex
-            self.onAction = onAction
-            super.init()
-            scrollObserver = NotificationCenter.default.addObserver(
-                forName: .chapterShouldScrollToLastPage,
-                object: nil,
-                queue: .main
-            ) { [weak self] note in
-                guard let self else { return }
-                self.note = note
-                updateCurrentPage(note: note)
-            }
-        }
-
-        deinit {
-            if let scrollObserver {
-                NotificationCenter.default.removeObserver(scrollObserver)
-            }
-        }
-
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             Task { @MainActor [weak self] in
                 guard let self else { return }
@@ -239,18 +199,13 @@ struct DCChapterWebView: UIViewRepresentable {
                                                spineIndex: self.spineIndex))
                 }
 
-                if let target = note?.userInfo?[Constants.spineIndex] as? Int, target == self.spineIndex {
-                    await self.scrollAndReport(.scrollToLastHPage, webView: webView)
-                    self.note = nil
-                } else {
-                    await self.scrollAndReport(.scrollToFirstHPage, webView: webView)
-                }
+                await self.scrollAndReport(.scrollToFirstHPage, webView: webView)
 
                 try? await Task.sleep(nanoseconds: Constants.settleDelay)
                 self.scrollViewDidEndDecelerating(webView.scrollView)
 
-                self.lazyWebView = webView as? DCWebView
                 self.setInteractivity(true, on: webView, animated: true)
+                self.lazyWebView = webView as? DCWebView
             }
         }
 
@@ -288,14 +243,12 @@ struct DCChapterWebView: UIViewRepresentable {
             decisionHandler(.allow)
         }
 
-        private func updateCurrentPage(note: Notification?) {
-            guard let webView = lazyWebView else { return }
-            Task { @MainActor in
-                if let target = note?.userInfo?[Constants.spineIndex] as? Int,
-                   target == self.spineIndex {
+        func updateCurrentTab(forceUpdate: Int?) {
+            Task { @MainActor [weak self] in
+                guard let self, let webView = self.lazyWebView else { return }
+                if let target = forceUpdate, target == self.spineIndex {
                     self.setInteractivity(false, on: webView, animated: true)
                     await self.scrollAndReport(.scrollToLastHPage, webView: webView)
-                    self.note = nil
                     self.setInteractivity(true, on: webView, animated: true)
                 }
                 try? await Task.sleep(nanoseconds: Constants.settleDelay)

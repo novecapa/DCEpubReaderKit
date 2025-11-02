@@ -7,8 +7,17 @@
 
 import SwiftUI
 
-extension Notification.Name {
-    static let chapterShouldScrollToLastPage = Notification.Name("chapterShouldScrollToLastPage")
+protocol DCReaderViewModelProtocol: AnyObject {
+    func updateCurrentTab(forceUpdate: Int?)
+}
+
+/// Proxy débil para invocar el receptor real (en el hijo)
+final class DCReaderInboundProxy: DCReaderViewModelProtocol {
+    weak var target: DCReaderViewModelProtocol?
+
+    func updateCurrentTab(forceUpdate: Int?) {
+        target?.updateCurrentTab(forceUpdate: forceUpdate)
+    }
 }
 
 struct DCReaderView: View {
@@ -20,6 +29,7 @@ struct DCReaderView: View {
     @Environment(\.dismiss) var dismiss
 
     @ObservedObject var viewModel: DCReaderViewModel
+    private let inbound = DCReaderInboundProxy()
 
     init(viewModel: DCReaderViewModel) {
         self.viewModel = viewModel
@@ -34,11 +44,12 @@ struct DCReaderView: View {
                     Group {
                         if let chapterURL = viewModel.chapterURL(for: idx) {
                             VStack {
-                                DCChapterWebView(
-                                    chapterURL: chapterURL,
-                                    readAccessURL: viewModel.opfDirectoryURL,
-                                    spineIndex: idx
-                                ) { action in
+                                DCChapterWebViewBuilder().build(chapterURL: chapterURL,
+                                                                readAccessURL: viewModel.opfDirectoryURL,
+                                                                spineIndex: idx,
+                                                                userPreferences: viewModel.userPreferences,
+                                                                inbound: inbound) { action in
+                                    // TODO: Refactor action to viewModel + interactor
                                     switch action {
                                     case .totalPageCount(let count, let spineIndex):
                                         if spineIndex == viewModel.currentSelection {
@@ -55,7 +66,9 @@ struct DCReaderView: View {
                                             viewModel.currentPage = index
                                         }
                                     case .canTouch(let enabled):
-                                        viewModel.canTouch = enabled
+                                        Task { @MainActor in
+                                            viewModel.canTouch = enabled
+                                        }
                                     case .coordsFirstNodeOfPage(orientation: _,
                                                                 spineIndex: let spineIndex,
                                                                 coords: let coords):
@@ -100,11 +113,8 @@ struct DCReaderView: View {
             defer {
                 viewModel.previousSelection = viewModel.currentSelection
             }
-            NotificationCenter.default.post(
-                name: .chapterShouldScrollToLastPage,
-                object: nil,
-                userInfo: viewModel.currentSelection < viewModel.previousSelection ? ["spineIndex": viewModel.currentSelection] : nil
-            )
+            let value = viewModel.currentSelection < viewModel.previousSelection ? viewModel.currentSelection : nil
+            inbound.updateCurrentTab(forceUpdate: value)
         }
     }
 }
