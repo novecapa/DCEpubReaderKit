@@ -13,6 +13,7 @@ final class DCReaderViewModel: ObservableObject {
     @Published var textSize: CGFloat
     @Published var textFont: String
     @Published var desktopMode: String
+    @Published var orientation: String
 
     // Current selected spine for the pager
     @Published var currentSelection: Int
@@ -39,9 +40,10 @@ final class DCReaderViewModel: ObservableObject {
         // Initial values
         self.currentSelection = spineIndex
         self.previousSelection = spineIndex
-        self.textFont = userPreferencesProtocol.getString(for: .fontFamily) ?? "original"
-        self.desktopMode = userPreferencesProtocol.getString(for: .desktopMode) ?? ""
-        self.textSize = userPreferencesProtocol.getCGFloat(for: .fontSize) ?? 4
+        self.textSize = userPreferencesProtocol.getFontSize().size
+        self.textFont = userPreferencesProtocol.getFontFamily().name
+        self.desktopMode = userPreferencesProtocol.getDesktopMode().mode
+        self.orientation = userPreferencesProtocol.getBookOrientation().rawValue
 
         // Defaults
         self.totalPages = 1
@@ -72,23 +74,11 @@ final class DCReaderViewModel: ObservableObject {
     }
 
     var backgroundColor: Color {
-        let desktopMode = userPreferences.getString(for: .desktopMode) ?? ""
-        switch desktopMode {
-        case "nightMode", "redMode":
-            return Color(.backgroundNight)
-        default:
-            return Color(.backgroundLight)
-        }
+        userPreferences.getDesktopMode().backgroundColor
     }
 
     var textColor: Color {
-        let desktopMode = userPreferences.getString(for: .desktopMode) ?? ""
-        switch desktopMode {
-        case "nightMode", "redMode":
-            return Color(.backgroundLight)
-        default:
-            return Color(.backgroundNight)
-        }
+        userPreferences.getDesktopMode().textColor
     }
 
     var bookTitle: String {

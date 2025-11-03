@@ -9,12 +9,19 @@ import Foundation
 
 final class DCUserPreferencesMock: DCUserPreferencesProtocol {
     func setValue(key: DCUserPreferences.CacheKey, type: Any) {}
-
-    func getString(for key: DCUserPreferences.CacheKey) -> String? {
-        ""
+    func getFontSize() -> DCFontSize {
+        .textSizeFour
     }
 
-    func getCGFloat(for key: DCUserPreferences.CacheKey) -> CGFloat? {
-        23.0
+    func getFontFamily() -> DCFontFamily {
+        .original
+    }
+
+    func getDesktopMode() -> DCDesktopMode {
+        .lihgt
+    }
+
+    func getBookOrientation() -> DCBookrOrientation {
+        .horizontal
     }
 }

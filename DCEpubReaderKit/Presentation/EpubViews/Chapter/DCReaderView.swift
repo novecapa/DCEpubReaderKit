@@ -7,17 +7,8 @@
 
 import SwiftUI
 
-protocol DCReaderViewModelProtocol: AnyObject {
-    func updateCurrentTab(forceUpdate: Int?)
-}
-
-/// Proxy débil para invocar el receptor real (en el hijo)
-final class DCReaderInboundProxy: DCReaderViewModelProtocol {
-    weak var target: DCReaderViewModelProtocol?
-
-    func updateCurrentTab(forceUpdate: Int?) {
-        target?.updateCurrentTab(forceUpdate: forceUpdate)
-    }
+extension Notification.Name {
+    static let chapterShouldScrollToLastPage = Notification.Name("chapterShouldScrollToLastPage")
 }
 
 struct DCReaderView: View {
@@ -29,7 +20,6 @@ struct DCReaderView: View {
     @Environment(\.dismiss) var dismiss
 
     @ObservedObject var viewModel: DCReaderViewModel
-    private let inbound = DCReaderInboundProxy()
 
     init(viewModel: DCReaderViewModel) {
         self.viewModel = viewModel
@@ -47,8 +37,7 @@ struct DCReaderView: View {
                                 DCChapterWebViewBuilder().build(chapterURL: chapterURL,
                                                                 readAccessURL: viewModel.opfDirectoryURL,
                                                                 spineIndex: idx,
-                                                                userPreferences: viewModel.userPreferences,
-                                                                inbound: inbound) { action in
+                                                                userPreferences: viewModel.userPreferences) { action in
                                     // TODO: Refactor action to viewModel + interactor
                                     switch action {
                                     case .totalPageCount(let count, let spineIndex):
@@ -113,8 +102,13 @@ struct DCReaderView: View {
             defer {
                 viewModel.previousSelection = viewModel.currentSelection
             }
-            let value = viewModel.currentSelection < viewModel.previousSelection ? viewModel.currentSelection : nil
-            inbound.updateCurrentTab(forceUpdate: value)
+            NotificationCenter.default.post(
+                name: .chapterShouldScrollToLastPage,
+                object: nil,
+                userInfo: viewModel.currentSelection < viewModel.previousSelection ?
+                ["spineIndex": viewModel.currentSelection] :
+                    nil
+            )
         }
     }
 }
