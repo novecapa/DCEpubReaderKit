@@ -103,13 +103,13 @@ struct DCChapterWebView: UIViewRepresentable {
 
         htmlContent = htmlContent.replacingOccurrences(of: "</head>", with: headInject)
 
-//        let fontName = viewModel.userPreferences.getString(for: .fontFamily) ?? "original"
-//        let fontSize = viewModel.userPreferences.getString(for: .fontSize) ?? "textSizeFive"
-//        let nightOrDayMode = viewModel.userPreferences.getString(for: .desktopMode) ?? ""
-//        let classAttr = "class=\"\(fontName) \(fontSize) \(nightOrDayMode) mediaOverlayStyle0\""
-//        if htmlContent.range(of: "<html class=") == nil {
-//            htmlContent = htmlContent.replacingOccurrences(of: "<html", with: "<html \(classAttr)")
-//        }
+        let fontName = viewModel.userPreferences.getFontFamily().rawValue
+        let fontSize = viewModel.userPreferences.getFontSize().rawValue
+        let nightOrDayMode = viewModel.userPreferences.getDesktopMode().mode
+        let classAttr = "class=\"\(fontName) \(fontSize) \(nightOrDayMode) mediaOverlayStyle0\""
+        if htmlContent.range(of: "<html class=") == nil {
+            htmlContent = htmlContent.replacingOccurrences(of: "<html", with: "<html \(classAttr)")
+        }
         return htmlContent
     }
 

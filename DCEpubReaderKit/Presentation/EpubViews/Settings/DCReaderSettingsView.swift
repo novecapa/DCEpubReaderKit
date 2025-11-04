@@ -68,7 +68,7 @@ struct DCReaderSettingsView: View {
                         } label: {
                             Text(font.name)
                                 .frame(height: 54)
-                                .font(.system(size: 13))
+                                .font(font.font)
                                 .foregroundStyle(textColor)
                                 .frame(maxWidth: .infinity)
                                 .overlay(

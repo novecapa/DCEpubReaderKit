@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+// MARK: - DCFontSize
+
 enum DCFontSize: String {
     case textSizeOne
     case textSizeTwo
@@ -38,6 +40,8 @@ enum DCFontSize: String {
         }
     }
 }
+
+// MARK: - DCFontFamily
 
 enum DCFontFamily: String {
     case original
@@ -85,6 +89,8 @@ enum DCFontFamily: String {
     ]
 }
 
+// MARK: - DCDesktopMode
+
 enum DCDesktopMode: String {
     case lihgt
     case dark
@@ -108,7 +114,7 @@ enum DCDesktopMode: String {
         case .dark:
             "Dark"
         case .red:
-            "rays"
+            "Red"
         }
     }
 
@@ -156,6 +162,8 @@ enum DCDesktopMode: String {
         .red
     ]
 }
+
+// MARK: - DCBookrOrientation
 
 enum DCBookrOrientation: String {
     case vertical
