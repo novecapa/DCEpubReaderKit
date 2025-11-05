@@ -1,183 +1,170 @@
-// Author: Raymond Hill
-// Version: 2011-01-17
-// Title: HTML text hilighter
-// Permalink: http://www.raymondhill.net/blog/?p=272
-// Purpose: Hilight portions of text inside a specified element, according to a search expression.
-// Key feature: Can safely hilight text across HTML tags.
-// History:
-//   2012-01-29
-//     fixed a bug which caused special regex characters in the
-//     search string to break the highlighter
+//
+//  dohighlight.js
+//  DCEpubReaderKit
+//
+//  Created by Josep Cerdá Penadés on 4/11/25.
+//
 
-function doHighlight(node,className,searchFor,which){
-    //	var doc = document;
-    var doc = document;//.getElementById('ifr').contentDocument;
-    // normalize node argument
-    if (typeof node === 'string') {
-        node = doc.getElementById(node);
-    }
+(function(){
+    'use strict';
     
-    // normalize search arguments, here is what is accepted:
-    // - single string
-    // - single regex (optionally, a 'which' argument, default to 0)
-    if (typeof searchFor === 'string') {
-        // rhill 2012-01-29: escape regex chars first
-        // http://stackoverflow.com/questions/280793/case-insensitive-string-replacement-in-javascript
-        searchFor = new RegExp(searchFor.replace(/[.*+?|()\[\]{}\\$^]/g,'\\$&'),'ig');
-    }
-    which = which || 0;
-    // initialize root loop
-    var indices = [],
-    text = [], // will be morphed into a string later
-    iNode = 0,
-    nNodes = node.childNodes.length,
-    nodeText,
-    textLength = 0,
-    stack = [],
-    child, nChildren,
-    state;
-    // collect text and index-node pairs
-    for (;;){
-        while (iNode<nNodes){
-            child=node.childNodes[iNode++];
-            // text: collect and save index-node pair
-            if (child.nodeType === 3){
-                indices.push({i:textLength, n:child});
-                nodeText = child.nodeValue;
-                text.push(nodeText);
-                textLength += nodeText.length;
-            }
-            // element: collect text of child elements,
-            // except from script or style tags
-            else if (child.nodeType === 1){
-                // skip style/script tags
-                if (child.tagName.search(/^(script|style)$/i)>=0){
-                    continue;
+    /**
+     * Highlight matches under a DOM node.
+     * @param {HTMLElement|string} node - Element or element id string.
+     * @param {string} className - CSS class applied to each highlighted span.
+     * @param {string|RegExp} searchFor - String (escaped) or RegExp to search. If RegExp, will be forced global.
+     * @param {number} which - Capture group to highlight (0 = whole match). Defaults to 0.
+     */
+    function doHighlight(node, className, searchFor, which){
+        const doc = document;
+        
+        // Normalize node
+        if (typeof node === 'string') node = doc.getElementById(node);
+        if (!node) return; // nothing to do
+        
+        // Normalize search
+        let rx;
+        if (typeof searchFor === 'string') {
+            // Escape special regex chars, then build case-insensitive global regex
+            // https://stackoverflow.com/a/6969486
+            const escaped = searchFor.replace(/[.*+?|()\[\]{}\\$^]/g, '\\$&');
+            rx = new RegExp(escaped, 'ig');
+        } else if (searchFor instanceof RegExp) {
+            // Ensure global flag so we can iterate with exec(...)
+            const flags = searchFor.flags.includes('g') ? searchFor.flags : (searchFor.flags + 'g');
+            rx = new RegExp(searchFor.source, flags);
+        } else {
+            return; // unsupported search token
+        }
+        which = which || 0;
+        
+        // Collect text and index-node pairs using a non-recursive DFS
+        // indices: [{ i: absoluteOffsetInText, n: TextNode }]
+        const indices = [];
+        const textChunks = [];
+        let textLength = 0;
+        
+        // Elements considered inline: do NOT insert extra space before/after
+        const INLINE_TAG_RE = /^(a|b|basefont|bdo|big|em|font|i|s|small|span|strike|strong|su[bp]|tt|u)$/i;
+        const SKIP_TAG_RE = /^(script|style)$/i;
+        
+        let cur = node;
+        let iNode = 0;
+        let nNodes = node.childNodes.length;
+        const stack = [];
+        
+        // Iterative tree walk
+        for(;;){
+            while (iNode < nNodes) {
+                const child = cur.childNodes[iNode++];
+                if (!child) continue;
+                
+                if (child.nodeType === 3) { // TEXT_NODE
+                    indices.push({ i: textLength, n: child });
+                    const t = child.nodeValue || '';
+                    textChunks.push(t);
+                    textLength += t.length;
+                } else if (child.nodeType === 1) { // ELEMENT_NODE
+                    if (SKIP_TAG_RE.test(child.tagName)) {
+                        continue; // skip script/style
+                    }
+                    // Add a natural word boundary when leaving non-inline elements
+                    if (!INLINE_TAG_RE.test(child.tagName)) {
+                        textChunks.push(' ');
+                        textLength += 1;
+                    }
+                    const kids = child.childNodes.length;
+                    if (kids) {
+                        // save parent state
+                        stack.push({ node: cur, len: nNodes, idx: iNode });
+                        // descend
+                        cur = child;
+                        nNodes = kids;
+                        iNode = 0;
+                    }
                 }
-                // add extra space for tags which fall naturally on word boundaries
-                if (child.tagName.search(/^(a|b|basefont|bdo|big|em|font|i|s|small|span|strike|strong|su[bp]|tt|u)$/i)<0){
-                    text.push(' ');
-                    textLength++;
+            }
+            if (!stack.length) break;
+            const state = stack.pop();
+            cur = state.node;
+            nNodes = state.len;
+            iNode = state.idx;
+        }
+        
+        if (!indices.length) return; // no text to highlight
+        
+        // Build the full text and append sentinel in indices
+        const fullText = textChunks.join('');
+        indices.push({ i: fullText.length }); // sentinel (no node)
+        
+        // Helper: binary search to find entry covering absolute position
+        function findEntry(pos){
+            let lo = 0, hi = indices.length - 1; // last entry is sentinel; safe bounds
+            while (lo < hi) {
+                const mid = (lo + hi) >> 1;
+                if (pos < indices[mid].i) hi = mid;
+                else if (pos >= indices[mid + 1].i) lo = mid + 1;
+                else return mid;
+            }
+            return lo;
+        }
+        
+        // Iterate regex matches
+        let m;
+        while ((m = rx.exec(fullText))) {
+            if (m.length <= which || !m[which]) continue;
+            
+            // Compute absolute start/end for the chosen group
+            let start = m.index;
+            for (let g = 1; g < which; g++) start += (m[g] || '').length;
+            const end = start + m[which].length;
+            
+            // Walk through affected text nodes and wrap ranges
+            let entryIdx = findEntry(start);
+            while (entryIdx < indices.length - 1) { // stop before sentinel
+                const entry = indices[entryIdx];
+                const nextI = indices[entryIdx + 1].i;
+                const textNode = entry.n;
+                // Safety: if the text node was removed by a previous wrap (extremely rare), skip
+                if (!textNode || !textNode.parentNode) { entryIdx++; continue; }
+                
+                const localStart = Math.max(0, start - entry.i);
+                const localEnd = Math.min(end, nextI) - entry.i;
+                if (localEnd <= 0) break; // current entry is before match
+                
+                const nodeText = textNode.nodeValue || '';
+                const before = localStart > 0 ? nodeText.slice(0, localStart) : '';
+                const middle = nodeText.slice(localStart, localEnd);
+                const after  = localEnd < nodeText.length ? nodeText.slice(localEnd) : '';
+                
+                const parent = textNode.parentNode;
+                const nextSibling = textNode.nextSibling;
+                
+                // Replace current text node with optional before + <span class=...>middle</span> + optional after
+                if (before) {
+                    textNode.nodeValue = before;
+                } else {
+                    parent.removeChild(textNode);
                 }
-                // save parent's loop state
-                nChildren = child.childNodes.length;
-                if (nChildren){
-                    stack.push({n:node, l:nNodes, i:iNode});
-                    // initialize child's loop
-                    node = child;
-                    nNodes = nChildren;
-                    iNode = 0;
+                
+                const mark = doc.createElement('span');
+                mark.className = className;
+                mark.appendChild(doc.createTextNode(middle));
+                parent.insertBefore(mark, nextSibling);
+                
+                if (after) {
+                    const tail = doc.createTextNode(after);
+                    parent.insertBefore(tail, nextSibling);
+                    // Maintain indices for subsequent intersections within this same match
+                    indices[entryIdx] = { n: tail, i: end };
                 }
-            }
-        }
-        // restore parent's loop state
-        if (!stack.length){
-            break;
-        }
-        state = stack.pop();
-        node = state.n;
-        nNodes = state.l;
-        iNode = state.i;
-    }
-    
-    // quit if found nothing
-    if (!indices.length){
-        return;
-    }
-    
-    // morph array of text into contiguous text
-    text = text.join('');
-    
-    // sentinel
-    indices.push({i:text.length});
-    
-    // find and hilight all matches
-    var iMatch, matchingText,
-    iTextStart, iTextEnd,
-    i, iLeft, iRight,
-    iEntry, entry,
-    parentNode, nextNode, newNode,
-    iNodeTextStart, iNodeTextEnd,
-    textStart, textMiddle, textEnd;
-    
-    // loop until no more matches
-    for (;;){
-        
-        // find matching text, stop if none
-        matchingText = searchFor.exec(text);
-        if (!matchingText || matchingText.length<=which || !matchingText[which].length){
-            break;
-        }
-        
-        // calculate a span from the absolute indices
-        // for start and end of match
-        iTextStart = matchingText.index;
-        for (iMatch=1; iMatch < which; iMatch++){
-            iTextStart += matchingText[iMatch].length;
-        }
-        iTextEnd = iTextStart + matchingText[which].length;
-        
-        // find entry in indices array (using binary search)
-        iLeft = 0;
-        iRight = indices.length;
-        while (iLeft < iRight) {
-            i=iLeft + iRight >> 1;
-            if (iTextStart < indices[i].i){iRight = i;}
-            else if (iTextStart >= indices[i+1].i){iLeft = i + 1;}
-            else {iLeft = iRight = i;}
-        }
-        iEntry = iLeft;
-        
-        // for every entry which intersect with the span of the
-        // match, extract the intersecting text, and put it into
-        // a span tag with specified class
-        while (iEntry < indices.length){
-            entry = indices[iEntry];
-            node = entry.n;
-            nodeText = node.nodeValue;
-            parentNode = node.parentNode;
-            nextNode = node.nextSibling;
-            iNodeTextStart = iTextStart - entry.i;
-            iNodeTextEnd = Math.min(iTextEnd,indices[iEntry+1].i) - entry.i;
-            
-            // slice of text before hilighted slice
-            textStart = null;
-            if (iNodeTextStart > 0){
-                textStart = nodeText.substring(0,iNodeTextStart);
-            }
-            
-            // hilighted slice
-            textMiddle = nodeText.substring(iNodeTextStart,iNodeTextEnd);
-            
-            // slice of text after hilighted slice
-            textEnd = null;
-            if (iNodeTextEnd < nodeText.length){
-                textEnd = nodeText.substr(iNodeTextEnd);
-            }
-            
-            // update DOM according to found slices of text
-            if (textStart){
-                node.nodeValue = textStart;
-            }
-            else {
-                parentNode.removeChild(node);
-            }
-            newNode = doc.createElement('span');
-            newNode.appendChild(doc.createTextNode(textMiddle));
-            newNode.className = className;
-            parentNode.insertBefore(newNode,nextNode);
-            if (textEnd){
-                newNode = doc.createTextNode(textEnd);
-                parentNode.insertBefore(newNode,nextNode);
-                indices[iEntry] = {n:newNode,i:iTextEnd}; // important: make a copy, do not overwrite
-            }
-            
-            // if the match doesn't intersect with the following
-            // index-node pair, this means this match is completed
-            iEntry++;
-            if (iTextEnd <= indices[iEntry].i){
-                break;
+                
+                entryIdx++;
+                if (end <= nextI) break; // this match segment is complete in current entry
             }
         }
     }
-}
+    
+    // Expose globally (backward compatibility with original file)
+    window.doHighlight = doHighlight;
+})();

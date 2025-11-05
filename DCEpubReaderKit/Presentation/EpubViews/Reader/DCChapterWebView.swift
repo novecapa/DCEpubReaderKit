@@ -74,7 +74,7 @@ struct DCChapterWebView: UIViewRepresentable {
         #endif
 
         guard let style = bundle.url(forResource: "Style", withExtension: "css"),
-              let bridge = bundle.url(forResource: "Bridge", withExtension: "js"),
+              let bridge = bundle.url(forResource: "Epub+Helper", withExtension: "js"),
               let dohighlight = bundle.url(forResource: "dohighlight", withExtension: "js"),
               let jquery = bundle.url(forResource: "jquery-1.10.2", withExtension: "js"),
               let jqueryhighlight = bundle.url(forResource: "jquery.highlight", withExtension: "js"),
@@ -115,6 +115,7 @@ struct DCChapterWebView: UIViewRepresentable {
 
     func makeCoordinator() -> Coordinator {
         Coordinator(spineIndex: viewModel.spineIndex,
+                    userPreferences: viewModel.userPreferences,
                     onAction: viewModel.onAction)
     }
 
@@ -127,20 +128,26 @@ struct DCChapterWebView: UIViewRepresentable {
         }
 
         private enum JSMethod {
-            case applyHPagination
-            case scrollToLastHPage
-            case scrollToFirstHPage
-            case coordsFirstNodeOfHPage(page: Int)
+            case applyHorizontalPagination
+            case applyVerticalPagination
+            case scrollToLastHorizontalPage
+            case scrollToLastVerticalPage
+            case scrollToFirstPage
+            case coordsFirstNodeOfPage(page: Int)
 
             var rawValue: String {
                 switch self {
-                case .applyHPagination:
+                case .applyHorizontalPagination:
                     return "applyHorizontalPagination()"
-                case .scrollToLastHPage:
+                case .applyVerticalPagination:
+                    return "applyVerticalPagination()"
+                case .scrollToLastHorizontalPage:
                     return "scrollToLastHorizontalPage()"
-                case .scrollToFirstHPage:
-                    return "scrollToFirstHorizontalPage()"
-                case .coordsFirstNodeOfHPage(let page):
+                case .scrollToLastVerticalPage:
+                    return "scrollToLastVerticalPage()"
+                case .scrollToFirstPage:
+                    return "scrollToFirstPage()"
+                case .coordsFirstNodeOfPage(let page):
                     return "getCoordsFirstNodeOfPage(\(page))"
                 }
             }
@@ -154,14 +161,17 @@ struct DCChapterWebView: UIViewRepresentable {
 
         let opensExternalLinks: Bool
         let spineIndex: Int
+        let userPreferences: DCUserPreferencesProtocol
         var note: Notification?
         let onAction: (DCChapterViewAction) -> Void
 
         init(opensExternalLinks: Bool = true,
              spineIndex: Int,
+             userPreferences: DCUserPreferencesProtocol,
              onAction: @escaping (DCChapterViewAction) -> Void) {
             self.opensExternalLinks = opensExternalLinks
             self.spineIndex = spineIndex
+            self.userPreferences = userPreferences
             self.onAction = onAction
             super.init()
             scrollObserver = NotificationCenter.default.addObserver(
@@ -181,6 +191,10 @@ struct DCChapterWebView: UIViewRepresentable {
             }
         }
 
+        private var orientation: DCBookrOrientation {
+            userPreferences.getBookOrientation()
+        }
+
         @MainActor
         private func setInteractivity(_ enabled: Bool, on webView: WKWebView?, animated: Bool = true) {
             guard let webView else { return }
@@ -197,11 +211,23 @@ struct DCChapterWebView: UIViewRepresentable {
             scrollViewDidEndDecelerating(webView.scrollView)
         }
 
+        private func applyPagination(_ webView: WKWebView) async -> String? {
+            await orientation == .horizontal ? applyHorizontalPagination(webView) : applyVerticalPagination(webView)
+        }
+
+        private func scrollToLastPageWihtOrientagtion(_ webView: WKWebView) async {
+            await scrollAndReport(
+                orientation == .horizontal ? .scrollToLastHorizontalPage : .scrollToLastVerticalPage,
+                webView: webView
+            )
+        }
+
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             Task { @MainActor [weak self] in
                 guard let self else { return }
+
                 if lazyWebView == nil,
-                   let result = await applyHorizontalPagination(webView),
+                   let result = await applyPagination(webView),
                    let totalPages = Int(result) {
                     self.totalPagesCache = totalPages
                     self.onAction(.currentPage(index: 1,
@@ -210,10 +236,10 @@ struct DCChapterWebView: UIViewRepresentable {
                 }
 
                 if let target = note?.userInfo?[Constants.spineIndex] as? Int, target == self.spineIndex {
-                    await self.scrollAndReport(.scrollToLastHPage, webView: webView)
+                    await self.scrollToLastPageWihtOrientagtion(webView)
                     self.note = nil
                 } else {
-                    await self.scrollAndReport(.scrollToFirstHPage, webView: webView)
+                    await self.scrollAndReport(.scrollToFirstPage, webView: webView)
                 }
 
                 try? await Task.sleep(nanoseconds: Constants.settleDelay)
@@ -263,7 +289,7 @@ struct DCChapterWebView: UIViewRepresentable {
                 guard let self, let webView = self.lazyWebView else { return }
                 if let target = note?.userInfo?[Constants.spineIndex] as? Int, target == self.spineIndex {
                     self.setInteractivity(false, on: webView, animated: true)
-                    await self.scrollAndReport(.scrollToLastHPage, webView: webView)
+                    await self.scrollToLastPageWihtOrientagtion(webView)
                     self.note = nil
                     self.setInteractivity(true, on: webView, animated: true)
                 }
@@ -316,20 +342,28 @@ extension DCChapterWebView.Coordinator: UIScrollViewDelegate {
 
 private extension DCChapterWebView.Coordinator {
     func applyHorizontalPagination(_ webView: WKWebView) async -> String? {
-        try? await webView.evaluateJavaScriptAsync(JSMethod.applyHPagination.rawValue) as? String
+        try? await webView.evaluateJavaScriptAsync(JSMethod.applyHorizontalPagination.rawValue) as? String
     }
 
-    func scrollToLastPage(_ webView: WKWebView) async {
-        await scrollAndReport(.scrollToLastHPage, webView: webView)
+    func applyVerticalPagination(_ webView: WKWebView) async -> String? {
+        try? await webView.evaluateJavaScriptAsync(JSMethod.applyVerticalPagination.rawValue) as? String
     }
 
-    func scrollToFirstPage(_ webView: WKWebView) async {
-        await scrollAndReport(.scrollToFirstHPage, webView: webView)
-    }
+//    func scrollToLastHorizontalPage(_ webView: WKWebView) async {
+//        await scrollAndReport(.scrollToLastHorizontalPage, webView: webView)
+//    }
+//
+//    func scrollToLastVerticalPage(_ webView: WKWebView) async {
+//        await scrollAndReport(.scrollToLastVerticalPage, webView: webView)
+//    }
+
+//    func scrollToFirstPage(_ webView: WKWebView) async {
+//        await scrollAndReport(.scrollToFirstPage, webView: webView)
+//    }
 
     func getCoordsFirstNodeOfPage(_ webView: DCWebView?, currentPage: Int) async -> String? {
         try? await webView?.evaluateJavaScriptAsync(
-            JSMethod.coordsFirstNodeOfHPage(page: currentPage).rawValue
+            JSMethod.coordsFirstNodeOfPage(page: currentPage).rawValue
         ) as? String
     }
 }

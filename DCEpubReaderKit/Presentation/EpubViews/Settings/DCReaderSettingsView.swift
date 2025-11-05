@@ -108,7 +108,8 @@ struct DCReaderSettingsView: View {
                 HStack(spacing: 0) {
                     ForEach(DCBookrOrientation.allCases, id: \.self) { orientation in
                         Button {
-                            userPreferences.setValue(key: .bookOrientation, type: orientation)
+                            userPreferences.setValue(key: .bookOrientation,
+                                                     type: orientation.rawValue)
                             self.orientation = orientation.rawValue
                         } label: {
                             HStack(spacing: 0) {
