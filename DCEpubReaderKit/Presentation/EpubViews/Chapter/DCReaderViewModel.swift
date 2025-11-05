@@ -66,7 +66,7 @@ final class DCReaderViewModel: ObservableObject {
     }
 
     func readerConfigId(for idx: Int) -> String {
-        "\(idx)-\(textFont)-\(desktopMode)-\(textSize)"
+        "\(idx)-\(textFont)-\(desktopMode)-\(textSize)-\(orientation)"
     }
 
     var pageInfo: String {

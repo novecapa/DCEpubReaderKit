@@ -1,4 +1,3 @@
-
 //
 //  Epub+Helper.js
 //  DCEpubReaderKit

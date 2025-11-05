@@ -1,4 +1,3 @@
-
 //
 //  EpubUtil.js
 //  DCEpubReaderKit
@@ -101,7 +100,10 @@
         return totalscroll;
     }
     
-    function scrollToFirstPage() { window.scrollTo(0, 0); }
+
+function scrollToFirstPage() { window.scrollTo(0, 0); }
+    // Backward-compatibility alias expected by the public API
+    function scrollToFirstHorizontalPage() { return scrollToFirstPage(); }
     
 
     function applyVerticalPagination() {

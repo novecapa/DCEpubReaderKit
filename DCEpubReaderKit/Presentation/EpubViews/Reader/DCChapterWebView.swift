@@ -74,7 +74,7 @@ struct DCChapterWebView: UIViewRepresentable {
         #endif
 
         guard let style = bundle.url(forResource: "Style", withExtension: "css"),
-              let bridge = bundle.url(forResource: "Epub+Helper", withExtension: "js"),
+              let epubHelper = bundle.url(forResource: "EpubHelper", withExtension: "js"),
               let dohighlight = bundle.url(forResource: "dohighlight", withExtension: "js"),
               let jquery = bundle.url(forResource: "jquery-1.10.2", withExtension: "js"),
               let jqueryhighlight = bundle.url(forResource: "jquery.highlight", withExtension: "js"),
@@ -87,7 +87,7 @@ struct DCChapterWebView: UIViewRepresentable {
         let headInject =
         """
         <link rel='stylesheet' type='text/css' href=\"\(style)\">\n
-        <script type='text/javascript' src=\"\(bridge)\"></script>\n
+        <script type='text/javascript' src=\"\(epubHelper)\"></script>\n
         <script type='text/javascript' src=\"\(dohighlight)\"></script>\n
         <script type='text/javascript' src=\"\(jquery)\"></script>\n
         <script type='text/javascript' src=\"\(jqueryhighlight)\"></script>\n
@@ -133,7 +133,8 @@ struct DCChapterWebView: UIViewRepresentable {
             case scrollToLastHorizontalPage
             case scrollToLastVerticalPage
             case scrollToFirstPage
-            case coordsFirstNodeOfPage(page: Int)
+            case getCoordsFirstNodeOfPageHorizontal(page: Int)
+            case getCoordsFirstNodeOfPageVertical(page: Int)
 
             var rawValue: String {
                 switch self {
@@ -147,8 +148,10 @@ struct DCChapterWebView: UIViewRepresentable {
                     return "scrollToLastVerticalPage()"
                 case .scrollToFirstPage:
                     return "scrollToFirstPage()"
-                case .coordsFirstNodeOfPage(let page):
-                    return "getCoordsFirstNodeOfPage(\(page))"
+                case .getCoordsFirstNodeOfPageHorizontal(let page):
+                    return "getCoordsFirstNodeOfPageHorizontal(\(page))"
+                case .getCoordsFirstNodeOfPageVertical(let page):
+                    return "getCoordsFirstNodeOfPageVertical(\(page))"
                 }
             }
         }
@@ -311,15 +314,15 @@ extension DCChapterWebView.Coordinator: UIScrollViewDelegate {
     }
 
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        // Update current page when the scroll settles
-        let totalWebWidth = scrollView.contentSize.width
-        let pageWidth = scrollView.frame.size.width
-        guard pageWidth > 0 else { return }
+        let isHorizontal = orientation == .horizontal
+        let totalContentLength = isHorizontal ? scrollView.contentSize.width : scrollView.contentSize.height
+        let pageLength = isHorizontal ? scrollView.frame.size.width : scrollView.frame.size.height
+        guard pageLength > 0 else { return }
 
         // Round to nearest to avoid off-by-one due to floating precision at boundaries
-        let ratio = scrollView.contentOffset.x / pageWidth
+        let ratio = (isHorizontal ? scrollView.contentOffset.x : scrollView.contentOffset.y) / pageLength
         let zeroBasedIndex = Int(ratio.rounded())
-        let cachedTotal = totalPagesCache ?? Int(ceil(totalWebWidth / pageWidth))
+        let cachedTotal = totalPagesCache ?? Int(ceil(totalContentLength / pageLength))
 
         // Clamp within 0..(cachedTotal-1)
         let clampedIndex = max(0, min(zeroBasedIndex, max(0, cachedTotal - 1)))
@@ -332,7 +335,7 @@ extension DCChapterWebView.Coordinator: UIScrollViewDelegate {
 
         Task { @MainActor in
             if let coords = await getCoordsFirstNodeOfPage(lazyWebView, currentPage: currentPageOneBased-1) {
-                onAction(.coordsFirstNodeOfPage(orientation: .horizontal, spineIndex: spineIndex, coords: coords))
+                onAction(.coordsFirstNodeOfPage(orientation: orientation, spineIndex: spineIndex, coords: coords))
             }
         }
     }
@@ -349,21 +352,12 @@ private extension DCChapterWebView.Coordinator {
         try? await webView.evaluateJavaScriptAsync(JSMethod.applyVerticalPagination.rawValue) as? String
     }
 
-//    func scrollToLastHorizontalPage(_ webView: WKWebView) async {
-//        await scrollAndReport(.scrollToLastHorizontalPage, webView: webView)
-//    }
-//
-//    func scrollToLastVerticalPage(_ webView: WKWebView) async {
-//        await scrollAndReport(.scrollToLastVerticalPage, webView: webView)
-//    }
-
-//    func scrollToFirstPage(_ webView: WKWebView) async {
-//        await scrollAndReport(.scrollToFirstPage, webView: webView)
-//    }
-
     func getCoordsFirstNodeOfPage(_ webView: DCWebView?, currentPage: Int) async -> String? {
-        try? await webView?.evaluateJavaScriptAsync(
-            JSMethod.coordsFirstNodeOfPage(page: currentPage).rawValue
+        let coordsFirstNodeOfPage = userPreferences.getBookOrientation() == .horizontal ?
+        JSMethod.getCoordsFirstNodeOfPageHorizontal :
+        JSMethod.getCoordsFirstNodeOfPageVertical
+        return try? await webView?.evaluateJavaScriptAsync(
+            coordsFirstNodeOfPage(currentPage).rawValue
         ) as? String
     }
 }
