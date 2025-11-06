@@ -13,6 +13,8 @@ enum DCChapterViewAction {
     case currentPage(index: Int, totalPages: Int, spineIndex: Int)
     case canTouch(enable: Bool)
     case coordsFirstNodeOfPage(orientation: DCBookrOrientation, spineIndex: Int, coords: String)
+    case navigateToNextChapter
+    case navigateToPreviousChapter
 }
 
 struct DCChapterWebView: UIViewRepresentable {
@@ -43,8 +45,8 @@ struct DCChapterWebView: UIViewRepresentable {
         webView.scrollView.showsHorizontalScrollIndicator = false
         webView.scrollView.showsVerticalScrollIndicator = false
         webView.scrollView.alwaysBounceHorizontal = false
-        webView.scrollView.alwaysBounceVertical = false
-        webView.scrollView.bounces = false
+        webView.scrollView.alwaysBounceVertical = viewModel.userPreferences.getBookOrientation() == .vertical
+        webView.scrollView.bounces = viewModel.userPreferences.getBookOrientation() == .vertical
         webView.scrollView.isDirectionalLockEnabled = true
         webView.scrollView.delegate = context.coordinator
         webView.scrollView.contentInsetAdjustmentBehavior = .never
@@ -135,8 +137,6 @@ struct DCChapterWebView: UIViewRepresentable {
             case scrollToFirstPage
             case getCoordsFirstNodeOfPageHorizontal(page: Int)
             case getCoordsFirstNodeOfPageVertical(page: Int)
-            case isAtEndHorizontal(tolerance: CGFloat)
-            case isAtEndVertical(tolerance: CGFloat)
 
             var rawValue: String {
                 switch self {
@@ -154,20 +154,16 @@ struct DCChapterWebView: UIViewRepresentable {
                     return "getCoordsFirstNodeOfPageHorizontal(\(page))"
                 case .getCoordsFirstNodeOfPageVertical(let page):
                     return "getCoordsFirstNodeOfPageVertical(\(page))"
-                case .isAtEndHorizontal(tolerance: let tolerance):
-                    return "isAtEndHorizontal(\(tolerance))"
-                case .isAtEndVertical(tolerance: let tolerance):
-                    return "isAtEndVertical(\(tolerance))"
                 }
             }
         }
 
-        var totalPagesCache: Int?
         var currentChapterURL: URL?
         var readAccessURL: URL?
         private var scrollObserver: Any?
         weak var lazyWebView: DCWebView?
-        private var isAtEndOfScroll: Bool = false
+
+        private var cachedTotalPages: Int = 0
 
         let opensExternalLinks: Bool
         let spineIndex: Int
@@ -239,9 +235,9 @@ struct DCChapterWebView: UIViewRepresentable {
                 if lazyWebView == nil,
                    let result = await applyPagination(webView),
                    let totalPages = Int(result) {
-                    self.totalPagesCache = totalPages
+                    self.cachedTotalPages = max(1, totalPages)
                     self.onAction(.currentPage(index: 1,
-                                               totalPages: totalPages,
+                                               totalPages: self.cachedTotalPages,
                                                spineIndex: self.spineIndex))
                 }
 
@@ -312,6 +308,26 @@ struct DCChapterWebView: UIViewRepresentable {
 // MARK: - Webview Scroll listener
 
 extension DCChapterWebView.Coordinator: UIScrollViewDelegate {
+    func scrollViewWillEndDragging(_ scrollView: UIScrollView,
+                                   withVelocity velocity: CGPoint,
+                                   targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+        guard orientation == .vertical else { return }
+        let atTop = scrollView.contentOffset.y <= 0.0
+        let visibleHeight = scrollView.bounds.size.height
+        let contentHeight = scrollView.contentSize.height
+        let atBottom = contentHeight > 0 && (scrollView.contentOffset.y + visibleHeight) >= (contentHeight - 1.0)
+
+        // Threshold velocity to avoid accidental triggers
+        let threshold: CGFloat = 0.5
+
+        if atBottom && velocity.y > threshold {
+            // Ask container to move to next chapter
+            onAction(.navigateToNextChapter)
+        } else if atTop && velocity.y < -threshold {
+            // Ask container to move to previous chapter
+            onAction(.navigateToPreviousChapter)
+        }
+    }
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {}
 
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
@@ -322,27 +338,50 @@ extension DCChapterWebView.Coordinator: UIScrollViewDelegate {
 
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         let isHorizontal = orientation == .horizontal
-        let totalContentLength = isHorizontal ? scrollView.contentSize.width : scrollView.contentSize.height
         let pageLength = isHorizontal ? scrollView.frame.size.width : scrollView.frame.size.height
         guard pageLength > 0 else { return }
 
-        // Round to nearest to avoid off-by-one due to floating precision at boundaries
-        let ratio = (isHorizontal ? scrollView.contentOffset.x : scrollView.contentOffset.y) / pageLength
-        let zeroBasedIndex = Int(ratio.rounded())
-        let cachedTotal = totalPagesCache ?? Int(ceil(totalContentLength / pageLength))
+        // Use JS-reported total pages when available to avoid rounding drift vs CSS sizing
+        let contentLength = isHorizontal ? scrollView.contentSize.width : scrollView.contentSize.height
+        // Include a tiny epsilon to avoid ceil jitter when the content length is extremely close to an exact multiple
+        let computedTotal = Int(ceil(((contentLength / max(1, pageLength)) - 1e-6)))
+        let totalPages = max(1, cachedTotalPages > 0 ? cachedTotalPages : computedTotal)
 
-        // Clamp within 0..(cachedTotal-1)
-        let clampedIndex = max(0, min(zeroBasedIndex, max(0, cachedTotal - 1)))
-        let currentPageOneBased = clampedIndex + 1
+        // Normalize offset accounting for insets (on iOS, initial contentOffset can be -inset)
+        let rawOffset = isHorizontal ? scrollView.contentOffset.x : scrollView.contentOffset.y
+        let insetTop = isHorizontal ? scrollView.adjustedContentInset.left : scrollView.adjustedContentInset.top
+        let insetBottom = isHorizontal ? scrollView.adjustedContentInset.right : scrollView.adjustedContentInset.bottom
+        let effectiveOffset = max(0, rawOffset + insetTop)
 
-        let totalPages = cachedTotal
+        // Indexing strategy:
+        //  - Horizontal (paged): round to nearest page (snap)
+        //  - Vertical (continuous): floor to the current page to avoid skipping ahead at half pages
+        let zeroBased: Int
+        if isHorizontal {
+            zeroBased = Int((effectiveOffset / pageLength).rounded())
+        } else {
+            // epsilon to avoid bouncing rounding up when almost at the next page
+            let epsilon: CGFloat = 0.0001
+            zeroBased = Int(floor((effectiveOffset / pageLength) + epsilon))
+        }
+
+        var clampedZeroBased = min(max(0, zeroBased), max(0, totalPages - 1))
+
+        // Strong clamp when at (or beyond) the bottom in vertical mode:
+        if !isHorizontal {
+            let visibleExtent = pageLength
+            let nearBottom = (effectiveOffset + visibleExtent) >= (contentLength - insetBottom - 0.5)
+            if nearBottom { clampedZeroBased = max(0, totalPages - 1) }
+        }
+
+        let currentPageOneBased = clampedZeroBased + 1
+
         onAction(.currentPage(index: currentPageOneBased,
                               totalPages: totalPages,
                               spineIndex: spineIndex))
 
         Task { @MainActor in
-            /// isAtEndOfScroll = await isAtEndOfScroll(lazyWebView)
-            if let coords = await getCoordsFirstNodeOfPage(lazyWebView, currentPage: currentPageOneBased-1) {
+            if let coords = await getCoordsFirstNodeOfPage(lazyWebView, currentPage: currentPageOneBased) {
                 onAction(.coordsFirstNodeOfPage(orientation: orientation, spineIndex: spineIndex, coords: coords))
             }
         }
@@ -368,20 +407,4 @@ private extension DCChapterWebView.Coordinator {
             coordsFirstNodeOfPage(currentPage).rawValue
         ) as? String
     }
-
-//    func isAtEndOfScroll(_ webView: DCWebView?) async -> Bool {
-//        if userPreferences.getBookOrientation() == .horizontal {
-//            let result = ((try? await webView?.evaluateJavaScriptAsync(
-//                JSMethod.isAtEndHorizontal(tolerance: 4).rawValue
-//            ) as? Bool ?? false) != nil)
-//            print("isAtEndOfScroll: \(result)")
-//            return result
-//        } else {
-//            let result = ((try? await webView?.evaluateJavaScriptAsync(
-//                JSMethod.isAtEndVertical(tolerance: 4).rawValue
-//            ) as? Bool ?? false) != nil)
-//            print("isAtEndOfScroll: \(result)")
-//            return result
-//        }
-//    }
 }

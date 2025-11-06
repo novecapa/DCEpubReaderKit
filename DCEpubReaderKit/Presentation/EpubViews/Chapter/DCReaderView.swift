@@ -66,11 +66,18 @@ struct DCReaderView: View {
                                                 // TODO: - Save book position
                                                 print("chapterFile: \(chapterURL.lastPathComponent) coords: \(coords)")
                                             }
+                                        case .navigateToNextChapter:
+                                            if viewModel.currentSelection + 1 < viewModel.bookSpines.count {
+                                                viewModel.currentSelection += 1
+                                            }
+                                        case .navigateToPreviousChapter:
+                                            if viewModel.currentSelection > 0 {
+                                                viewModel.currentSelection -= 1
+                                            }
                                         }
-                                    }
-                                                                    .padding(.horizontal, 24)
-                                                                    .padding(.vertical, 12)
-                                                                    .id(viewModel.readerConfigId(for: idx))
+                                    }.padding(.horizontal, 24)
+                                        .padding(.vertical, 12)
+                                        .id(viewModel.readerConfigId(for: idx))
                                     if viewModel.totalPages > 1 {
                                         Text(viewModel.pageInfo)
                                             .font(.system(size: 14))
@@ -87,16 +94,16 @@ struct DCReaderView: View {
                                     .padding()
                             }
                         }
-                        .frame(width: proxy.size.width, height: proxy.size.height)
-                                        .rotationEffect(.degrees(-90))
-                                        .rotation3DEffect(.degrees(180), axis: (x: 1, y: 0, z: 0)) // flippingAngle
+//                        .frame(width: proxy.size.width, height: proxy.size.height)
+//                                        .rotationEffect(.degrees(-90))
+//                                        .rotation3DEffect(.degrees(180), axis: (x: 1, y: 0, z: 0)) // flippingAngle
                         .tag(idx)
                     }
                 }
-                .frame(width: proxy.size.height, height: proxy.size.width)
-                            .rotation3DEffect(.degrees(180), axis: (x: 1, y: 0, z: 0)) // flippingAngle
-                            .rotationEffect(.degrees(90), anchor: .topLeading)
-                            .offset(x: proxy.size.width)
+//                .frame(width: proxy.size.height, height: proxy.size.width)
+//                            .rotation3DEffect(.degrees(180), axis: (x: 1, y: 0, z: 0)) // flippingAngle
+//                            .rotationEffect(.degrees(90), anchor: .topLeading)
+//                            .offset(x: proxy.size.width)
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .navigationBarBackButtonHidden(true)
                 .toolbar {
@@ -120,23 +127,14 @@ struct DCReaderView: View {
             )
         }
     }
-
-//    private var flippingAngle: Angle {
-//            switch indexPosition {
-//            case .leading:
-//                return .degrees(0)
-//            case .trailing:
-//                return .degrees(180)
-//            }
-//        }
 }
 
 #if DEBUG
 
- #Preview {
-     NavigationStack {
-         DCReaderViewBuilderMock().build(.mock, spineIndex: 0)
-     }
- }
+#Preview {
+    NavigationStack {
+        DCReaderViewBuilderMock().build(.mock, spineIndex: 0)
+    }
+}
 
 #endif

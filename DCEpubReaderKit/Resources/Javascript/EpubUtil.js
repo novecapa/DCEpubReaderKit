@@ -794,11 +794,6 @@ function scrollToFirstPage() { window.scrollTo(0, 0); }
         scrollToFirstPage,
         rectsForSelection,
         clearTextSelection
-//        isAtEndVertical,
-//        isAtEndHorizontal,
-//        isAtStartVertical,
-//        isAtStartHorizontal,
-//        getScrollDebug
     };
     
     window.EpubUtil = window.EpubUtil || {};
