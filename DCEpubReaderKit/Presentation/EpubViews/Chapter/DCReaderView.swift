@@ -88,14 +88,14 @@ struct DCReaderView: View {
                             }
                         }
                         .frame(width: proxy.size.width, height: proxy.size.height)
-                                        .rotationEffect(.degrees(0))
-                                        .rotation3DEffect(.degrees(0), axis: (x: 1, y: 0, z: 0))
+                                        .rotationEffect(.degrees(-90))
+                                        .rotation3DEffect(.degrees(180), axis: (x: 1, y: 0, z: 0)) // flippingAngle
                         .tag(idx)
                     }
                 }
                 .frame(width: proxy.size.height, height: proxy.size.width)
-                            .rotation3DEffect(.degrees(0), axis: (x: 1, y: 0, z: 0))
-                            .rotationEffect(.degrees(0), anchor: .topLeading)
+                            .rotation3DEffect(.degrees(180), axis: (x: 1, y: 0, z: 0)) // flippingAngle
+                            .rotationEffect(.degrees(90), anchor: .topLeading)
                             .offset(x: proxy.size.width)
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .navigationBarBackButtonHidden(true)
@@ -120,6 +120,15 @@ struct DCReaderView: View {
             )
         }
     }
+
+//    private var flippingAngle: Angle {
+//            switch indexPosition {
+//            case .leading:
+//                return .degrees(0)
+//            case .trailing:
+//                return .degrees(180)
+//            }
+//        }
 }
 
 #if DEBUG

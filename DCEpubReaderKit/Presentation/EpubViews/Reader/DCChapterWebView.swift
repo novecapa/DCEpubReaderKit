@@ -135,6 +135,8 @@ struct DCChapterWebView: UIViewRepresentable {
             case scrollToFirstPage
             case getCoordsFirstNodeOfPageHorizontal(page: Int)
             case getCoordsFirstNodeOfPageVertical(page: Int)
+            case isAtEndHorizontal(tolerance: CGFloat)
+            case isAtEndVertical(tolerance: CGFloat)
 
             var rawValue: String {
                 switch self {
@@ -152,6 +154,10 @@ struct DCChapterWebView: UIViewRepresentable {
                     return "getCoordsFirstNodeOfPageHorizontal(\(page))"
                 case .getCoordsFirstNodeOfPageVertical(let page):
                     return "getCoordsFirstNodeOfPageVertical(\(page))"
+                case .isAtEndHorizontal(tolerance: let tolerance):
+                    return "isAtEndHorizontal(\(tolerance))"
+                case .isAtEndVertical(tolerance: let tolerance):
+                    return "isAtEndVertical(\(tolerance))"
                 }
             }
         }
@@ -161,6 +167,7 @@ struct DCChapterWebView: UIViewRepresentable {
         var readAccessURL: URL?
         private var scrollObserver: Any?
         weak var lazyWebView: DCWebView?
+        private var isAtEndOfScroll: Bool = false
 
         let opensExternalLinks: Bool
         let spineIndex: Int
@@ -334,6 +341,7 @@ extension DCChapterWebView.Coordinator: UIScrollViewDelegate {
                               spineIndex: spineIndex))
 
         Task { @MainActor in
+            /// isAtEndOfScroll = await isAtEndOfScroll(lazyWebView)
             if let coords = await getCoordsFirstNodeOfPage(lazyWebView, currentPage: currentPageOneBased-1) {
                 onAction(.coordsFirstNodeOfPage(orientation: orientation, spineIndex: spineIndex, coords: coords))
             }
@@ -360,4 +368,20 @@ private extension DCChapterWebView.Coordinator {
             coordsFirstNodeOfPage(currentPage).rawValue
         ) as? String
     }
+
+//    func isAtEndOfScroll(_ webView: DCWebView?) async -> Bool {
+//        if userPreferences.getBookOrientation() == .horizontal {
+//            let result = ((try? await webView?.evaluateJavaScriptAsync(
+//                JSMethod.isAtEndHorizontal(tolerance: 4).rawValue
+//            ) as? Bool ?? false) != nil)
+//            print("isAtEndOfScroll: \(result)")
+//            return result
+//        } else {
+//            let result = ((try? await webView?.evaluateJavaScriptAsync(
+//                JSMethod.isAtEndVertical(tolerance: 4).rawValue
+//            ) as? Bool ?? false) != nil)
+//            print("isAtEndOfScroll: \(result)")
+//            return result
+//        }
+//    }
 }
