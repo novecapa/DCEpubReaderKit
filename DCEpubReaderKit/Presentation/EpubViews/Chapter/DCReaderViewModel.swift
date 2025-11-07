@@ -88,4 +88,8 @@ final class DCReaderViewModel: ObservableObject {
     var userPreferences: DCUserPreferencesProtocol {
         userPreferencesProtocol
     }
+
+    var bookOrientation: DCBookrOrientation {
+        userPreferencesProtocol.getBookOrientation()
+    }
 }

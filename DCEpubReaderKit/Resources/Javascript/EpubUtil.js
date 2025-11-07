@@ -114,9 +114,7 @@ function scrollToFirstPage() { window.scrollTo(0, 0); }
         let columnGapTop = 40;
         
         let stylemargin = 10;
-        
-        console.log('injectJSVerticalPagination');
-        
+                
         var d = document.getElementsByTagName('body')[0];
         var ourH = window.innerHeight;
         var ourW = window.innerWidth;
@@ -132,8 +130,8 @@ function scrollToFirstPage() { window.scrollTo(0, 0); }
     }
 
     function scrollToLastVerticalPage() {
-        let stylemargin = 10*2;
-        let columnGap = 20*2;
+        let stylemargin = 10;
+        let columnGap = 20;
         var d = document.getElementsByTagName('body')[0];
 
         let pageHeight = window.innerHeight
@@ -142,7 +140,6 @@ function scrollToFirstPage() { window.scrollTo(0, 0); }
         let adjustFinalWeb = d.style.columnCount * (stylemargin + columnGap)
         
         let totalscroll = totalWebHeight+adjustFinalWeb+pageHeight+columnGap+stylemargin+stylemargin;
-        console.log(totalscroll);
         
         scrollTo(0, totalscroll)
         return totalscroll

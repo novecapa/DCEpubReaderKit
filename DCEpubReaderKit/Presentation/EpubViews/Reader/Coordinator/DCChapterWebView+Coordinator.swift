@@ -102,7 +102,8 @@ extension DCChapterWebView {
 
         @MainActor
         private func scrollAndReport(_ method: JSMethod, webView: WKWebView) async {
-            _ = try? await webView.evaluateJavaScriptAsync(method.rawValue)
+            let result = try? await webView.evaluateJavaScriptAsync(method.rawValue)
+            print("result: \(result)")
             scrollViewDidEndDecelerating(webView.scrollView)
         }
 
@@ -187,11 +188,11 @@ extension DCChapterWebView {
                 guard let self, let webView = self.lazyWebView else { return }
                 if let target = note?.userInfo?[Constants.spineIndex] as? Int, target == self.spineIndex {
                     self.setInteractivity(false, on: webView, animated: true)
+                    try? await Task.sleep(nanoseconds: Constants.settleDelay)
                     await self.scrollToLastPageWihtOrientagtion(webView)
                     self.note = nil
                     self.setInteractivity(true, on: webView, animated: true)
                 }
-                try? await Task.sleep(nanoseconds: Constants.settleDelay)
             }
         }
     }
@@ -218,6 +219,8 @@ extension DCChapterWebView.Coordinator: UIScrollViewDelegate {
         } else if atTop && velocity.y < -threshold {
             // Ask container to move to previous chapter
             onAction(.navigateToPreviousChapter)
+            updateCurrentPage(note: Notification(name: .chapterShouldScrollToLastPage,
+                                                 userInfo: ["spineIndex": spineIndex]))
         }
     }
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {}

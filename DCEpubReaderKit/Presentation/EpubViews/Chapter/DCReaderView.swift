@@ -67,30 +67,10 @@ struct DCReaderView: View {
                                     case .navigateToNextChapter:
                                         if viewModel.currentSelection + 1 < viewModel.bookSpines.count {
                                             viewModel.currentSelection += 1
-                                            defer {
-                                                viewModel.previousSelection = viewModel.currentSelection
-                                            }
-                                            NotificationCenter.default.post(
-                                                name: .chapterShouldScrollToLastPage,
-                                                object: nil,
-                                                userInfo: viewModel.currentSelection < viewModel.previousSelection ?
-                                                ["spineIndex": viewModel.currentSelection] :
-                                                    nil
-                                            )
                                         }
                                     case .navigateToPreviousChapter:
                                         if viewModel.currentSelection > 0 {
                                             viewModel.currentSelection -= 1
-                                            defer {
-                                                viewModel.previousSelection = viewModel.currentSelection
-                                            }
-                                            NotificationCenter.default.post(
-                                                name: .chapterShouldScrollToLastPage,
-                                                object: nil,
-                                                userInfo: viewModel.currentSelection < viewModel.previousSelection ?
-                                                ["spineIndex": viewModel.currentSelection] :
-                                                    nil
-                                            )
                                         }
                                     }
                                 }.padding(.horizontal, 24)
@@ -112,6 +92,7 @@ struct DCReaderView: View {
                         }
                     }
                     .tag(idx)
+                    .gesture(viewModel.bookOrientation == .vertical ? DragGesture() : nil)
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
@@ -124,17 +105,21 @@ struct DCReaderView: View {
             }
         }
         .onChange(of: viewModel.currentSelection) { _ in
-            defer {
-                viewModel.previousSelection = viewModel.currentSelection
-            }
-            NotificationCenter.default.post(
-                name: .chapterShouldScrollToLastPage,
-                object: nil,
-                userInfo: viewModel.currentSelection < viewModel.previousSelection ?
-                ["spineIndex": viewModel.currentSelection] :
-                    nil
-            )
+            postNotification()
         }
+    }
+
+    private func postNotification() {
+        defer {
+            viewModel.previousSelection = viewModel.currentSelection
+        }
+        NotificationCenter.default.post(
+            name: .chapterShouldScrollToLastPage,
+            object: nil,
+            userInfo: viewModel.currentSelection < viewModel.previousSelection ?
+            ["spineIndex": viewModel.currentSelection] :
+                nil
+        )
     }
 }
 
