@@ -52,7 +52,9 @@ final class ContainerXMLParser: NSObject, XMLParserDelegate {
                 qualifiedName qName: String?,
                 attributes attributeDict: [String: String] = [:]) {
         // The OPF path is inside <rootfile full-path="..." />
-        if name == "rootfile", rootfilePath == nil, let path = attributeDict["full-path"], !path.isEmpty {
+        if name == "rootfile", rootfilePath == nil,
+           let path = attributeDict["full-path"],
+           !path.isEmpty {
             rootfilePath = path
         }
     }

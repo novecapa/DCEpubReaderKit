@@ -43,7 +43,7 @@ extension DCReaderView {
         ZStack {
             viewModel.backgroundColor
                 .ignoresSafeArea(edges: .all)
-            DCReaderSettingsView(
+            DCReaderSettingsViewBuilder().build(
                 fontSize: $viewModel.textSize,
                 textFont: $viewModel.textFont,
                 desktopMode: $viewModel.desktopMode,

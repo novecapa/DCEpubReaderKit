@@ -110,20 +110,26 @@ extension EpubBook {
         let targetLastLower = lastPathComponent(targetNoFrag).lowercased()
 
         // Build a lookup of (idref, normalizedHref, lastComponentLower)
-        let hrefByIdref: [(idref: String, hrefLower: String, lastLower: String)] = spine.compactMap { item in
-            guard let mi = manifest.first(where: { $0.id == item.idref }) else { return nil }
-            let hNoFrag = dropFragment(mi.href)
+        let hrefByIdref: [(idref: String,
+                           hrefLower: String,
+                           lastLower: String)] = spine.compactMap { item in
+            guard let mfst = manifest.first(where: { $0.id == item.idref }) else { return nil }
+            let hNoFrag = dropFragment(mfst.href)
             return (item.idref, hNoFrag.lowercased(), lastPathComponent(hNoFrag).lowercased())
         }
 
-        // 1) Contains match between normalized full paths (both directions)
+        // 1. - Contains match between normalized full paths (both directions)
         if let match = hrefByIdref.first(where: { pair in
             targetLower.contains(pair.hrefLower) || pair.hrefLower.contains(targetLower)
         }) {
-            return spine.firstIndex(where: { $0.idref == match.idref })
+            return spine.firstIndex(
+                where: {
+                    $0.idref == match.idref
+                }
+            )
         }
 
-        // 2️⃣ Last path component match
+        // 2.- Last path component match
         if let match = hrefByIdref.first(where: { pair in
             pair.lastLower == targetLastLower
                 || targetLastLower.contains(pair.lastLower)
@@ -132,7 +138,7 @@ extension EpubBook {
             return spine.firstIndex(where: { $0.idref == match.idref })
         }
 
-        // 3) Fallback: `idref` occurrence within the target href
+        // 3.- Fallback: `idref` occurrence within the target href
         if let match = hrefByIdref.first(where: { pair in
             targetLower.contains(pair.idref.lowercased())
         }) {

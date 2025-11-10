@@ -102,7 +102,7 @@ extension DCChapterWebView {
 
         @MainActor
         private func scrollAndReport(_ method: JSMethod, webView: WKWebView) async {
-            let result = try? await webView.evaluateJavaScriptAsync(method.rawValue)
+            _ = try? await webView.evaluateJavaScriptAsync(method.rawValue)
             scrollViewDidEndDecelerating(webView.scrollView)
         }
 

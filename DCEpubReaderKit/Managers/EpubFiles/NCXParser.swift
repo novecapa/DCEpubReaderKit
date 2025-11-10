@@ -30,6 +30,13 @@ import Foundation
 
 final class NCXParser: NSObject, XMLParserDelegate {
 
+    private enum Constants {
+        static let navpoint: String = "navpoint"
+        static let content: String = "content"
+        static let navlabel: String = "navlabel"
+        static let text: String = "text"
+    }
+
     // MARK: - Public API
 
     /// Parses the given NCX file URL and returns the root TOC nodes.
@@ -82,23 +89,23 @@ final class NCXParser: NSObject, XMLParserDelegate {
         let lower = name.lowercased()
 
         switch lower {
-        case "navpoint":
+        case Constants.navpoint:
             // Begin a new TOC node
             stack.append(TocNode(label: "", href: nil, children: []))
 
-        case "content":
+        case Constants.content:
             // Attach href to current top node (if any)
             if let src = attributes["src"], var last = stack.popLast() {
                 last = TocNode(label: last.label, href: src, children: last.children)
                 stack.append(last)
             }
 
-        case "navlabel":
+        case Constants.navlabel:
             // Following <text> belongs to the current node's label
             collectingLabelText = true
             currentText = ""
 
-        case "text":
+        case Constants.text:
             if collectingLabelText {
                 // Prepare to accumulate text content
                 // (we also reset in navLabel start, but guard here for safety)
@@ -128,7 +135,7 @@ final class NCXParser: NSObject, XMLParserDelegate {
         let lower = name.lowercased()
 
         switch lower {
-        case "text":
+        case Constants.text:
             // End of a label's text – assign to the current node (do not close navLabel yet)
             if collectingLabelText, let last = stack.popLast() {
                 let label = currentText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -137,12 +144,12 @@ final class NCXParser: NSObject, XMLParserDelegate {
                 currentText = ""
             }
 
-        case "navlabel":
+        case Constants.navlabel:
             // Completed label collection
             collectingLabelText = false
             currentText = ""
 
-        case "navpoint":
+        case Constants.navpoint:
             // Close current node; attach to parent or promote to root
             guard let finished = stack.popLast() else { return }
             if var parent = stack.popLast() {
