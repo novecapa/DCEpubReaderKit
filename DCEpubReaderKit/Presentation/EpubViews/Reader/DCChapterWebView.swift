@@ -28,7 +28,8 @@ struct DCChapterWebView: UIViewRepresentable {
         config.preferences.javaScriptCanOpenWindowsAutomatically = false
         config.preferences.javaScriptEnabled = true
 
-        let webView = DCWebView(frame: .zero, configuration: config)
+        let webView = DCWebViewBuilder().build(frame: .zero,
+                                               configuration: config)
         #if DEBUG
         if #available(iOS 16.4, *) {
             webView.isInspectable = true

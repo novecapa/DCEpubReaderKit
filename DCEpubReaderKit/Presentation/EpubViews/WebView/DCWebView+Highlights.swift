@@ -108,6 +108,7 @@ extension DCWebView {
                 "coords: \(coords) text: \(selectedText) uuid: \(uuid)"
             )
             self.removeMenuItems()
+            
         }
     }
 }

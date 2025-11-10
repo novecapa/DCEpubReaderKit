@@ -13,6 +13,8 @@ final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDel
         static let selectionChanged = "selectionChanged"
     }
 
+    var viewModel: DCWebViewModel!
+    
     override init(frame: CGRect, configuration: WKWebViewConfiguration) {
         super.init(frame: frame, configuration: configuration)
         setupTapGesture()
@@ -88,5 +90,31 @@ extension WKWebView {
                 }
             }
         }
+    }
+}
+
+protocol DCWebViewProtocols {
+    func showNoote()
+}
+
+final class DCWebViewModel {
+
+    private let bookId: String
+    private let coords: String
+    private let chapterId: String
+
+    init(bookId: String, coords: String, chapterId: String) {
+        self.bookId = bookId
+        self.coords = coords
+        self.chapterId = chapterId
+    }
+}
+
+final class DCWebViewBuilder {
+    func build(frame: CGRect, configuration: WKWebViewConfiguration) -> DCWebView {
+        let viewModel = DCWebViewModel(bookId: "", coords: "", chapterId: "")
+        let view = DCWebView(frame: frame, configuration: configuration)
+        view.viewModel = viewModel
+        return view
     }
 }
