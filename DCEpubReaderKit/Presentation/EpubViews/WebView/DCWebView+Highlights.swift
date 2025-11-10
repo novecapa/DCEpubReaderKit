@@ -97,18 +97,19 @@ extension DCWebView {
     }
 
     @objc func applyUnderline() {
-        Task { @MainActor in
-            guard let coords = await getCoordsFromSelection(),
-                  let selectedText = await getSelectedText(),
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            guard let coords = await self.getCoordsFromSelection(),
+                  let selectedText = await self.getSelectedText(),
                   !selectedText.contains("\n"),
-                  let uuid = await highlightSelection(type: .underline) else {
+                  let uuid = await self.highlightSelection(type: .underline) else {
                 return
             }
             print(
                 "coords: \(coords) text: \(selectedText) uuid: \(uuid)"
             )
             self.removeMenuItems()
-            
+            self.viewModel.showNoote()
         }
     }
 }

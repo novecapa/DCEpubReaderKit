@@ -29,7 +29,8 @@ struct DCChapterWebView: UIViewRepresentable {
         config.preferences.javaScriptEnabled = true
 
         let webView = DCWebViewBuilder().build(frame: .zero,
-                                               configuration: config)
+                                               configuration: config,
+                                               router: viewModel)
         #if DEBUG
         if #available(iOS 16.4, *) {
             webView.isInspectable = true

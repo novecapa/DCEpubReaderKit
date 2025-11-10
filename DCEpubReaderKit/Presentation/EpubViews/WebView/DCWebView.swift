@@ -13,16 +13,18 @@ final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDel
         static let selectionChanged = "selectionChanged"
     }
 
-    var viewModel: DCWebViewModel!
-    
+    var viewModel: DCWebViewModelProtocol!
+
     override init(frame: CGRect, configuration: WKWebViewConfiguration) {
         super.init(frame: frame, configuration: configuration)
+        setupBindings()
         setupTapGesture()
         injectSelectionListener()
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
+        setupBindings()
         setupTapGesture()
         injectSelectionListener()
     }
@@ -34,6 +36,8 @@ final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDel
     private func teardown() {
         self.configuration.userContentController.removeScriptMessageHandler(forName: Constants.selectionChanged)
     }
+
+    private func setupBindings() {}
 
     private func setupTapGesture() {
         let tap = UITapGestureRecognizer(target: self, action: #selector(removeMenuItems))
@@ -93,26 +97,32 @@ extension WKWebView {
     }
 }
 
-protocol DCWebViewProtocols {
+protocol DCWebViewModelProtocol {
     func showNoote()
 }
 
-final class DCWebViewModel {
+protocol DCWebViewRouterProtocol {
+    func showNoote()
+}
 
-    private let bookId: String
-    private let coords: String
-    private let chapterId: String
+final class DCWebViewModel: DCWebViewModelProtocol {
 
-    init(bookId: String, coords: String, chapterId: String) {
-        self.bookId = bookId
-        self.coords = coords
-        self.chapterId = chapterId
+    private let router: DCWebViewRouterProtocol
+
+    init(router: DCWebViewRouterProtocol) {
+        self.router = router
+    }
+
+    func showNoote() {
+        router.showNoote()
     }
 }
 
 final class DCWebViewBuilder {
-    func build(frame: CGRect, configuration: WKWebViewConfiguration) -> DCWebView {
-        let viewModel = DCWebViewModel(bookId: "", coords: "", chapterId: "")
+    func build(frame: CGRect,
+               configuration: WKWebViewConfiguration,
+               router: DCWebViewRouterProtocol) -> DCWebView {
+        let viewModel = DCWebViewModel(router: router)
         let view = DCWebView(frame: frame, configuration: configuration)
         view.viewModel = viewModel
         return view

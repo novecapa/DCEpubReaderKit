@@ -30,3 +30,9 @@ final class DCChapterWebViewModel: ObservableObject {
         self.onAction = onAction
     }
 }
+
+extension DCChapterWebViewModel: DCWebViewRouterProtocol {
+    func showNoote() {
+        print("DCChapterWebViewModel: showNoote")
+    }
+}
