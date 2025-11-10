@@ -100,12 +100,10 @@
         return totalscroll;
     }
     
-
-function scrollToFirstPage() { window.scrollTo(0, 0); }
-    // Backward-compatibility alias expected by the public API
+    function scrollToFirstPage() { window.scrollTo(0, 0); }
+    
     function scrollToFirstHorizontalPage() { return scrollToFirstPage(); }
     
-
     function applyVerticalPagination() {
         let margin_top = 40;
         let margin_bottom = 30;
@@ -114,7 +112,7 @@ function scrollToFirstPage() { window.scrollTo(0, 0); }
         let columnGapTop = 40;
         
         let stylemargin = 10;
-                
+        
         var d = document.getElementsByTagName('body')[0];
         var ourH = window.innerHeight;
         var ourW = window.innerWidth;
@@ -128,12 +126,12 @@ function scrollToFirstPage() { window.scrollTo(0, 0); }
         let totalPages = 1;
         return Math.round(totalPages);
     }
-
+    
     function scrollToLastVerticalPage() {
         let stylemargin = 10;
         let columnGap = 20;
         var d = document.getElementsByTagName('body')[0];
-
+        
         let pageHeight = window.innerHeight
         let totalWebHeight = d.offsetHeight
         
@@ -144,77 +142,6 @@ function scrollToFirstPage() { window.scrollTo(0, 0); }
         scrollTo(0, totalscroll)
         return totalscroll
     }
-//
-//    // Viewport & document metrics helpers (robust in WKWebView)
-//    function __vpWidth(){ return (window.visualViewport && window.visualViewport.width) || window.innerWidth || (document.documentElement && document.documentElement.clientWidth) || 0; }
-//    function __vpHeight(){ return (window.visualViewport && window.visualViewport.height) || window.innerHeight || (document.documentElement && document.documentElement.clientHeight) || 0; }
-//    function __docScrollDims(){
-//        const d = document.scrollingElement || document.documentElement || document.body;
-//        const body = document.body || {};
-//        const html = document.documentElement || {};
-//        const scrollWidth  = Math.max(d.scrollWidth  || 0, body.scrollWidth  || 0, html.scrollWidth  || 0);
-//        const scrollHeight = Math.max(d.scrollHeight || body.scrollHeight || html.scrollHeight || 0);
-//        return { scrollWidth, scrollHeight, el: d };
-//    }
-//    // -----------------------------------------------
-//    // End-of-scroll detectors
-//    // -----------------------------------------------
-//    function isAtEndVertical(tolerancePx) {
-//        const tol = Number.isFinite(tolerancePx) ? Math.max(0, tolerancePx) : 2;
-//        const d = document.scrollingElement || document.documentElement || document.body;
-//        const clientH = Number(d.clientHeight) || 0;
-//        const totalH  = Number(d.scrollHeight) || 0;
-//        let st = Number(d.scrollTop);
-//        if (!Number.isFinite(st)) st = Number(window.pageYOffset) || 0;
-//        const scrollable = totalH - clientH;
-//        if (scrollable <= tol) return false; // not scrollable
-//        // Clamp against rubber-banding
-//        if (st < 0) st = 0;
-//        if (st > scrollable) st = scrollable;
-//        return st >= (scrollable - tol);
-//    }
-//
-//    function isAtEndHorizontal(tolerancePx) {
-//        const tol = Number.isFinite(tolerancePx) ? Math.max(0, tolerancePx) : 2;
-//        const d = document.scrollingElement || document.documentElement || document.body;
-//        const clientW = Number(d.clientWidth) || 0;
-//        const totalW  = Number(d.scrollWidth) || 0;
-//        let sl = Number(d.scrollLeft);
-//        if (!Number.isFinite(sl)) sl = Number(window.pageXOffset) || 0;
-//        const scrollable = totalW - clientW;
-//        if (scrollable <= tol) return false; // not scrollable
-//        // Clamp against rubber-banding
-//        if (sl < 0) sl = 0;
-//        if (sl > scrollable) sl = scrollable;
-//        return sl >= (scrollable - tol);
-//    }
-//
-//    function isAtStartVertical(tolerancePx){
-//        const tol = Number.isFinite(tolerancePx) ? Math.max(0, tolerancePx) : 2;
-//        const d = document.scrollingElement || document.documentElement || document.body;
-//        let st = Number(d.scrollTop);
-//        if (!Number.isFinite(st)) st = Number(window.pageYOffset) || 0;
-//        return st <= tol;
-//    }
-//    function isAtStartHorizontal(tolerancePx){
-//        const tol = Number.isFinite(tolerancePx) ? Math.max(0, tolerancePx) : 2;
-//        const d = document.scrollingElement || document.documentElement || document.body;
-//        let sl = Number(d.scrollLeft);
-//        if (!Number.isFinite(sl)) sl = Number(window.pageXOffset) || 0;
-//        return sl <= tol;
-//    }
-//    function getScrollDebug(){
-//        const d = document.scrollingElement || document.documentElement || document.body;
-//        return {
-//            clientW: d.clientWidth, clientH: d.clientHeight,
-//            scrollW: d.scrollWidth, scrollH: d.scrollHeight,
-//            scrollLeft: d.scrollLeft, scrollTop: d.scrollTop,
-//            pageXOffset: window.pageXOffset, pageYOffset: window.pageYOffset,
-//            innerW: window.innerWidth, innerH: window.innerHeight,
-//            vvW: window.visualViewport ? window.visualViewport.width : null,
-//            vvH: window.visualViewport ? window.visualViewport.height : null
-//        };
-//    }
     
     // --------------------------------------------------
     // Coordinates encoding/decoding for nodes

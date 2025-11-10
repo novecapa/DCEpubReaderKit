@@ -92,4 +92,64 @@ final class DCReaderViewModel: ObservableObject {
     var bookOrientation: DCBookrOrientation {
         userPreferencesProtocol.getBookOrientation()
     }
+
+    func handle(_ action: DCChapterViewAction, chapterURL: URL?) {
+        switch action {
+        case .totalPageCount(let count, let spineIndex):
+            if spineIndex == currentSelection {
+                totalPages = count
+                if currentPage > count {
+                    currentPage = count
+                }
+            }
+
+        case .currentPage(index: let index,
+                          totalPages: let totalPages,
+                          spineIndex: let spineIndex):
+            if spineIndex == currentSelection {
+                self.totalPages = totalPages
+                currentPage = index
+            }
+
+        case .canTouch(let enabled):
+            Task { @MainActor in
+                canTouch = enabled
+            }
+
+        case .coordsFirstNodeOfPage(orientation: _,
+                                    spineIndex: let spineIndex,
+                                    coords: let coords):
+            if spineIndex == currentSelection {
+                // TODO: Persist book position
+                if let chapterURL { print("chapterFile: \(chapterURL.lastPathComponent) coords: \(coords)") }
+            }
+
+        case .navigateToNextChapter:
+            if currentSelection + 1 < bookSpines.count {
+                currentSelection += 1
+            }
+
+        case .navigateToPreviousChapter:
+            if currentSelection > 0 {
+                currentSelection -= 1
+            }
+        }
+    }
+
+    var gesture: DragGesture? {
+        bookOrientation == .vertical ? DragGesture() : nil
+    }
+
+    func postNotification() {
+        defer {
+            previousSelection = currentSelection
+        }
+        NotificationCenter.default.post(
+            name: .chapterShouldScrollToLastPage,
+            object: nil,
+            userInfo: currentSelection < previousSelection ?
+            ["spineIndex": currentSelection] :
+                nil
+        )
+    }
 }

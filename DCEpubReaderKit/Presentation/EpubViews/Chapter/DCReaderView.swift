@@ -37,42 +37,7 @@ struct DCReaderView: View {
                                                                 readAccessURL: viewModel.opfDirectoryURL,
                                                                 spineIndex: idx,
                                                                 userPreferences: viewModel.userPreferences) { action in
-                                    // TODO: Refactor action to viewModel + interactor
-                                    switch action {
-                                    case .totalPageCount(let count, let spineIndex):
-                                        if spineIndex == viewModel.currentSelection {
-                                            viewModel.totalPages = count
-                                            if viewModel.currentPage > count {
-                                                viewModel.currentPage = count
-                                            }
-                                        }
-                                    case .currentPage(index: let index,
-                                                      totalPages: let totalPages,
-                                                      spineIndex: let spineIndex):
-                                        if spineIndex == viewModel.currentSelection {
-                                            viewModel.totalPages = totalPages
-                                            viewModel.currentPage = index
-                                        }
-                                    case .canTouch(let enabled):
-                                        Task { @MainActor in
-                                            viewModel.canTouch = enabled
-                                        }
-                                    case .coordsFirstNodeOfPage(orientation: _,
-                                                                spineIndex: let spineIndex,
-                                                                coords: let coords):
-                                        if spineIndex == viewModel.currentSelection {
-                                            // TODO: - Save book position
-                                            print("chapterFile: \(chapterURL.lastPathComponent) coords: \(coords)")
-                                        }
-                                    case .navigateToNextChapter:
-                                        if viewModel.currentSelection + 1 < viewModel.bookSpines.count {
-                                            viewModel.currentSelection += 1
-                                        }
-                                    case .navigateToPreviousChapter:
-                                        if viewModel.currentSelection > 0 {
-                                            viewModel.currentSelection -= 1
-                                        }
-                                    }
+                                    viewModel.handle(action, chapterURL: chapterURL)
                                 }.padding(.horizontal, 24)
                                     .padding(.vertical, 12)
                                     .id(viewModel.readerConfigId(for: idx))
@@ -92,7 +57,7 @@ struct DCReaderView: View {
                         }
                     }
                     .tag(idx)
-                    .gesture(viewModel.bookOrientation == .vertical ? DragGesture() : nil)
+                    .gesture(viewModel.gesture)
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
@@ -105,21 +70,8 @@ struct DCReaderView: View {
             }
         }
         .onChange(of: viewModel.currentSelection) { _ in
-            postNotification()
+            viewModel.postNotification()
         }
-    }
-
-    private func postNotification() {
-        defer {
-            viewModel.previousSelection = viewModel.currentSelection
-        }
-        NotificationCenter.default.post(
-            name: .chapterShouldScrollToLastPage,
-            object: nil,
-            userInfo: viewModel.currentSelection < viewModel.previousSelection ?
-            ["spineIndex": viewModel.currentSelection] :
-                nil
-        )
     }
 }
 

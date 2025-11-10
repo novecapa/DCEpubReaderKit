@@ -103,7 +103,6 @@ extension DCChapterWebView {
         @MainActor
         private func scrollAndReport(_ method: JSMethod, webView: WKWebView) async {
             let result = try? await webView.evaluateJavaScriptAsync(method.rawValue)
-            print("result: \(result)")
             scrollViewDidEndDecelerating(webView.scrollView)
         }
 
@@ -191,8 +190,12 @@ extension DCChapterWebView {
                     try? await Task.sleep(nanoseconds: Constants.settleDelay)
                     await self.scrollToLastPageWihtOrientagtion(webView)
                     self.note = nil
-                    self.setInteractivity(true, on: webView, animated: true)
+                } else {
+                    await self.scrollAndReport(.scrollToFirstPage, webView: webView)
                 }
+                try? await Task.sleep(nanoseconds: Constants.settleDelay)
+                self.scrollViewDidEndDecelerating(webView.scrollView)
+                self.setInteractivity(true, on: webView, animated: true)
             }
         }
     }
