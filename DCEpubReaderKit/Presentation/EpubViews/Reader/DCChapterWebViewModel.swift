@@ -9,6 +9,8 @@ import SwiftUI
 
 final class DCChapterWebViewModel: ObservableObject {
 
+    var showNotes: Bool = false
+
     /// Absolute file URL of the HTML/XHTML chapter.
     let chapterURL: URL
     /// Directory granting read access to all relative resources (usually `opfDirectoryURL`).
@@ -33,6 +35,6 @@ final class DCChapterWebViewModel: ObservableObject {
 
 extension DCChapterWebViewModel: DCWebViewRouterProtocol {
     func showNoote() {
-        print("DCChapterWebViewModel: showNoote")
+        onAction(.showNote)
     }
 }

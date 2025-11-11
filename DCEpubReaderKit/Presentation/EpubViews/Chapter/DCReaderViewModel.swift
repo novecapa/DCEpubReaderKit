@@ -26,6 +26,8 @@ final class DCReaderViewModel: ObservableObject {
     @Published var showSettings: Bool = false
     @Published var settingsSheetHeight: CGFloat = 0
 
+    @Published var showNote: Bool = false
+
     private let book: EpubBook
     private let spineIndex: Int
     private let userPreferencesProtocol: DCUserPreferencesProtocol
@@ -133,6 +135,8 @@ final class DCReaderViewModel: ObservableObject {
             if currentSelection > 0 {
                 currentSelection -= 1
             }
+        case .showNote:
+            showNote.toggle()
         }
     }
 

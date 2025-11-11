@@ -49,6 +49,7 @@ final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDel
     }
 
     // MARK: - UIGestureRecognizerDelegate
+
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
                            shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         true
@@ -62,8 +63,8 @@ final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDel
     func userContentController(_ userContentController: WKUserContentController,
                                didReceive message: WKScriptMessage) {
         removeMenuItems()
-        Task { @MainActor in
-            await shoMenuInteraction()
+        Task { @MainActor [weak self] in
+            await self?.shoMenuInteraction()
         }
     }
 
@@ -99,6 +100,7 @@ extension WKWebView {
 
 protocol DCWebViewModelProtocol {
     func showNoote()
+    var refresh: (() -> Void)? { get set }
 }
 
 protocol DCWebViewRouterProtocol {
@@ -106,6 +108,8 @@ protocol DCWebViewRouterProtocol {
 }
 
 final class DCWebViewModel: DCWebViewModelProtocol {
+
+    var refresh: (() -> Void)?
 
     private let router: DCWebViewRouterProtocol
 

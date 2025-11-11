@@ -15,6 +15,7 @@ enum DCChapterViewAction {
     case coordsFirstNodeOfPage(orientation: DCBookrOrientation, spineIndex: Int, coords: String)
     case navigateToNextChapter
     case navigateToPreviousChapter
+    case showNote
 }
 
 struct DCChapterWebView: UIViewRepresentable {

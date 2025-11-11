@@ -24,6 +24,7 @@ extension DCChapterWebView {
         case scrollToFirstPage
         case getCoordsFirstNodeOfPageHorizontal(page: Int)
         case getCoordsFirstNodeOfPageVertical(page: Int)
+        case clearTextSelection
 
         var rawValue: String {
             switch self {
@@ -41,6 +42,8 @@ extension DCChapterWebView {
                 return "getCoordsFirstNodeOfPageHorizontal(\(page))"
             case .getCoordsFirstNodeOfPageVertical(let page):
                 return "getCoordsFirstNodeOfPageVertical(\(page))"
+            case .clearTextSelection:
+                return "clearTextSelection()"
             }
         }
     }
@@ -151,33 +154,32 @@ extension DCChapterWebView {
         func webView(_ webView: WKWebView,
                      decidePolicyFor navigationAction: WKNavigationAction,
                      decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-
             guard let url = navigationAction.request.url else {
                 decisionHandler(.cancel); return
             }
+            if url.scheme == "highlight" {
+                let decoded = url.absoluteString.removingPercentEncoding ?? ""
+                if decoded == "" { return }
 
-            // Allow file URLs (in-book navigation) as long as they're within readAccessURL
-            if url.isFileURL {
-                if let base = readAccessURL {
-                    // Security: only allow URLs inside the allowed sandbox
-                    if url.standardizedFileURL.path.hasPrefix(base.standardizedFileURL.path) {
-                        decisionHandler(.allow); return
-                    } else {
-                        decisionHandler(.cancel); return
-                    }
-                } else {
-                    decisionHandler(.allow); return
+                let index = decoded.index(decoded.startIndex, offsetBy: 12)
+                let highlightstring = decoded[..<index]
+                let _ = NSCoder.cgRect(
+                    for: decoded.replacingOccurrences(
+                    of: highlightstring, with: "")
+                )
+                // Remove selected text
+                removeSelectedText(lazyWebView)
+                webView.evaluateJavaScript("getThisHighlight()") { (result, _) in
+                    let highlightUUID = result as? String ?? ""
+                    print("highlightID: \(highlightUUID)")
+//                    let marktype = DCRBookMark.getHighlightType(bookId: self.bookid, uuid: highlightUUID)
+//                    if marktype == DCRBookMark.kHighLight {
+//                        self.webView.createHighlightMenu(rect: rect)
+//                    } else if marktype == DCRBookMark.kNote   {
+//                        self.webView.createNoteMenu(rect: rect)
+//                    }
                 }
-            }
-
-            // External links: open outside if enabled
-            if opensExternalLinks, ["http", "https"].contains(url.scheme?.lowercased() ?? "") {
-                #if os(iOS)
-                UIApplication.shared.open(url, options: [:], completionHandler: nil)
-                #endif
-                decisionHandler(.cancel)
-                return
-            }
+            } else if url.scheme == "file" {}
 
             decisionHandler(.allow)
         }
@@ -308,5 +310,13 @@ private extension DCChapterWebView.Coordinator {
         return try? await webView?.evaluateJavaScriptAsync(
             coordsFirstNodeOfPage(currentPage).rawValue
         ) as? String
+    }
+
+    func removeSelectedText(_ webView: DCWebView?) {
+        Task { @MainActor in
+            _ = try? await webView?.evaluateJavaScriptAsync(
+                DCChapterWebView.JSMethod.clearTextSelection.rawValue
+            )
+        }
     }
 }
