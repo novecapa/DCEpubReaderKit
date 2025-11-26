@@ -97,38 +97,3 @@ extension WKWebView {
         }
     }
 }
-
-protocol DCWebViewModelProtocol {
-    func showNoote()
-    var refresh: (() -> Void)? { get set }
-}
-
-protocol DCWebViewRouterProtocol {
-    func showNoote()
-}
-
-final class DCWebViewModel: DCWebViewModelProtocol {
-
-    var refresh: (() -> Void)?
-
-    private let router: DCWebViewRouterProtocol
-
-    init(router: DCWebViewRouterProtocol) {
-        self.router = router
-    }
-
-    func showNoote() {
-        router.showNoote()
-    }
-}
-
-final class DCWebViewBuilder {
-    func build(frame: CGRect,
-               configuration: WKWebViewConfiguration,
-               router: DCWebViewRouterProtocol) -> DCWebView {
-        let viewModel = DCWebViewModel(router: router)
-        let view = DCWebView(frame: frame, configuration: configuration)
-        view.viewModel = viewModel
-        return view
-    }
-}
