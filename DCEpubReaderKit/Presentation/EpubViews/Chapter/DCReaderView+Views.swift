@@ -26,11 +26,19 @@ extension DCReaderView {
                 .foregroundStyle(viewModel.textColor)
         }
         ToolbarItem(placement: .navigationBarTrailing) {
-            Button {
-                viewModel.showSettings.toggle()
-            } label: {
-                Image(systemName: "gear")
-                    .tint(.gray)
+            HStack(spacing: 16) {
+                Button {
+                    viewModel.saveBookMark()
+                } label: {
+                    Image(systemName: "bookmark")
+                        .tint(.gray)
+                }
+                Button {
+                    viewModel.showSettings.toggle()
+                } label: {
+                    Image(systemName: "gear")
+                        .tint(.gray)
+                }
             }
         }
     }

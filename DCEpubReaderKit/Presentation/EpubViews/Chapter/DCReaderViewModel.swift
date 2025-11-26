@@ -97,47 +97,70 @@ final class DCReaderViewModel: ObservableObject {
 
     func handle(_ action: DCChapterViewAction, chapterURL: URL?) {
         switch action {
-        case .totalPageCount(let count, let spineIndex):
-            if spineIndex == currentSelection {
-                totalPages = count
-                if currentPage > count {
-                    currentPage = count
-                }
-            }
+        case let .totalPageCount(count, spineIndex):
+            handleTotalPageCount(count, in: spineIndex)
 
-        case .currentPage(index: let index,
-                          totalPages: let totalPages,
-                          spineIndex: let spineIndex):
-            if spineIndex == currentSelection {
-                self.totalPages = totalPages
-                currentPage = index
-            }
+        case let .currentPage(index, totalPages, spineIndex):
+            handleCurrentPage(index: index, totalPages: totalPages, in: spineIndex)
 
-        case .canTouch(let enabled):
-            Task { @MainActor in
-                canTouch = enabled
-            }
+        case let .canTouch(enabled):
+            updateTouch(enabled)
 
-        case .coordsFirstNodeOfPage(orientation: _,
-                                    spineIndex: let spineIndex,
-                                    coords: let coords):
-            if spineIndex == currentSelection {
-                // TODO: Persist book position
-                if let chapterURL { print("chapterFile: \(chapterURL.lastPathComponent) coords: \(coords)") }
-            }
+        case let .coordsFirstNodeOfPage(_, spineIndex, coords):
+            handleCoords(spineIndex: spineIndex, coords: coords, chapterURL: chapterURL)
 
         case .navigateToNextChapter:
-            if currentSelection + 1 < bookSpines.count {
-                currentSelection += 1
-            }
+            navigateToNextChapter()
 
         case .navigateToPreviousChapter:
-            if currentSelection > 0 {
-                currentSelection -= 1
-            }
+            navigateToPreviousChapter()
+
         case .showNote:
             showNote.toggle()
         }
+    }
+
+    private func handleTotalPageCount(_ count: Int, in spineIndex: Int) {
+        guard spineIndex == currentSelection else { return }
+
+        totalPages = count
+        if currentPage > count {
+            currentPage = count
+        }
+    }
+
+    private func handleCurrentPage(index: Int,
+                                   totalPages: Int,
+                                   in spineIndex: Int) {
+        guard spineIndex == currentSelection else { return }
+
+        self.totalPages = totalPages
+        self.currentPage = index
+    }
+
+    private func updateTouch(_ enabled: Bool) {
+        Task { @MainActor [weak self] in
+            self?.canTouch = enabled
+        }
+    }
+
+    private func handleCoords(spineIndex: Int,
+                              coords: String,
+                              chapterURL: URL?) {
+        guard spineIndex == currentSelection else { return }
+        if let chapterURL {
+            print("chapterFile: \(chapterURL.lastPathComponent) coords: \(coords)")
+        }
+    }
+
+    private func navigateToNextChapter() {
+        guard currentSelection + 1 < bookSpines.count else { return }
+        currentSelection += 1
+    }
+
+    private func navigateToPreviousChapter() {
+        guard currentSelection > 0 else { return }
+        currentSelection -= 1
     }
 
     var gesture: DragGesture? {
@@ -155,5 +178,9 @@ final class DCReaderViewModel: ObservableObject {
             ["spineIndex": currentSelection] :
                 nil
         )
+    }
+
+    func saveBookMark() {
+        print("saveBookMark")
     }
 }
