@@ -10,6 +10,7 @@ import SwiftUI
 final class DCChapterWebViewModel: ObservableObject {
 
     var showNotes: Bool = false
+    weak var coordinator: DCChapterWebView.Coordinator?
 
     /// Absolute file URL of the HTML/XHTML chapter.
     let chapterURL: URL
@@ -38,8 +39,7 @@ extension DCChapterWebViewModel: DCWebViewRouterProtocol {
         onAction(.showNote)
     }
 
-    func updateCurrentPage() {
-        // TODO: --
-        print("updateCurrentPage: \(chapterURL) - spineIndex: \(spineIndex)")
+    func updateCurrentPage(note: Notification?) {
+        coordinator?.updateCurrentPageInternal(note: note)
     }
 }

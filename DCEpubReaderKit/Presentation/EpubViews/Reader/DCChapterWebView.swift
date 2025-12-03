@@ -123,8 +123,11 @@ struct DCChapterWebView: UIViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(spineIndex: viewModel.spineIndex,
-                    userPreferences: viewModel.userPreferences,
-                    onAction: viewModel.onAction)
+        let coordinator = Coordinator(spineIndex: viewModel.spineIndex,
+                                      userPreferences: viewModel.userPreferences,
+                                      onAction: viewModel.onAction)
+        coordinator.viewModel = viewModel
+        viewModel.coordinator = coordinator
+        return coordinator
     }
 }
