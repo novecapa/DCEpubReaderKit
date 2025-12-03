@@ -37,4 +37,6 @@ extension DCChapterWebViewModel: DCWebViewRouterProtocol {
     func showNoote() {
         onAction(.showNote)
     }
+
+    func updateCurrentPage() {}
 }

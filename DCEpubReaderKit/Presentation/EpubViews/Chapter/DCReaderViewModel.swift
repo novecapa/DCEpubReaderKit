@@ -28,6 +28,8 @@ final class DCReaderViewModel: ObservableObject {
 
     @Published var showNote: Bool = false
 
+    var chapterViewModels: [Int: DCChapterWebViewModel] = [:]
+
     private let book: EpubBook
     private let spineIndex: Int
     private let userPreferencesProtocol: DCUserPreferencesProtocol
@@ -171,16 +173,26 @@ final class DCReaderViewModel: ObservableObject {
         defer {
             previousSelection = currentSelection
         }
-        NotificationCenter.default.post(
-            name: .chapterShouldScrollToLastPage,
-            object: nil,
-            userInfo: currentSelection < previousSelection ?
-            ["spineIndex": currentSelection] :
-                nil
-        )
+//        NotificationCenter.default.post(
+//            name: .chapterShouldScrollToLastPage,
+//            object: nil,
+//            userInfo: currentSelection < previousSelection ?
+//            ["spineIndex": currentSelection] :
+//                nil
+//        )
+        
+//        chapterViewModels[currentSelection]?.updateCurrentPage(note: Notification(name: .chapterShouldScrollToLastPage,
+//                                                                                   userInfo: ["spineIndex": currentSelection]))
     }
 
     func saveBookMark() {
         print("saveBookMark")
+    }
+
+    func registerChapterViewModel(_ viewModel: DCChapterWebViewModel, for index: Int) {
+        if let existing = chapterViewModels[index], existing === viewModel {
+            return
+        }
+        chapterViewModels[index] = viewModel
     }
 }

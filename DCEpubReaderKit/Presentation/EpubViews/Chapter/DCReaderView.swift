@@ -33,14 +33,10 @@ struct DCReaderView: View {
                     Group {
                         if let chapterURL = viewModel.chapterURL(for: idx) {
                             VStack {
-                                DCChapterWebViewBuilder().build(chapterURL: chapterURL,
-                                                                readAccessURL: viewModel.opfDirectoryURL,
-                                                                spineIndex: idx,
-                                                                userPreferences: viewModel.userPreferences) { action in
-                                    viewModel.handle(action, chapterURL: chapterURL)
-                                }.padding(.horizontal, 24)
-                                    .padding(.vertical, 12)
-                                    .id(viewModel.readerConfigId(for: idx))
+                                chapterView(chapterURL, idx: idx)
+                                .padding(.horizontal, 24)
+                                .padding(.vertical, 12)
+                                .id(viewModel.readerConfigId(for: idx))
                                 if viewModel.totalPages > 1 {
                                     Text(viewModel.pageInfo)
                                         .font(.system(size: 14))
@@ -72,6 +68,22 @@ struct DCReaderView: View {
         .onChange(of: viewModel.currentSelection) { _ in
             viewModel.postNotification()
         }
+    }
+
+    private func chapterView(_ chapterURL: URL, idx: Int) -> some View {
+        let view = DCChapterWebViewBuilder().build(
+            chapterURL: chapterURL,
+            readAccessURL: viewModel.opfDirectoryURL,
+            spineIndex: idx,
+            userPreferences: viewModel.userPreferences
+        ) { action in
+            viewModel.handle(action, chapterURL: chapterURL)
+        }
+        return view
+            .onAppear { [weak viewModel] in
+                guard let viewModel else { return }
+                viewModel.registerChapterViewModel(view.viewModel, for: idx)
+            }
     }
 }
 

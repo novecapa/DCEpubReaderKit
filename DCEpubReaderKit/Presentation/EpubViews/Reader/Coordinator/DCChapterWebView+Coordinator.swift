@@ -52,7 +52,7 @@ extension DCChapterWebView {
 
         var currentChapterURL: URL?
         var readAccessURL: URL?
-        private var scrollObserver: Any?
+//        private var scrollObserver: Any?
         weak var lazyWebView: DCWebView?
 
         private var cachedTotalPages: Int = 0
@@ -60,7 +60,7 @@ extension DCChapterWebView {
         let opensExternalLinks: Bool
         let spineIndex: Int
         let userPreferences: DCUserPreferencesProtocol
-        var note: Notification?
+        // var note: Notification?
         let onAction: (DCChapterViewAction) -> Void
 
         init(opensExternalLinks: Bool = true,
@@ -72,22 +72,22 @@ extension DCChapterWebView {
             self.userPreferences = userPreferences
             self.onAction = onAction
             super.init()
-            scrollObserver = NotificationCenter.default.addObserver(
-                forName: .chapterShouldScrollToLastPage,
-                object: nil,
-                queue: .main
-            ) { [weak self] note in
-                guard let self else { return }
-                self.note = note
-                updateCurrentPage(note: note)
-            }
+//            scrollObserver = NotificationCenter.default.addObserver(
+//                forName: .chapterShouldScrollToLastPage,
+//                object: nil,
+//                queue: .main
+//            ) { [weak self] note in
+//                guard let self else { return }
+//                self.note = note
+//                updateCurrentPage(note: note)
+//            }
         }
 
-        deinit {
-            if let scrollObserver {
-                NotificationCenter.default.removeObserver(scrollObserver)
-            }
-        }
+//        deinit {
+//            if let scrollObserver {
+//                NotificationCenter.default.removeObserver(scrollObserver)
+//            }
+//        }
 
         private var orientation: DCBookrOrientation {
             userPreferences.getBookOrientation()
@@ -135,13 +135,13 @@ extension DCChapterWebView {
                                                spineIndex: self.spineIndex))
                 }
 
-                if let target = note?.userInfo?[Constants.spineIndex] as? Int,
-                   target == self.spineIndex {
-                    await self.scrollToLastPageWihtOrientagtion(webView)
-                    self.note = nil
-                } else {
-                    await self.scrollAndReport(.scrollToFirstPage, webView: webView)
-                }
+//                if let target = note?.userInfo?[Constants.spineIndex] as? Int,
+//                   target == self.spineIndex {
+//                    await self.scrollToLastPageWihtOrientagtion(webView)
+//                    self.note = nil
+//                } else {
+//                    await self.scrollAndReport(.scrollToFirstPage, webView: webView)
+//                }
 
                 try? await Task.sleep(nanoseconds: Constants.settleDelay)
                 self.scrollViewDidEndDecelerating(webView.scrollView)
@@ -184,14 +184,14 @@ extension DCChapterWebView {
             decisionHandler(.allow)
         }
 
-        private func updateCurrentPage(note: Notification?) {
+        func updateCurrentPage(note: Notification?) {
             Task { @MainActor [weak self] in
                 guard let self, let webView = self.lazyWebView else { return }
                 if let target = note?.userInfo?[Constants.spineIndex] as? Int, target == self.spineIndex {
                     self.setInteractivity(false, on: webView, animated: true)
                     try? await Task.sleep(nanoseconds: Constants.settleDelay)
                     await self.scrollToLastPageWihtOrientagtion(webView)
-                    self.note = nil
+//                    self.note = nil
                 } else {
                     await self.scrollAndReport(.scrollToFirstPage, webView: webView)
                 }
