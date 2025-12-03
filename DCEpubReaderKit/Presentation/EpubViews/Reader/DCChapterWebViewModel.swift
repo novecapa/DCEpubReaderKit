@@ -38,5 +38,8 @@ extension DCChapterWebViewModel: DCWebViewRouterProtocol {
         onAction(.showNote)
     }
 
-    func updateCurrentPage() {}
+    func updateCurrentPage() {
+        // TODO: --
+        print("updateCurrentPage: \(chapterURL) - spineIndex: \(spineIndex)")
+    }
 }

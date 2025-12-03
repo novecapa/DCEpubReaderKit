@@ -183,6 +183,7 @@ final class DCReaderViewModel: ObservableObject {
         
 //        chapterViewModels[currentSelection]?.updateCurrentPage(note: Notification(name: .chapterShouldScrollToLastPage,
 //                                                                                   userInfo: ["spineIndex": currentSelection]))
+        chapterViewModels[currentSelection]?.updateCurrentPage()
     }
 
     func saveBookMark() {
