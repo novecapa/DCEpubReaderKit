@@ -22,7 +22,7 @@ public struct EpubBook {
         spine: [.mock],
         toc: [.mock],
         resourcesRoot: URL(
-            string: "https:www.google.com"
+            string: "https://www.google.com"
         )!
     )
 }
@@ -62,6 +62,13 @@ extension EpubBook {
     public func chapterURL(forIdRef idref: String) -> URL? {
         guard let item = manifest.first(where: { $0.id == idref }) else { return nil }
         return resourceURL(forHref: item.href)
+    }
+
+    // Small helper to avoid using large tuples when correlating TOC and spine
+    private struct HrefLookup: Equatable {
+        let idref: String
+        let hrefLower: String
+        let lastLower: String
     }
 
     // MARK: TOC ↔ Spine correlation
@@ -109,13 +116,15 @@ extension EpubBook {
         let targetLower = targetNoFrag.lowercased()
         let targetLastLower = lastPathComponent(targetNoFrag).lowercased()
 
-        // Build a lookup of (idref, normalizedHref, lastComponentLower)
-        let hrefByIdref: [(idref: String,
-                           hrefLower: String,
-                           lastLower: String)] = spine.compactMap { item in
+        // Build a lookup of (idref, normalizedHref, lastComponentLower) without large tuples
+        let hrefByIdref: [HrefLookup] = spine.compactMap { item in
             guard let mfst = manifest.first(where: { $0.id == item.idref }) else { return nil }
             let hNoFrag = dropFragment(mfst.href)
-            return (item.idref, hNoFrag.lowercased(), lastPathComponent(hNoFrag).lowercased())
+            return HrefLookup(
+                idref: item.idref,
+                hrefLower: hNoFrag.lowercased(),
+                lastLower: lastPathComponent(hNoFrag).lowercased()
+            )
         }
 
         // 1. - Contains match between normalized full paths (both directions)
@@ -177,3 +186,4 @@ extension EpubBook {
         return href.split(separator: "/").last.map(String.init) ?? href
     }
 }
+
