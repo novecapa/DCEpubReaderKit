@@ -55,6 +55,8 @@ struct DCChapterWebView: UIViewRepresentable {
         webView.scrollView.contentInsetAdjustmentBehavior = .never
         webView.isUserInteractionEnabled = true // (scrolling stays managed by TabView disable)
 
+        context.coordinator.lazyWebView = webView
+
         return webView
     }
 

@@ -110,8 +110,7 @@ extension DCChapterWebView {
             Task { @MainActor [weak self] in
                 guard let self else { return }
 
-                if lazyWebView == nil,
-                   let result = await applyPagination(webView),
+                if let result = await applyPagination(webView),
                    let totalPages = Int(result) {
                     self.cachedTotalPages = max(1, totalPages)
                     self.onAction(.currentPage(index: 1,
@@ -121,8 +120,6 @@ extension DCChapterWebView {
 
                 try? await Task.sleep(nanoseconds: Constants.settleDelay)
                 self.scrollViewDidEndDecelerating(webView.scrollView)
-
-                self.lazyWebView = webView as? DCWebView
                 self.setInteractivity(true, on: webView, animated: true)
             }
         }
@@ -139,15 +136,16 @@ extension DCChapterWebView {
 
                 let index = decoded.index(decoded.startIndex, offsetBy: 12)
                 let highlightstring = decoded[..<index]
-                let _ = NSCoder.cgRect(
+                _ = NSCoder.cgRect(
                     for: decoded.replacingOccurrences(
-                    of: highlightstring, with: "")
+                        of: highlightstring, with: "")
                 )
                 // Remove selected text
                 removeSelectedText(lazyWebView)
                 webView.evaluateJavaScript("getThisHighlight()") { (result, _) in
                     let highlightUUID = result as? String ?? ""
                     print("highlightID: \(highlightUUID)")
+                    // TODO: --
 //                    let marktype = DCRBookMark.getHighlightType(bookId: self.bookid, uuid: highlightUUID)
 //                    if marktype == DCRBookMark.kHighLight {
 //                        self.webView.createHighlightMenu(rect: rect)
@@ -160,11 +158,11 @@ extension DCChapterWebView {
             decisionHandler(.allow)
         }
 
-        func updateCurrentPageInternal(note: Notification?) {
-            Task { @MainActor [weak self] in
-                guard let self, let webView = self.lazyWebView else { return }
-                if let target = note?.userInfo?[Constants.spineIndex] as? Int,
-                   target == self.spineIndex {
+        func updateCurrentPageInternal(target: Int?) {
+            guard let webView = lazyWebView else { return }
+            Task { @MainActor [weak self, weak webView] in
+                guard let self, let webView else { return }
+                if target == self.spineIndex {
                     self.setInteractivity(false, on: webView, animated: true)
                     try? await Task.sleep(nanoseconds: Constants.settleDelay)
                     await self.scrollToLastPageWihtOrientagtion(webView)
@@ -200,8 +198,7 @@ extension DCChapterWebView.Coordinator: UIScrollViewDelegate {
         } else if atTop && velocity.y < -threshold {
             // Ask container to move to previous chapter
             onAction(.navigateToPreviousChapter)
-            viewModel?.updateCurrentPage(note: Notification(name: .chapterShouldScrollToLastPage,
-                                                            userInfo: ["spineIndex": spineIndex]))
+            viewModel?.updateCurrentPage(target: spineIndex)
         }
     }
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {}
@@ -257,8 +254,15 @@ extension DCChapterWebView.Coordinator: UIScrollViewDelegate {
                               spineIndex: spineIndex))
 
         Task { @MainActor in
-            if let coords = await getCoordsFirstNodeOfPage(lazyWebView, currentPage: currentPageOneBased) {
-                onAction(.coordsFirstNodeOfPage(orientation: orientation, spineIndex: spineIndex, coords: coords))
+            if let coords = await getCoordsFirstNodeOfPage(
+                lazyWebView,
+                currentPage: currentPageOneBased
+            ) {
+                onAction(.coordsFirstNodeOfPage(
+                    orientation: orientation,
+                    spineIndex: spineIndex,
+                    coords: coords)
+                )
             }
         }
     }

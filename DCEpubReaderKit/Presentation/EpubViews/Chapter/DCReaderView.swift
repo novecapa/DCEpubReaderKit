@@ -66,7 +66,7 @@ struct DCReaderView: View {
             }
         }
         .onChange(of: viewModel.currentSelection) { _ in
-            viewModel.postNotification()
+            viewModel.updateCurrentPage()
         }
     }
 

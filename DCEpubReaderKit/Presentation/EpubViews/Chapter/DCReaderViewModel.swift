@@ -169,27 +169,17 @@ final class DCReaderViewModel: ObservableObject {
         bookOrientation == .vertical ? DragGesture() : nil
     }
 
-    func postNotification() {
+    func updateCurrentPage() {
         defer {
             previousSelection = currentSelection
         }
-//        NotificationCenter.default.post(
-//            name: .chapterShouldScrollToLastPage,
-//            object: nil,
-//            userInfo: currentSelection < previousSelection ?
-//            ["spineIndex": currentSelection] :
-//                nil
-//        )
-        
-//        chapterViewModels[currentSelection]?.updateCurrentPage(note: Notification(name: .chapterShouldScrollToLastPage,
-//                                                                                   userInfo: ["spineIndex": currentSelection]))
         chapterViewModels[currentSelection]?.updateCurrentPage(
-            note: Notification(name: .chapterShouldScrollToLastPage,
-                               userInfo: ["spineIndex": currentSelection])
+            target: currentSelection < previousSelection ? currentSelection : nil
         )
     }
 
     func saveBookMark() {
+        // TODO: --
         print("saveBookMark")
     }
 

@@ -39,7 +39,7 @@ extension DCChapterWebViewModel: DCWebViewRouterProtocol {
         onAction(.showNote)
     }
 
-    func updateCurrentPage(note: Notification?) {
-        coordinator?.updateCurrentPageInternal(note: note)
+    func updateCurrentPage(target: Int?) {
+        coordinator?.updateCurrentPageInternal(target: target)
     }
 }
