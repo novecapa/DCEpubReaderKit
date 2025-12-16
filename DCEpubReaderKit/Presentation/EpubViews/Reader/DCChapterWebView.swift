@@ -27,11 +27,14 @@ struct DCChapterWebView: UIViewRepresentable {
         config.allowsAirPlayForMediaPlayback = false
         config.allowsInlineMediaPlayback = true
         config.preferences.javaScriptCanOpenWindowsAutomatically = false
-        config.preferences.javaScriptEnabled = true
+        // config.preferences.javaScriptEnabled = true
 
         let webView = DCWebViewBuilder().build(frame: .zero,
                                                configuration: config,
                                                router: viewModel)
+        if #available(iOS 14.0, *) {
+            webView.configuration.defaultWebpagePreferences.allowsContentJavaScript = true
+        }
         #if DEBUG
         if #available(iOS 16.4, *) {
             webView.isInspectable = true

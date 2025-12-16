@@ -9,6 +9,7 @@ import SwiftUI
 
 struct NotesView: View {
 
+    @Environment(\.dismiss) private var dismiss
     @ObservedObject var viewModel: NotesViewModel
 
     init(viewModel: NotesViewModel) {
@@ -19,7 +20,7 @@ struct NotesView: View {
         VStack {
             HStack {
                 Button {
-                    // TODO: --
+                    dismiss()
                 } label: {
                     Image(systemName: "xmark")
                         .tint(.backgroundNight)
