@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		724B361D2E9FFB200022E944 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = 724B361C2E9FFB200022E944 /* ZIPFoundation */; };
+		72ED797E2EF1CA010086B977 /* RealmSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 72ED797D2EF1CA010086B977 /* RealmSwift */; };
+		72ED797F2EF1CA120086B977 /* RealmSwift in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 72ED797D2EF1CA010086B977 /* RealmSwift */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -26,6 +28,20 @@
 			remoteInfo = DCEpubReaderKit;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		72ED79802EF1CA120086B977 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				72ED797F2EF1CA120086B977 /* RealmSwift in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		72FB42692E9F822A00E2D840 /* DCEpubReaderKit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DCEpubReaderKit.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -69,6 +85,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				72ED797E2EF1CA010086B977 /* RealmSwift in Frameworks */,
 				724B361D2E9FFB200022E944 /* ZIPFoundation in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -121,6 +138,7 @@
 				72FB42662E9F822A00E2D840 /* Frameworks */,
 				72FB42672E9F822A00E2D840 /* Resources */,
 				72BC76872EA041C80098E8A7 /* SwiftLint */,
+				72ED79802EF1CA120086B977 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -132,6 +150,7 @@
 			name = DCEpubReaderKit;
 			packageProductDependencies = (
 				724B361C2E9FFB200022E944 /* ZIPFoundation */,
+				72ED797D2EF1CA010086B977 /* RealmSwift */,
 			);
 			productName = DCEpubReaderKit;
 			productReference = 72FB42692E9F822A00E2D840 /* DCEpubReaderKit.app */;
@@ -217,6 +236,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				724B361B2E9FFB200022E944 /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
+				72ED797C2EF1CA010086B977 /* XCRemoteSwiftPackageReference "realm-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 72FB426A2E9F822A00E2D840 /* Products */;
@@ -613,6 +633,14 @@
 				minimumVersion = 0.9.20;
 			};
 		};
+		72ED797C2EF1CA010086B977 /* XCRemoteSwiftPackageReference "realm-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/realm/realm-swift.git";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -620,6 +648,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 724B361B2E9FFB200022E944 /* XCRemoteSwiftPackageReference "ZIPFoundation" */;
 			productName = ZIPFoundation;
+		};
+		72ED797D2EF1CA010086B977 /* RealmSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 72ED797C2EF1CA010086B977 /* XCRemoteSwiftPackageReference "realm-swift" */;
+			productName = RealmSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

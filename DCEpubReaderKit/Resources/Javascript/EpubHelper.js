@@ -4,9 +4,7 @@
 //
 //  Created by Josep Cerdá Penadés on 4/11/25.
 //
-// - Modernized, encapsulated, and backward-compatible
-// - Removes dead code, fixes recursion bugs, avoids globals spillover
-// - Keeps public API identical for native/legacy callers
+
 (function(){
     'use strict';
     
