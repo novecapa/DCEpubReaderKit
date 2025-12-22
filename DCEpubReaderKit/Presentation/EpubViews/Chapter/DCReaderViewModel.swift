@@ -152,6 +152,7 @@ final class DCReaderViewModel: ObservableObject {
         guard spineIndex == currentSelection else { return }
         if let chapterURL {
             print("chapterFile: \(chapterURL.lastPathComponent) coords: \(coords)")
+            
         }
     }
 
