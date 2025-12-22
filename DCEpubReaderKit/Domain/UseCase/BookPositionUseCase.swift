@@ -11,12 +11,12 @@ protocol BookPositionUseCaseProtocol {
     func saveLastPosition(book: EpubBook,
                           spineIndex: Int,
                           coords: String,
-                          chapterURL: URL)
+                          chapterURL: URL) throws
 }
 
 final class BookPositionUseCase: BookPositionUseCaseProtocol {
     func saveLastPosition(book: EpubBook,
                           spineIndex: Int,
                           coords: String,
-                          chapterURL: URL) {}
+                          chapterURL: URL) throws {}
 }

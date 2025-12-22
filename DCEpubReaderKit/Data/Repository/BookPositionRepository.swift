@@ -11,12 +11,12 @@ protocol BookPositionRepositoryProtocol {
     func saveLastPosition(book: EpubBook,
                           spineIndex: Int,
                           coords: String,
-                          chapterURL: URL)
+                          chapterURL: URL) throws
 }
 
 final class BookPositionRepository: BookPositionRepositoryProtocol {
     func saveLastPosition(book: EpubBook,
                           spineIndex: Int,
                           coords: String,
-                          chapterURL: URL) {}
+                          chapterURL: URL) throws {}
 }
