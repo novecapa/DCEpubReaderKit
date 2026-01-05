@@ -98,16 +98,6 @@ Contributions are welcome — from bug reports to feature improvements or docume
 
 ---
 
-## 💖 Donations
-
-If this project has been helpful or you’d like to support its development, you can make a donation.
-
-Your support helps fuel the time (and coffee ☕️) needed to keep improving **DCEpubReaderKit** 🚀
-
-- **PayPal:** [https://paypal.me/novecapa](https://paypal.me/novecapa)
-
----
-
 ## ⚖️ License
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
