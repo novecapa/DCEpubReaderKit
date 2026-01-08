@@ -22,7 +22,7 @@ final class RBookMark: Object {
     }
 
     @Persisted var uuid: String = ""
-    @Persisted var bookId: String = ""
+    @Persisted var bookTitle: String = ""
     @Persisted var text: String = ""
     @Persisted var coords: String = ""
     @Persisted var chapterId: String = ""

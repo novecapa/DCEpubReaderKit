@@ -19,5 +19,17 @@ final class BookPositionDatabase: BookPositionDatabaseProtocol {
     func saveLastPosition(book: EpubBook,
                           spineIndex: Int,
                           coords: String,
-                          chapterURL: URL) throws {}
+                          chapterURL: URL) throws {
+        let realm = try Realm()
+        // Update
+        if let position = realm.objects(RBookMark.self).filter("uuid = '\(book.opfDirectoryURL)'").first {
+            try realm.write {
+                position.lastcoords = coords
+                position.lastchapterid = chapterURL.lastPathComponent
+            }
+            // Create
+        } else {
+            // TODO: --
+        }
+    }
 }
