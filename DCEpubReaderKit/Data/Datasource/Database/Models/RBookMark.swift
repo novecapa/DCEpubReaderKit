@@ -32,8 +32,8 @@ final class RBookMark: Object {
     @Persisted var type: String = ""
     @Persisted var lastcoords: String = ""
     @Persisted var lastchapterid: String = ""
-    @Persisted var dateCreated: Int = 0
-    @Persisted var dateUpdated: Int = 0
+    @Persisted var dateCreated: Double = 0
+    @Persisted var dateUpdated: Double = 0
     @Persisted var state: Bool = true
 
     public override static func primaryKey() -> String {

@@ -10,6 +10,7 @@ public struct OPFMetadata {
     public var title: String?
     public var creators: [String] = []
     public var language: String?
+    /// Stores raw OPF `dc:identifier` values as strings.
     public var identifiers: [String] = []
     public var date: String?
     public var publisher: String?

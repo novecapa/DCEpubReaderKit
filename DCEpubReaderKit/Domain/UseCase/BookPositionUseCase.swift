@@ -15,8 +15,17 @@ protocol BookPositionUseCaseProtocol {
 }
 
 final class BookPositionUseCase: BookPositionUseCaseProtocol {
+
+    private let repository: BookPositionRepositoryProtocol
+
+    init(repository: BookPositionRepositoryProtocol) {
+        self.repository = repository
+    }
+
     func saveLastPosition(book: EpubBook,
                           spineIndex: Int,
                           coords: String,
-                          chapterURL: URL) throws {}
+                          chapterURL: URL) throws {
+        try repository.saveLastPosition(book: book, spineIndex: spineIndex, coords: coords, chapterURL: chapterURL)
+    }
 }

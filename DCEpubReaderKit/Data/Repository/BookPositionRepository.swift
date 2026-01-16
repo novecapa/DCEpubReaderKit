@@ -15,8 +15,17 @@ protocol BookPositionRepositoryProtocol {
 }
 
 final class BookPositionRepository: BookPositionRepositoryProtocol {
+
+    private let database: BookPositionDatabaseProtocol
+
+    init(database: BookPositionDatabaseProtocol) {
+        self.database = database
+    }
+
     func saveLastPosition(book: EpubBook,
                           spineIndex: Int,
                           coords: String,
-                          chapterURL: URL) throws {}
+                          chapterURL: URL) throws {
+        try database.saveLastPosition(book: book, spineIndex: spineIndex, coords: coords, chapterURL: chapterURL)
+    }
 }

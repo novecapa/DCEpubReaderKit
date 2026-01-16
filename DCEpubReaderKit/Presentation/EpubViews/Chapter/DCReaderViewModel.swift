@@ -33,13 +33,16 @@ final class DCReaderViewModel: ObservableObject {
     private let book: EpubBook
     private let spineIndex: Int
     private let userPreferencesProtocol: DCUserPreferencesProtocol
+    private let useCase: BookPositionUseCaseProtocol
 
     init(book: EpubBook,
          spineIndex: Int,
-         userPreferencesProtocol: DCUserPreferencesProtocol) {
+         userPreferencesProtocol: DCUserPreferencesProtocol,
+         useCase: BookPositionUseCaseProtocol) {
         self.book = book
         self.spineIndex = spineIndex
         self.userPreferencesProtocol = userPreferencesProtocol
+        self.useCase = useCase
 
         // Initial values
         self.currentSelection = spineIndex
@@ -86,7 +89,7 @@ final class DCReaderViewModel: ObservableObject {
     }
 
     var bookTitle: String {
-        book.metadata.title ?? ""
+        book.bookTitle
     }
 
     var userPreferences: DCUserPreferencesProtocol {
@@ -151,8 +154,7 @@ final class DCReaderViewModel: ObservableObject {
                               chapterURL: URL?) {
         guard spineIndex == currentSelection else { return }
         if let chapterURL {
-            print("chapterFile: \(chapterURL.lastPathComponent) coords: \(coords)")
-            
+            try? useCase.saveLastPosition(book: book, spineIndex: spineIndex, coords: coords, chapterURL: chapterURL)
         }
     }
 
