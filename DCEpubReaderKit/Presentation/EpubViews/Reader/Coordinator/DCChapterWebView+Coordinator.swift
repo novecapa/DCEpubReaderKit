@@ -56,6 +56,7 @@ extension DCChapterWebView {
         weak var viewModel: DCChapterWebViewModel?
 
         private var cachedTotalPages: Int = 0
+        private var currentPageOneBased: Int = 0
 
         let opensExternalLinks: Bool
         let spineIndex: Int
@@ -174,6 +175,22 @@ extension DCChapterWebView {
                 self.setInteractivity(true, on: webView, animated: true)
             }
         }
+
+        func saveBookMark() {
+            Task { @MainActor in
+                if let coords = await getCoordsFirstNodeOfPage(
+                    lazyWebView,
+                    currentPage: currentPageOneBased
+                ) {
+                    onAction(.coordsFirstNodeOfPage(
+                        orientation: orientation,
+                        spineIndex: spineIndex,
+                        coords: coords,
+                        isBookMark: true)
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -247,7 +264,7 @@ extension DCChapterWebView.Coordinator: UIScrollViewDelegate {
             if nearBottom { clampedZeroBased = max(0, totalPages - 1) }
         }
 
-        let currentPageOneBased = clampedZeroBased + 1
+        currentPageOneBased = clampedZeroBased + 1
 
         onAction(.currentPage(index: currentPageOneBased,
                               totalPages: totalPages,
@@ -261,7 +278,8 @@ extension DCChapterWebView.Coordinator: UIScrollViewDelegate {
                 onAction(.coordsFirstNodeOfPage(
                     orientation: orientation,
                     spineIndex: spineIndex,
-                    coords: coords)
+                    coords: coords,
+                    isBookMark: false)
                 )
             }
         }

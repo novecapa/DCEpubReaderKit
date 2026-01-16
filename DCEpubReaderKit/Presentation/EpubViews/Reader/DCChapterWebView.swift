@@ -12,7 +12,7 @@ enum DCChapterViewAction {
     case totalPageCount(count: Int, spineIndex: Int)
     case currentPage(index: Int, totalPages: Int, spineIndex: Int)
     case canTouch(enable: Bool)
-    case coordsFirstNodeOfPage(orientation: DCBookrOrientation, spineIndex: Int, coords: String)
+    case coordsFirstNodeOfPage(orientation: DCBookrOrientation, spineIndex: Int, coords: String, isBookMark: Bool)
     case navigateToNextChapter
     case navigateToPreviousChapter
     case showNote

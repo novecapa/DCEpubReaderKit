@@ -8,10 +8,11 @@
 import Foundation
 
 protocol BookPositionRepositoryProtocol {
-    func saveLastPosition(book: EpubBook,
+    func saveBookPosition(book: EpubBook,
                           spineIndex: Int,
                           coords: String,
-                          chapterURL: URL) throws
+                          chapterURL: URL,
+                          markType: RBookMark.MarkType) throws
 }
 
 final class BookPositionRepository: BookPositionRepositoryProtocol {
@@ -22,10 +23,11 @@ final class BookPositionRepository: BookPositionRepositoryProtocol {
         self.database = database
     }
 
-    func saveLastPosition(book: EpubBook,
+    func saveBookPosition(book: EpubBook,
                           spineIndex: Int,
                           coords: String,
-                          chapterURL: URL) throws {
-        try database.saveLastPosition(book: book, spineIndex: spineIndex, coords: coords, chapterURL: chapterURL)
+                          chapterURL: URL,
+                          markType: RBookMark.MarkType) throws {
+        try database.saveBookPosition(book: book, spineIndex: spineIndex, coords: coords, chapterURL: chapterURL, markType: markType)
     }
 }

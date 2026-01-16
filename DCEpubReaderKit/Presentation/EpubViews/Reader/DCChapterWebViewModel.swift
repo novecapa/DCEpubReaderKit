@@ -42,4 +42,8 @@ extension DCChapterWebViewModel: DCWebViewRouterProtocol {
     func updateCurrentPage(target: Int?) {
         coordinator?.updateCurrentPageInternal(target: target)
     }
+
+    func saveBookmark() {
+        coordinator?.saveBookMark()
+    }
 }

@@ -18,9 +18,10 @@ final class RBookMark: Object {
     }
 
     private enum Constants {
-        static let primaryKey = "uuid"
+        static let primaryKey = "compoundKey"
     }
 
+    @Persisted var compoundKey: String = ""
     @Persisted var uuid: String = ""
     @Persisted var bookTitle: String = ""
     @Persisted var text: String = ""
@@ -35,6 +36,10 @@ final class RBookMark: Object {
     @Persisted var dateCreated: Double = 0
     @Persisted var dateUpdated: Double = 0
     @Persisted var state: Bool = true
+
+    var compound: String {
+        "\(uuid)-\(type)"
+    }
 
     public override static func primaryKey() -> String {
         return Constants.primaryKey

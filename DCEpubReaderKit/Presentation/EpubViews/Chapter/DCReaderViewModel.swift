@@ -111,8 +111,8 @@ final class DCReaderViewModel: ObservableObject {
         case let .canTouch(enabled):
             updateTouch(enabled)
 
-        case let .coordsFirstNodeOfPage(_, spineIndex, coords):
-            handleCoords(spineIndex: spineIndex, coords: coords, chapterURL: chapterURL)
+        case let .coordsFirstNodeOfPage(_, spineIndex, coords, isBookMark):
+            handleCoords(spineIndex: spineIndex, coords: coords, chapterURL: chapterURL, isBookMark: isBookMark)
 
         case .navigateToNextChapter:
             navigateToNextChapter()
@@ -151,10 +151,12 @@ final class DCReaderViewModel: ObservableObject {
 
     private func handleCoords(spineIndex: Int,
                               coords: String,
-                              chapterURL: URL?) {
+                              chapterURL: URL?,
+                              isBookMark: Bool) {
         guard spineIndex == currentSelection else { return }
         if let chapterURL {
-            try? useCase.saveLastPosition(book: book, spineIndex: spineIndex, coords: coords, chapterURL: chapterURL)
+            let markType = isBookMark ? RBookMark.MarkType.bookMark : RBookMark.MarkType.lastPosition
+            try? useCase.saveBookPosition(book: book, spineIndex: spineIndex, coords: coords, chapterURL: chapterURL, markType: markType)
         }
     }
 
@@ -182,8 +184,7 @@ final class DCReaderViewModel: ObservableObject {
     }
 
     func saveBookMark() {
-        // TODO: --
-        print("saveBookMark")
+        chapterViewModels[currentSelection]?.saveBookmark()
     }
 
     func registerChapterViewModel(_ viewModel: DCChapterWebViewModel, for index: Int) {
