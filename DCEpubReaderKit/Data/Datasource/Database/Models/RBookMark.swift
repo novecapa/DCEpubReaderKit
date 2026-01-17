@@ -37,8 +37,12 @@ final class RBookMark: Object {
     @Persisted var dateUpdated: Double = 0
     @Persisted var state: Bool = true
 
-    var compound: String {
+    var compoundLastPosition: String {
         "\(uuid)-\(type)"
+    }
+
+    var compoundBookmark: String {
+        "\(uuid)-\(coords)-\(chapterId)"
     }
 
     public override static func primaryKey() -> String {
