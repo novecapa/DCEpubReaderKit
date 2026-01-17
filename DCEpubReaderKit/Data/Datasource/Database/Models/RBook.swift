@@ -16,6 +16,7 @@ final class RBook: Object {
 
     @Persisted var uuid: String = ""
     @Persisted var title: String = ""
+    @Persisted var path: String = ""
 
     public override static func primaryKey() -> String {
         return Constants.primaryKey
