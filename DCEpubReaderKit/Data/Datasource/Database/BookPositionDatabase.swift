@@ -14,6 +14,7 @@ protocol BookPositionDatabaseProtocol {
                           coords: String,
                           chapterURL: URL,
                           markType: RBookMark.MarkType) throws
+    // TODO: Get book position
 }
 
 final class BookPositionDatabase: BookPositionDatabaseProtocol {

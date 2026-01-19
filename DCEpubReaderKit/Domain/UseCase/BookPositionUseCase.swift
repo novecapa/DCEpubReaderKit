@@ -28,6 +28,12 @@ final class BookPositionUseCase: BookPositionUseCaseProtocol {
                           coords: String,
                           chapterURL: URL,
                           markType: RBookMark.MarkType) throws {
-        try repository.saveBookPosition(book: book, spineIndex: spineIndex, coords: coords, chapterURL: chapterURL, markType: markType)
+        try repository.saveBookPosition(
+            book: book,
+            spineIndex: spineIndex,
+            coords: coords,
+            chapterURL: chapterURL,
+            markType: markType
+        )
     }
 }

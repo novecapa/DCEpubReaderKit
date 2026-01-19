@@ -17,7 +17,6 @@ final class NotesViewBuilder {
     }
 }
 
-
 final class NotesViewBuilderMock {
     func build(_ bookId: String = "",
                coords: String = "",
