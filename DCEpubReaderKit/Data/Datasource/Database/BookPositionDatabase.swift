@@ -24,6 +24,7 @@ final class BookPositionDatabase: BookPositionDatabaseProtocol {
                           chapterURL: URL,
                           markType: RBookMark.MarkType) throws {
         let realm = try Realm()
+        let nowMillis = Date().timeMillis
         switch markType {
         case .lastPosition:
             if let mark = realm.objects(RBookMark.self).filter(
@@ -35,7 +36,7 @@ final class BookPositionDatabase: BookPositionDatabaseProtocol {
                     mark.bookTitle = book.bookTitle
                     mark.lastcoords = coords
                     mark.lastchapterid = chapterURL.lastPathComponent
-                    mark.dateUpdated = NSDate().timeIntervalSince1970 * 1000
+                    mark.dateUpdated = nowMillis
                 }
             } else {
                 let mark = RBookMark()
@@ -44,7 +45,7 @@ final class BookPositionDatabase: BookPositionDatabaseProtocol {
                 mark.bookTitle = book.bookTitle
                 mark.lastcoords = coords
                 mark.lastchapterid = chapterURL.lastPathComponent
-                mark.dateCreated = NSDate().timeIntervalSince1970 * 1000
+                mark.dateCreated = nowMillis
                 mark.compoundKey = mark.compoundLastPosition
                 try realm.write {
                     realm.add(mark, update: .modified)
@@ -57,7 +58,7 @@ final class BookPositionDatabase: BookPositionDatabaseProtocol {
             mark.coords = coords
             mark.bookTitle = book.bookTitle
             mark.chapterId = chapterURL.lastPathComponent
-            mark.dateCreated = NSDate().timeIntervalSince1970 * 1000
+            mark.dateCreated = nowMillis
             mark.compoundKey = mark.compoundBookmark
             try realm.write {
                 realm.add(mark, update: .modified)

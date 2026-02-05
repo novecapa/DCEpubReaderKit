@@ -63,12 +63,19 @@ final class BookFileDatabase: BookFileDatabaseProtocol {
         guard let book = realm.object(ofType: RBook.self, forPrimaryKey: uuid) else {
             return
         }
+        let booksRoot = FileHelper.shared.getBooksDirectory()
+        let bookFolder = booksRoot.appendingPathComponent(uuid, isDirectory: true)
+        if FileManager.default.fileExists(atPath: bookFolder.path) {
+            try FileManager.default.removeItem(at: bookFolder)
+        }
         try realm.write {
             realm.delete(book)
         }
     }
+}
 
-    private func normalizeCoverPath(_ coverPath: String) -> String {
+private extension BookFileDatabase {
+    func normalizeCoverPath(_ coverPath: String) -> String {
         guard !coverPath.isEmpty else { return "" }
 
         let knownRoots = ["OEBPS", "OPS", "EPUB"]
