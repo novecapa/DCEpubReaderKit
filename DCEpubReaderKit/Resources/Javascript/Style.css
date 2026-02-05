@@ -144,12 +144,14 @@ a, h1, h2, h3, h4, h5, h6 {
 }
 
 /* Begin Ted */
-img, svg, audio, video {
+img, svg, audio, video, #fullpage, .imgalto {
     max-height: 100% !important;
     max-width: 100% !important;
 /*    box-sizing: border-box;*/
 /*    object-fit: contain;*/
     page-break-inside: avoid;
+    height: auto !important;
+    width: auto !important;
 }
 
 /* End Ted */

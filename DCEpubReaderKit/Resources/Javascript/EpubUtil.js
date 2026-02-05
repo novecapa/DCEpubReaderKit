@@ -66,9 +66,7 @@
     // Pagination
     // --------------------------------------------------
     function applyHorizontalPagination() {
-        const marginTop = 54;
         const columnGap = 20;
-        const columnGapTop = 0;
         const stylemargin = 0;
         
         const d = document.body;
@@ -78,7 +76,9 @@
         const pageCount = Math.max(1, Math.ceil(fullH / ourH));
         
         const newW = (ourW * pageCount);
-        d.style.height = `${(ourH - ((columnGapTop + marginTop) / 2)) + stylemargin}px`;
+        // Leave a small safe inset to avoid clipping descenders at the bottom
+        const safeBottomInset = 28;
+        d.style.height = `${Math.max(0, ourH - safeBottomInset)}px`;
         d.style.width = `${newW}px`;
         d.style.webkitColumnGap = `${columnGap}px`;
         d.style.columnGap = `${columnGap}px`;
