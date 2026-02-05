@@ -39,6 +39,36 @@ final class FileHelper {
         getFileManager().temporaryDirectory
     }
 
+    func getBooksDirectory() -> URL {
+        let booksDirectory = getDocumentsDirectory().appendingPathComponent(Constants.bookFolder, isDirectory: true)
+        if !getFileManager().fileExists(atPath: booksDirectory.path) {
+            try? getFileManager().createDirectory(at: booksDirectory, withIntermediateDirectories: true)
+        }
+        return booksDirectory
+    }
+
+    func sanitizeFolderName(_ name: String) -> String {
+        guard !name.isEmpty else { return UUID().uuidString }
+        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-_"))
+        let sanitized = String(name.unicodeScalars.map { scalar -> Character in
+            if allowed.contains(scalar) {
+                return Character(scalar)
+            }
+            return "_"
+        })
+        return sanitized.isEmpty ? UUID().uuidString : sanitized
+    }
+
+    func saveUnzippedBook(from tempFolder: URL, bookId: String) throws -> URL {
+        let safeId = sanitizeFolderName(bookId)
+        let destination = getBooksDirectory().appendingPathComponent(safeId, isDirectory: true)
+        if getFileManager().fileExists(atPath: destination.path) {
+            try getFileManager().removeItem(at: destination)
+        }
+        try getFileManager().copyItem(at: tempFolder, to: destination)
+        return destination
+    }
+
     func createDirectory(at folderType: FolderType, directoryName: String) throws {
        guard !directoryName.isEmpty else { return }
 

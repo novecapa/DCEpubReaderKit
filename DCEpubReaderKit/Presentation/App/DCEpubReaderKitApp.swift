@@ -11,6 +11,7 @@ import SwiftUI
 struct DCEpubReaderKitApp: App {
 
     init () {
+        RealmHelper().applyMigrations()
         print("----------------------------------------------------------------")
         print("Documents path: \(FileHelper.shared.getDocumentsDirectory().path)")
         print("----------------------------------------------------------------")

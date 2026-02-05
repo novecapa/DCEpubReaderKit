@@ -16,7 +16,16 @@ final class RBook: Object {
 
     @Persisted var uuid: String = ""
     @Persisted var title: String = ""
+    @Persisted var author: String = ""
     @Persisted var path: String = ""
+    @Persisted var coverPath: String = ""
+    @Persisted var language: String = ""
+    @Persisted var publisher: String = ""
+    @Persisted var bookVersion: String = ""
+    @Persisted var bookDate: String = ""
+    @Persisted var descriptionHTML: String = ""
+    @Persisted var createdAt: Double = 0
+    @Persisted var updatedAt: Double = 0
 
     public override static func primaryKey() -> String {
         return Constants.primaryKey

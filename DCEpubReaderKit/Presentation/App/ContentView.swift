@@ -9,66 +9,44 @@ import SwiftUI
 
 struct ContentView: View {
 
-    @State private var book: EpubBook?
     @State private var errorMsg: String?
     @State private var isPickerPresented = false
+    @State private var books: [RBook] = []
+
+    private let bookDatabase = BookFileDatabase()
+    private let gridColumns = [
+        GridItem(.flexible(), spacing: 16),
+        GridItem(.flexible(), spacing: 16)
+    ]
 
     var body: some View {
         NavigationStack {
-            List {
-                if let book {
-                    Section("Metadata") {
-                        if let coverPath = book.metadata.coverHint {
-                            CoverImageView(imagePath: coverPath)
-                        }
-                        KeyValueRow(key: "Title", value: book.metadata.title ?? "—")
-                        KeyValueRow(key: "Author", value: book.metadata.creators.first ?? "—")
-                        KeyValueRow(key: "Language", value: book.metadata.language ?? "—")
-                        KeyValueRow(key: "Version", value: book.metadata.version ?? "—")
-                        KeyValueRow(key: "OPF", value: book.packagePath)
-                    }
-
-                    Section("Table of Contents (\(book.toc.count))") {
-                        TocList(book: book, nodes: book.toc, depth: 0)
-                    }
-
-                    Section("Spine (\(book.spine.count))") {
-                        ForEach(Array(book.spine.enumerated()), id: \.offset) { index, spine in
-                            let title = book.chapterTitle(forSpineIndex: index)
-                            Text("• \(title ?? "") \(spine.idref) \(spine.linear ? "" : "(non-linear)")")
-                                .font(.body.monospaced())
-                                .accessibilityLabel("\(spine.idref) \(spine.linear ? "" : "non linear")")
-
-                        }
-                    }
-
-                    Section("Resources (manifest)") {
-                        ForEach(Array(book.manifest.enumerated()), id: \.offset) { _, item in
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text("\(item.id) — \(item.mediaType)")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-
-                                if item.mediaType.contains("image") {
-                                    ManifestImageRow(book: book, item: item)
-                                }
-                            }
-                        }
-                    }
+            ScrollView {
+                if books.isEmpty {
+                    EmptyLibraryView()
+                        .padding(.top, 40)
                 }
 
                 if let errorMsg {
-                    Section("Error") {
-                        Text(errorMsg)
-                            .foregroundStyle(.red)
-                            .accessibilityLabel("Error: \(errorMsg)")
+                    Text(errorMsg)
+                        .foregroundStyle(.red)
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 12)
+                        .accessibilityLabel("Error: \(errorMsg)")
+                }
+
+                LazyVGrid(columns: gridColumns, spacing: 16) {
+                    ForEach(books, id: \.uuid) { book in
+                        BookGridItem(book: book)
                     }
                 }
+                .padding(16)
             }
-            .navigationTitle("EPUB Inspector")
+            .navigationTitle("Mi Biblioteca")
             .toolbar {
                 Button("Open EPUB") { isPickerPresented = true }
             }
+            .onAppear { loadBooks() }
             .fileImporter(
                 isPresented: $isPickerPresented,
                 allowedContentTypes: [.epub],
@@ -78,18 +56,41 @@ struct ContentView: View {
                 case .success(let urls):
                     guard let url = urls.first else { return }
                     do {
-                        let folder = try EpubFileManager.shared.prepareBookFiles(epubFile: url)
-                        self.book = try EpubParser.parse(from: folder)
+                        try importBook(from: url)
                         self.errorMsg = nil
                     } catch {
                         self.errorMsg = "\(error)"
-                        self.book = nil
                     }
                 case .failure(let error):
                     self.errorMsg = "\(error)"
                 }
             }
         }
+    }
+
+    private func loadBooks() {
+        do {
+            self.books = try bookDatabase.getBookList()
+        } catch {
+            self.errorMsg = "\(error)"
+        }
+    }
+
+    private func importBook(from url: URL) throws {
+        let tempFolder = try EpubFileManager.shared.prepareBookFiles(epubFile: url)
+        defer {
+            try? FileManager.default.removeItem(at: tempFolder)
+        }
+
+        let tempBook = try EpubParser.parse(from: tempFolder)
+        let persistedRoot = try FileHelper.shared.saveUnzippedBook(
+            from: tempFolder,
+            bookId: tempBook.uniqueIdentifier
+        )
+
+        let persistedBook = try EpubParser.parse(from: persistedRoot)
+        try bookDatabase.saveBook(book: persistedBook)
+        self.books = try bookDatabase.getBookList()
     }
 }
 
@@ -116,8 +117,8 @@ private struct CoverImageView: View {
     let imagePath: String
 
     var body: some View {
-        if let url = URL(string: imagePath),
-           let uiImage = UIImage(contentsOfFile: url.path) {
+        if !imagePath.isEmpty,
+           let uiImage = UIImage(contentsOfFile: imagePath) {
             Image(uiImage: uiImage)
                 .resizable()
                 .scaledToFit()
@@ -128,6 +129,113 @@ private struct CoverImageView: View {
                 }
                 .accessibilityLabel("Cover image")
         }
+    }
+}
+
+private struct BookGridItem: View {
+    let book: RBook
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            BookCoverView(coverPath: book.coverPath, basePath: book.path)
+            Text(book.title.isEmpty ? "Sin título" : book.title)
+                .font(.headline)
+                .lineLimit(2)
+            Text(book.author.isEmpty ? "—" : book.author)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(.thinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay {
+            RoundedRectangle(cornerRadius: 12).strokeBorder(.quaternary)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(book.title), \(book.author)")
+    }
+}
+
+private struct BookCoverView: View {
+    let coverPath: String
+    let basePath: String
+
+    var body: some View {
+        let resolvedPath = resolveCoverPath()
+        ZStack {
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.gray.opacity(0.12))
+            if let resolvedPath,
+               let uiImage = UIImage(contentsOfFile: resolvedPath) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFill()
+                    .clipped()
+            } else {
+                Text("Sin portada")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .aspectRatio(5.0 / 7.0, contentMode: .fit)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .accessibilityLabel("Portada")
+    }
+
+    private func resolveCoverPath() -> String? {
+        guard !coverPath.isEmpty else { return nil }
+
+        if coverPath.hasPrefix("file://"), let url = URL(string: coverPath) {
+            let path = url.path
+            if FileManager.default.fileExists(atPath: path) { return path }
+        }
+
+        if FileManager.default.fileExists(atPath: coverPath) {
+            return coverPath
+        }
+
+        let candidate = URL(fileURLWithPath: basePath).appendingPathComponent(coverPath).path
+        if FileManager.default.fileExists(atPath: candidate) {
+            return candidate
+        }
+
+        let components = URL(fileURLWithPath: coverPath).pathComponents
+        let knownRoots = ["oebps", "ops", "epub"]
+        if let idx = components.lastIndex(where: { knownRoots.contains($0.lowercased()) }) {
+            let rel = components[idx...].joined(separator: "/")
+            let guessed = URL(fileURLWithPath: basePath).appendingPathComponent(rel).path
+            if FileManager.default.fileExists(atPath: guessed) {
+                return guessed
+            }
+        }
+
+        for suffixCount in [3, 2] {
+            if components.count >= suffixCount {
+                let rel = components.suffix(suffixCount).joined(separator: "/")
+                let guessed = URL(fileURLWithPath: basePath).appendingPathComponent(rel).path
+                if FileManager.default.fileExists(atPath: guessed) {
+                    return guessed
+                }
+            }
+        }
+
+        return nil
+    }
+}
+
+private struct EmptyLibraryView: View {
+    var body: some View {
+        VStack(spacing: 12) {
+            Text("Tu biblioteca está vacía")
+                .font(.headline)
+            Text("Importa un .epub para empezar.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, 24)
+        .multilineTextAlignment(.center)
     }
 }
 
