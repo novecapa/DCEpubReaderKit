@@ -17,12 +17,12 @@ struct DCEpubReaderKitApp: App {
         print("----------------------------------------------------------------")
         print("Temp. path: \(FileHelper.shared.getTempFolder().path)")
         print("----------------------------------------------------------------")
-        FileHelper.shared.clearTempSubfolder(named: "DCEpubReaderKit_import")
+        FileHelper.shared.clearTempSubfolder()
     }
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainViewBuilder().build()
         }
     }
 }

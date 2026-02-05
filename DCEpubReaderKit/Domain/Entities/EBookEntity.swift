@@ -19,4 +19,8 @@ struct EBookEntity {
     let descriptionHTML: String
     let createdAt: Double
     let updatedAt: Double
+
+    var basePath: URL? {
+        FileHelper.shared.getBooksDirectory().appending(path: self.uuid)
+    }
 }

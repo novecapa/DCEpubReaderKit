@@ -9,8 +9,9 @@ import Foundation
 
 final class FileHelper {
 
-    private enum Constants {
+    enum Constants {
         static let bookFolder = "books"
+        static let tempFolder = "DCEpubReaderKit_import"
     }
 
     static let shared = FileHelper()
@@ -49,9 +50,8 @@ final class FileHelper {
         return sanitized.isEmpty ? UUID().uuidString : sanitized
     }
 
-    func clearTempSubfolder(named name: String) {
-        guard !name.isEmpty else { return }
-        let target = getTempFolder().appendingPathComponent(name, isDirectory: true)
+    func clearTempSubfolder() {
+        let target = getTempFolder().appendingPathComponent(Constants.tempFolder, isDirectory: true)
         if getFileManager().fileExists(atPath: target.path) {
             try? getFileManager().removeItem(at: target)
         }

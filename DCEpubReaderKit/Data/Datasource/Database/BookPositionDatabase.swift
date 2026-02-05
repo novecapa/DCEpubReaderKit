@@ -41,7 +41,7 @@ final class BookPositionDatabase: BookPositionDatabaseProtocol {
             } else {
                 let mark = RBookMark()
                 mark.type = markType.rawValue
-                mark.uuid = "\(book.uniqueIdentifier)"
+                mark.uuid = book.uniqueIdentifier
                 mark.bookTitle = book.bookTitle
                 mark.lastcoords = coords
                 mark.lastchapterid = chapterURL.lastPathComponent
@@ -54,7 +54,7 @@ final class BookPositionDatabase: BookPositionDatabaseProtocol {
         case .bookMark:
             let mark = RBookMark()
             mark.type = markType.rawValue
-            mark.uuid = "\(book.uniqueIdentifier)"
+            mark.uuid = book.uniqueIdentifier
             mark.coords = coords
             mark.bookTitle = book.bookTitle
             mark.chapterId = chapterURL.lastPathComponent

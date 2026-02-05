@@ -19,15 +19,46 @@ struct MainView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
+                if viewModel.books.isEmpty {
+                    emptyLibraryView
+                        .padding(.top, 40)
+                }
+                LazyVGrid(columns: gridColumns, spacing: 16) {
+                    ForEach(viewModel.books, id: \.uuid) { book in
+                        BookGridItem(book: book)
+                    }
+                }
+                .padding(16)
             }
             .navigationTitle("My Library".localized())
             .toolbar {
-                // Button("Import EPUB".localized()) { isPickerPresented = true }
+                Button("Import EPUB".localized()) {
+                    viewModel.isPickerPresented = true
+                }
             }
             .onAppear {
                 viewModel.loadBooks()
             }
+            .fileImporter(
+                isPresented: $viewModel.isPickerPresented,
+                allowedContentTypes: [.epub],
+                allowsMultipleSelection: false
+            ) { result in
+                viewModel.fileImporterResult(result)
+            }
         }
+    }
+
+    private var emptyLibraryView: some View {
+        VStack(spacing: 12) {
+            Text("Your library is empty".localized())
+                .font(.headline)
+            Text("Import an .epub to get started.".localized())
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, 24)
+        .multilineTextAlignment(.center)
     }
 }
 
