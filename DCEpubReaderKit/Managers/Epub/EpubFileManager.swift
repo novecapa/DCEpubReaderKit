@@ -23,20 +23,13 @@ final class EpubFileManager {
     static let shared = EpubFileManager()
     private init() {}
 
-    /// Creates a unique temporary folder for unpacking an EPUB.
-    private func prepareUniqueTempFolder() -> URL {
-        let tempFolderId = UUID().uuidString
-        let unzipRoot = FileHelper.shared.getTempFolder()
-            .appendingPathComponent(tempFolderId, isDirectory: true)
-        return unzipRoot
-    }
-
-    /// Extracts the contents of a given `.epub` file into a temporary directory.
+    /// Extracts the contents of a given `.epub` file into a destination directory.
     /// - Parameter epubFile: The EPUB file URL.
+    /// - Parameter destinationRoot: Destination folder where the book will be unzipped.
     /// - Returns: The URL of the unzipped root directory.
     /// - Throws: `EpubError.unzipError` if extraction fails.
-    func prepareBookFiles(epubFile: URL) throws -> URL {
-        let unzipRoot = prepareUniqueTempFolder()
+    func prepareBookFiles(epubFile: URL, destinationRoot: URL) throws -> URL {
+        let unzipRoot = destinationRoot
 
         do {
             // Ensure destination directory exists
@@ -68,6 +61,9 @@ final class EpubFileManager {
                 // Extract file entry to destination
                 _ = try archive.extract(entry, to: destinationURL)
             }
+
+            // Remove the copied .epub (we only keep the extracted contents)
+            try? FileManager.default.removeItem(at: copiedFileURL)
 
             return unzipRoot
 

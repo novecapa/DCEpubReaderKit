@@ -20,14 +20,12 @@ final class BookFileDatabase: BookFileDatabaseProtocol {
         let realm = try Realm()
         let nowMillis = Date().timeMillis
         let bookId = book.uniqueIdentifier
-        let rootPath = book.resourcesRoot.path
 
         let record = RBook()
         record.uuid = bookId
         record.title = book.metadata.title ?? ""
         record.author = book.metadata.creators.first ?? ""
-        record.path = rootPath
-        record.coverPath = normalizeCoverPath(book.metadata.coverHint ?? "", basePath: rootPath)
+        record.coverPath = normalizeCoverPath(book.metadata.coverHint ?? "")
         record.language = book.metadata.language ?? ""
         record.publisher = book.metadata.publisher ?? ""
         record.bookVersion = book.metadata.version ?? ""
@@ -45,23 +43,21 @@ final class BookFileDatabase: BookFileDatabaseProtocol {
             realm.add(record, update: .modified)
         }
     }
-    
+
     func getBookList() throws -> [RBook] {
         let realm = try Realm()
         let results = realm.objects(RBook.self).sorted(byKeyPath: "createdAt", ascending: false)
-        try normalizeCoverPathsIfNeeded(results: results, realm: realm)
-        return results.map { $0.detached() }
+        return results.toArray
     }
-    
+
     func getBook(uuid: String) throws -> RBook {
         let realm = try Realm()
         guard let book = realm.object(ofType: RBook.self, forPrimaryKey: uuid) else {
             throw RealmError.canNotLoadData(error: "Book not found for uuid: \(uuid)")
         }
-        try normalizeCoverPathsIfNeeded(results: [book], realm: realm)
         return book.detached()
     }
-    
+
     func deleteBook(uuid: String) throws {
         let realm = try Realm()
         guard let book = realm.object(ofType: RBook.self, forPrimaryKey: uuid) else {
@@ -72,39 +68,20 @@ final class BookFileDatabase: BookFileDatabaseProtocol {
         }
     }
 
-    private func normalizeCoverPath(_ coverPath: String, basePath: String) -> String {
+    private func normalizeCoverPath(_ coverPath: String) -> String {
         guard !coverPath.isEmpty else { return "" }
-        let normalizedBase = basePath.hasSuffix("/") ? basePath : basePath + "/"
-        if coverPath.hasPrefix(normalizedBase) {
-            let relative = String(coverPath.dropFirst(normalizedBase.count))
-            return relative.isEmpty ? coverPath : relative
+
+        let knownRoots = ["OEBPS", "OPS", "EPUB"]
+        let components = URL(fileURLWithPath: coverPath).pathComponents
+        if let idx = components.lastIndex(where: { knownRoots.contains($0) }) {
+            let rel = components[idx...].joined(separator: "/")
+            if !rel.isEmpty { return rel }
         }
 
-        let bookId = URL(fileURLWithPath: basePath).lastPathComponent
-        let token = "/\(bookId)/"
-        if let range = coverPath.range(of: token) {
-            let suffix = String(coverPath[range.upperBound...])
-            if !suffix.isEmpty {
-                return suffix
-            }
+        if components.count >= 3 {
+            return components.suffix(3).joined(separator: "/")
         }
 
         return coverPath
-    }
-
-    private func normalizeCoverPathsIfNeeded<S: Sequence>(results: S, realm: Realm) throws where S.Element == RBook {
-        var needsWrite = false
-        for book in results {
-            let normalized = normalizeCoverPath(book.coverPath, basePath: book.path)
-            if normalized != book.coverPath {
-                book.coverPath = normalized
-                needsWrite = true
-            }
-        }
-        if needsWrite {
-            try realm.write {
-                // Changes already applied to live objects
-            }
-        }
     }
 }

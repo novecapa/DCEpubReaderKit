@@ -10,17 +10,7 @@ import Foundation
 final class FileHelper {
 
     private enum Constants {
-        static let bundleId = "DCEpubReaderKit"
         static let bookFolder = "books"
-    }
-
-    enum FolderType {
-        case temporary
-        case documents
-    }
-
-    enum FileType: String {
-        case epub
     }
 
     static let shared = FileHelper()
@@ -59,45 +49,11 @@ final class FileHelper {
         return sanitized.isEmpty ? UUID().uuidString : sanitized
     }
 
-    func saveUnzippedBook(from tempFolder: URL, bookId: String) throws -> URL {
-        let safeId = sanitizeFolderName(bookId)
-        let destination = getBooksDirectory().appendingPathComponent(safeId, isDirectory: true)
-        if getFileManager().fileExists(atPath: destination.path) {
-            try getFileManager().removeItem(at: destination)
-        }
-        try getFileManager().copyItem(at: tempFolder, to: destination)
-        return destination
-    }
-
-    func createDirectory(at folderType: FolderType, directoryName: String) throws {
-       guard !directoryName.isEmpty else { return }
-
-        let fileManager = getFileManager()
-        let documentsDirectory = folderType == .documents ? getDocumentsDirectory() : getTempFolder()
-
-        guard !fileManager.fileExists(atPath: documentsDirectory.appendingPathComponent(directoryName).path) else {
-            return
-        }
-
-        do {
-            try fileManager.createDirectory(atPath: documentsDirectory
-                .appendingPathComponent(directoryName)
-                .relativePath, withIntermediateDirectories: true, attributes: nil)
-        } catch {
-            throw error
-        }
-    }
-
-    func clearTempFolder() throws {
-        do {
-            let tmpDirURL = getFileManager().temporaryDirectory
-            let tmpDirectory = try getFileManager().contentsOfDirectory(atPath: tmpDirURL.path)
-            try tmpDirectory.forEach { file in
-                let fileUrl = tmpDirURL.appendingPathComponent(file)
-                try getFileManager().removeItem(atPath: fileUrl.path)
-            }
-        } catch {
-            throw error
+    func clearTempSubfolder(named name: String) {
+        guard !name.isEmpty else { return }
+        let target = getTempFolder().appendingPathComponent(name, isDirectory: true)
+        if getFileManager().fileExists(atPath: target.path) {
+            try? getFileManager().removeItem(at: target)
         }
     }
 }

@@ -17,7 +17,7 @@ struct DCEpubReaderKitApp: App {
         print("----------------------------------------------------------------")
         print("Temp. path: \(FileHelper.shared.getTempFolder().path)")
         print("----------------------------------------------------------------")
-        try? FileHelper.shared.clearTempFolder()
+        FileHelper.shared.clearTempSubfolder(named: "DCEpubReaderKit_import")
     }
 
     var body: some Scene {

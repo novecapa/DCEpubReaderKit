@@ -17,7 +17,6 @@ final class RBook: Object {
     @Persisted var uuid: String = ""
     @Persisted var title: String = ""
     @Persisted var author: String = ""
-    @Persisted var path: String = ""
     @Persisted var coverPath: String = ""
     @Persisted var language: String = ""
     @Persisted var publisher: String = ""
