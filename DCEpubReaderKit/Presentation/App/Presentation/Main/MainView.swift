@@ -11,8 +11,23 @@ struct MainView: View {
 
     @ObservedObject var viewModel: MainViewModel
 
+    private let gridColumns = [
+        GridItem(.flexible(), spacing: 16),
+        GridItem(.flexible(), spacing: 16)
+    ]
+
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        NavigationStack {
+            ScrollView {
+            }
+            .navigationTitle("My Library".localized())
+            .toolbar {
+                // Button("Import EPUB".localized()) { isPickerPresented = true }
+            }
+            .onAppear {
+                viewModel.loadBooks()
+            }
+        }
     }
 }
 

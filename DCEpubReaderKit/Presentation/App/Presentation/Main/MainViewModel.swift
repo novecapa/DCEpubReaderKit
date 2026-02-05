@@ -9,4 +9,17 @@ import SwiftUI
 
 final class MainViewModel: ObservableObject {
     
+    @Published var books: [EBookEntity] = []
+}
+
+// MARK: - Methods
+
+extension MainViewModel {
+    func loadBooks() {
+        do {
+            
+        } catch {
+            
+        }
+    }
 }
