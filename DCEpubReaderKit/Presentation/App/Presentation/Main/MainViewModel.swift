@@ -10,6 +10,7 @@ import SwiftUI
 final class MainViewModel: ObservableObject {
 
     @Published var books: [EBookEntity] = []
+    @Published var selectedEbook: EpubBook?
     @Published var errorMsg: String?
     @Published var isPickerPresented = false
 
@@ -40,6 +41,12 @@ extension MainViewModel {
         case .failure(let error):
             errorMsg = "\(error)"
         }
+    }
+
+    func getEpubBook(book: EBookEntity) -> EpubBook? {
+        guard let url = book.basePath else { return nil }
+        let persistedBook = try? EpubParser.parse(from: url)
+        return persistedBook
     }
 }
 

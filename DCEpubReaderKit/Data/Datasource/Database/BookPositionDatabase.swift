@@ -29,7 +29,8 @@ final class BookPositionDatabase: BookPositionDatabaseProtocol {
         case .lastPosition:
             if let mark = realm.objects(RBookMark.self).filter(
                 """
-                uuid = '\(book.uniqueIdentifier)' AND type = '\(markType.rawValue)'
+                uuid = '\(book.uniqueIdentifier)' AND
+                type = '\(markType.rawValue)'
                 """).first {
                 try realm.write {
                     mark.type = markType.rawValue

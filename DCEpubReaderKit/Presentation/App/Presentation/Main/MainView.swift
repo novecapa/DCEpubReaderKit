@@ -25,7 +25,14 @@ struct MainView: View {
                 }
                 LazyVGrid(columns: gridColumns, spacing: 16) {
                     ForEach(viewModel.books, id: \.uuid) { book in
-                        BookGridItem(book: book)
+                        NavigationLink {
+                            if let ebook = viewModel.getEpubBook(book: book) {
+                                DCReaderViewBuilder().build(ebook, spineIndex: 0)
+                            }
+                        } label: {
+                            BookGridItem(book: book)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
                 .padding(16)
