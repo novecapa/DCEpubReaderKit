@@ -5,11 +5,12 @@
 //  Created by Josep Cerdá Penadés on 22/12/25.
 //
 
+import DCEpubReader
 import Foundation
 import RealmSwift
 
 protocol BookPositionDatabaseProtocol {
-    func saveBookPosition(book: EpubBook,
+    func saveBookPosition(book: DCEpubBook,
                           spineIndex: Int,
                           coords: String,
                           chapterURL: URL,
@@ -18,7 +19,7 @@ protocol BookPositionDatabaseProtocol {
 }
 
 final class BookPositionDatabase: BookPositionDatabaseProtocol {
-    func saveBookPosition(book: EpubBook,
+    func saveBookPosition(book: DCEpubBook,
                           spineIndex: Int,
                           coords: String,
                           chapterURL: URL,
@@ -71,7 +72,7 @@ final class BookPositionDatabase: BookPositionDatabaseProtocol {
 }
 
 final class BookPositionDatabaseMock: BookPositionDatabaseProtocol {
-    func saveBookPosition(book: EpubBook,
+    func saveBookPosition(book: DCEpubBook,
                           spineIndex: Int,
                           coords: String,
                           chapterURL: URL,
