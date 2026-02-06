@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-final class NotesViewModel: ObservableObject {
+final class DCNotesViewModel: ObservableObject {
 
     @State var note: String = ""
 }

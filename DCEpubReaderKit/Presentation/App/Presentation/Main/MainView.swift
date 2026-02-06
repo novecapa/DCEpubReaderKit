@@ -27,7 +27,7 @@ struct MainView: View {
                     ForEach(viewModel.books, id: \.uuid) { book in
                         NavigationLink {
                             if let ebook = viewModel.getEpubBook(book: book) {
-                                DCReaderViewBuilder().build(ebook, spineIndex: 0)
+                                DCReaderViewBuilder().build(ebook, spineIndex: 0, delegate: viewModel)
                             }
                         } label: {
                             BookGridItem(book: book)

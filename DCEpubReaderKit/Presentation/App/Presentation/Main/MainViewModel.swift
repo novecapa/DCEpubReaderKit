@@ -45,8 +45,23 @@ extension MainViewModel {
 
     func getEpubBook(book: EBookEntity) -> EpubBook? {
         guard let url = book.basePath else { return nil }
-        let persistedBook = try? EpubParser.parse(from: url)
-        return persistedBook
+        return try? EpubParser.parse(from: url)
+    }
+}
+
+// MARK: - DC Reader Coords Protocols
+
+extension MainViewModel: DCReaderCoordsProtocol {
+    func handleCoords(book: EpubBook, spineIndex: Int, coords: String, chapterURL: URL?, isBookMark: Bool) {
+//        print("spineIndex: \(spineIndex) - coords: \(coords) - chapterURL: \(String(describing: chapterURL)) - isBookMark: \(isBookMark)")
+        let markType = isBookMark ? RBookMark.MarkType.bookMark : RBookMark.MarkType.lastPosition
+//        try? useCase.saveBookPosition(
+//            book: currentBook,
+//            spineIndex: spineIndex,
+//            coords: coords,
+//            chapterURL: chapterURL,
+//            markType: markType
+//        )
     }
 }
 

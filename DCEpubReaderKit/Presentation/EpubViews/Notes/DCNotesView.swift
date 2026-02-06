@@ -7,12 +7,12 @@
 
 import SwiftUI
 
-struct NotesView: View {
+struct DCNotesView: View {
 
     @Environment(\.dismiss) private var dismiss
-    @ObservedObject var viewModel: NotesViewModel
+    @ObservedObject var viewModel: DCNotesViewModel
 
-    init(viewModel: NotesViewModel) {
+    init(viewModel: DCNotesViewModel) {
         self.viewModel = viewModel
     }
 
@@ -42,5 +42,5 @@ struct NotesView: View {
 }
 
 #Preview {
-    NotesViewBuilderMock().build()
+    DCNotesViewBuilderMock().build()
 }
