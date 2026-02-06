@@ -61,8 +61,15 @@ extension MainViewModel: DCReaderCoordsProtocol {
         chapterURL: URL?,
         isBookMark: Bool
     ) {
-        print("spineIndex: \(spineIndex) - coords: \(coords) - chapterURL: \(String(describing: chapterURL)) - isBookMark: \(isBookMark)")
         guard let chapterURL else { return }
+        print(
+            """
+            spineIndex: \(spineIndex) -
+            coords: \(coords) -
+            chapterURL: \(chapterURL.path) -
+            isBookMark: \(isBookMark)
+            """
+        )
         try? useCase.bookPosition.saveBookPosition(
             book: book,
             spineIndex: spineIndex,
