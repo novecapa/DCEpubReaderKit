@@ -7,10 +7,6 @@
 
 import SwiftUI
 
-extension Notification.Name {
-    static let chapterShouldScrollToLastPage = Notification.Name("chapterShouldScrollToLastPage")
-}
-
 struct DCReaderView: View {
 
     private enum Constants {
@@ -76,13 +72,12 @@ struct DCReaderView: View {
             readAccessURL: viewModel.opfDirectoryURL,
             spineIndex: idx,
             userPreferences: viewModel.userPreferences
-        ) { action in
-            viewModel.handle(action, chapterURL: chapterURL)
+        ) { [weak viewModel] action in
+            viewModel?.handle(action, chapterURL: chapterURL)
         }
         return view
             .onAppear { [weak viewModel] in
-                guard let viewModel else { return }
-                viewModel.registerChapterViewModel(view.viewModel, for: idx)
+                viewModel?.registerChapterViewModel(view.viewModel, for: idx)
             }
     }
 }

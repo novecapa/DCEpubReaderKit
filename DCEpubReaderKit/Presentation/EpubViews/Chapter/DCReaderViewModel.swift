@@ -156,7 +156,13 @@ final class DCReaderViewModel: ObservableObject {
         guard spineIndex == currentSelection else { return }
         if let chapterURL {
             let markType = isBookMark ? RBookMark.MarkType.bookMark : RBookMark.MarkType.lastPosition
-            try? useCase.saveBookPosition(book: book, spineIndex: spineIndex, coords: coords, chapterURL: chapterURL, markType: markType)
+            try? useCase.saveBookPosition(
+                book: book,
+                spineIndex: spineIndex,
+                coords: coords,
+                chapterURL: chapterURL,
+                markType: markType
+            )
         }
     }
 
