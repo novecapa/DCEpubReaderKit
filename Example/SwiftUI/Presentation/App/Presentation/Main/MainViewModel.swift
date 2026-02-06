@@ -62,13 +62,14 @@ extension MainViewModel: DCReaderCoordsProtocol {
         isBookMark: Bool
     ) {
         print("spineIndex: \(spineIndex) - coords: \(coords) - chapterURL: \(String(describing: chapterURL)) - isBookMark: \(isBookMark)")
-//        try? useCase.saveBookPosition(
-//            book: currentBook,
-//            spineIndex: spineIndex,
-//            coords: coords,
-//            chapterURL: chapterURL,
-//            markType: markType
-//        )
+        guard let chapterURL else { return }
+        try? useCase.bookPosition.saveBookPosition(
+            book: book,
+            spineIndex: spineIndex,
+            coords: coords,
+            chapterURL: chapterURL,
+            markType: .lastPosition
+        )
     }
 }
 

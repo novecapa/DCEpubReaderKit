@@ -64,22 +64,8 @@ class Utils: UtilsProtocol {
 
     func realmFileURL() -> URL {
         documentsDirectory
+            .appendingPathComponent(Directories.database.rawValue)
             .appendingPathComponent(Constants.realmFile)
-    }
-
-    func getDirectory(_ agentUid: String, folder: Directories) -> URL {
-        let folder = documentsDirectory
-            .appendingPathComponent(agentUid)
-            .appendingPathComponent(folder.rawValue)
-
-        guard !fileManager.fileExists(atPath: folder.path) else {
-            return folder
-        }
-        try? fileManager.createDirectory(
-            atPath: folder
-                .relativePath, withIntermediateDirectories: true, attributes: nil
-        )
-        return folder
     }
 
     func fileExists(_ filePath: URL) -> Bool {
