@@ -7,7 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7232F72E2F35FF8C00C688A3 /* DCEpubReader in Frameworks */ = {isa = PBXBuildFile; productRef = 7232F72D2F35FF8C00C688A3 /* DCEpubReader */; };
 		724B361D2E9FFB200022E944 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = 724B361C2E9FFB200022E944 /* ZIPFoundation */; };
+		7297D2EF2F36209300CF14D9 /* DCEpubReader in Resources */ = {isa = PBXBuildFile; fileRef = 7297D2C82F36209300CF14D9 /* DCEpubReader */; };
 		72ED797E2EF1CA010086B977 /* RealmSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 72ED797D2EF1CA010086B977 /* RealmSwift */; };
 		72ED797F2EF1CA120086B977 /* RealmSwift in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 72ED797D2EF1CA010086B977 /* RealmSwift */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 /* End PBXBuildFile section */
@@ -44,27 +46,15 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		7297D2C82F36209300CF14D9 /* DCEpubReader */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = DCEpubReader; sourceTree = "<group>"; };
 		72FB42692E9F822A00E2D840 /* DCEpubReaderKit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DCEpubReaderKit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		72FB42762E9F822B00E2D840 /* DCEpubReaderKitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DCEpubReaderKitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		72FB42802E9F822B00E2D840 /* DCEpubReaderKitUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DCEpubReaderKitUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		72B562392EB4034F004DD23C /* Exceptions for "DCEpubReaderKit" folder in "DCEpubReaderKit" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 72FB42682E9F822A00E2D840 /* DCEpubReaderKit */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		72FB426B2E9F822A00E2D840 /* DCEpubReaderKit */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				72B562392EB4034F004DD23C /* Exceptions for "DCEpubReaderKit" folder in "DCEpubReaderKit" target */,
-			);
 			path = DCEpubReaderKit;
 			sourceTree = "<group>";
 		};
@@ -86,6 +76,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				72ED797E2EF1CA010086B977 /* RealmSwift in Frameworks */,
+				7232F72E2F35FF8C00C688A3 /* DCEpubReader in Frameworks */,
 				724B361D2E9FFB200022E944 /* ZIPFoundation in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -107,12 +98,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		7232F72C2F35FF8C00C688A3 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		72FB42602E9F822A00E2D840 = {
 			isa = PBXGroup;
 			children = (
+				7297D2C82F36209300CF14D9 /* DCEpubReader */,
 				72FB426B2E9F822A00E2D840 /* DCEpubReaderKit */,
 				72FB42792E9F822B00E2D840 /* DCEpubReaderKitTests */,
 				72FB42832E9F822B00E2D840 /* DCEpubReaderKitUITests */,
+				7232F72C2F35FF8C00C688A3 /* Frameworks */,
 				72FB426A2E9F822A00E2D840 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -151,6 +151,7 @@
 			packageProductDependencies = (
 				724B361C2E9FFB200022E944 /* ZIPFoundation */,
 				72ED797D2EF1CA010086B977 /* RealmSwift */,
+				7232F72D2F35FF8C00C688A3 /* DCEpubReader */,
 			);
 			productName = DCEpubReaderKit;
 			productReference = 72FB42692E9F822A00E2D840 /* DCEpubReaderKit.app */;
@@ -255,6 +256,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7297D2EF2F36209300CF14D9 /* DCEpubReader in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -466,7 +468,6 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = DCEpubReaderKit/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -497,7 +498,6 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = DCEpubReaderKit/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -646,6 +646,10 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		7232F72D2F35FF8C00C688A3 /* DCEpubReader */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DCEpubReader;
+		};
 		724B361C2E9FFB200022E944 /* ZIPFoundation */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 724B361B2E9FFB200022E944 /* XCRemoteSwiftPackageReference "ZIPFoundation" */;

@@ -8,15 +8,6 @@
 import Foundation
 import ZIPFoundation
 
-/// Represents errors that can occur while handling EPUB files.
-enum EpubError: Error {
-    case invalidEPUB
-    case missingContainer
-    case missingOPF
-    case parseError(String)
-    case unzipError(String)
-}
-
 /// Handles unzipping and preparing EPUB files for parsing.
 final class EpubFileManager {
 
@@ -70,7 +61,7 @@ final class EpubFileManager {
         } catch {
             // Clean up if extraction fails
             try? FileManager.default.removeItem(at: unzipRoot)
-            throw EpubError.unzipError("Failed to unzip EPUB: \(error.localizedDescription)")
+            throw error
         }
     }
 }

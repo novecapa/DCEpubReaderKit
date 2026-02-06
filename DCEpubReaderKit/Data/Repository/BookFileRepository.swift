@@ -5,10 +5,11 @@
 //  Created by Josep Cerdá Penadés on 19/1/26.
 //
 
+import DCEpubReader
 import Foundation
 
 protocol BookFileRepositoryProtocol {
-    func saveBook(book: EpubBook) throws
+    func saveBook(book: DCEpubBook) throws
     func getBookList() throws -> [EBookEntity]
     func getBook(uuid: String) throws -> EBookEntity
     func deleteBook(uuid: String) throws
@@ -22,18 +23,18 @@ final class BookFileRepository: BookFileRepositoryProtocol {
         self.database = database
     }
 
-    func saveBook(book: EpubBook) throws {
+    func saveBook(book: DCEpubBook) throws {
         try database.saveBook(book: book)
     }
-    
+
     func getBookList() throws -> [EBookEntity] {
         try database.getBookList().map { $0.toEntity }
     }
-    
+
     func getBook(uuid: String) throws -> EBookEntity {
         try database.getBook(uuid: uuid).toEntity
     }
-    
+
     func deleteBook(uuid: String) throws {
         try database.deleteBook(uuid: uuid)
     }

@@ -5,6 +5,7 @@
 //  Created by Josep Cerdá Penadés on 5/2/26.
 //
 
+import DCEpubReader
 import SwiftUI
 
 struct MainView: View {
@@ -27,7 +28,7 @@ struct MainView: View {
                     ForEach(viewModel.books, id: \.uuid) { book in
                         NavigationLink {
                             if let ebook = viewModel.getEpubBook(book: book) {
-                                DCReaderViewBuilder().build(ebook, spineIndex: 0, delegate: viewModel)
+                                DCReaderViewBuilder.build(ebook, spineIndex: 0, delegate: viewModel)
                             }
                         } label: {
                             BookGridItem(book: book)
