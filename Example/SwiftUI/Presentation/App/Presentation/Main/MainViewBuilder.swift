@@ -9,9 +9,7 @@ import Foundation
 
 final class MainViewBuilder {
     func build() -> MainView {
-        let database = BookFileDatabase()
-        let repository = BookFileRepository(database: database)
-        let useCase = BookFileUseCase(repository: repository)
+        let useCase = UseCase()
         let viewModel = MainViewModel(useCase: useCase)
         let view = MainView(viewModel: viewModel)
         return view

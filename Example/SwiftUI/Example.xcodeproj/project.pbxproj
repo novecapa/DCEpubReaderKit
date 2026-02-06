@@ -34,6 +34,7 @@
 		728C60FA2F3638AA00F6DC6C /* RealmSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 728C60F92F3638AA00F6DC6C /* RealmSwift */; };
 		728C60FD2F3638B700F6DC6C /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = 728C60FC2F3638B700F6DC6C /* ZIPFoundation */; };
 		728C60FE2F3638DC00F6DC6C /* RealmSwift in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 728C60F92F3638AA00F6DC6C /* RealmSwift */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		728C614B2F3643D900F6DC6C /* UseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 728C614A2F3643D900F6DC6C /* UseCase.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -75,6 +76,7 @@
 		728C608B2F3637F100F6DC6C /* DCEpubReaderKitApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DCEpubReaderKitApp.swift; sourceTree = "<group>"; };
 		728C608E2F3637F100F6DC6C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		728C60902F3637F100F6DC6C /* FileHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileHelper.swift; sourceTree = "<group>"; };
+		728C614A2F3643D900F6DC6C /* UseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UseCase.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -188,6 +190,7 @@
 			children = (
 				728C60782F3637F100F6DC6C /* BookFileUseCase.swift */,
 				728C60792F3637F100F6DC6C /* BookPositionUseCase.swift */,
+				728C614A2F3643D900F6DC6C /* UseCase.swift */,
 			);
 			path = UseCase;
 			sourceTree = "<group>";
@@ -410,6 +413,7 @@
 				728C609A2F3637F100F6DC6C /* BookGridItem.swift in Sources */,
 				728C609B2F3637F100F6DC6C /* BookFileUseCase.swift in Sources */,
 				728C609C2F3637F100F6DC6C /* FileHelper.swift in Sources */,
+				728C614B2F3643D900F6DC6C /* UseCase.swift in Sources */,
 				728C609D2F3637F100F6DC6C /* CustomExtensions.swift in Sources */,
 				728C609E2F3637F100F6DC6C /* MainView.swift in Sources */,
 				728C609F2F3637F100F6DC6C /* MainViewBuilder.swift in Sources */,

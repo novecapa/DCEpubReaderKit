@@ -26,15 +26,15 @@ final class BookFileUseCase: BookFileUseCaseProtocol {
     func saveBook(book: DCEpubBook) throws {
         try repository.saveBook(book: book)
     }
-    
+
     func getBookList() throws -> [EBookEntity] {
         try repository.getBookList()
     }
-    
+
     func getBook(uuid: String) throws -> EBookEntity {
         try repository.getBook(uuid: uuid)
     }
-    
+
     func deleteBook(uuid: String) throws {
         try repository.deleteBook(uuid: uuid)
     }

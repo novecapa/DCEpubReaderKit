@@ -16,9 +16,9 @@ final class MainViewModel: ObservableObject {
     @Published var errorMsg: String?
     @Published var isPickerPresented = false
 
-    private let useCase: BookFileUseCaseProtocol
+    private let useCase: UseCaseProtocol
 
-    init(useCase: BookFileUseCaseProtocol) {
+    init(useCase: UseCaseProtocol) {
         self.useCase = useCase
     }
 }
@@ -28,7 +28,7 @@ final class MainViewModel: ObservableObject {
 extension MainViewModel {
     func loadBooks() {
         do {
-            self.books = try useCase.getBookList()
+            self.books = try useCase.bookFile.getBookList()
         } catch {
             errorMsg = error.localizedDescription
         }
@@ -103,7 +103,7 @@ private extension MainViewModel {
             try FileManager.default.moveItem(at: unzipRoot, to: finalRoot)
 
             let persistedBook = try DCEpubParser.parse(from: finalRoot)
-            try useCase.saveBook(book: persistedBook)
+            try useCase.bookFile.saveBook(book: persistedBook)
             loadBooks()
         } catch {
             errorMsg = error.localizedDescription
