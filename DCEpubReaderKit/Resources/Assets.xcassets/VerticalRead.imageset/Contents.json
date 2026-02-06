@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "icon-menu-vertical.pdf",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

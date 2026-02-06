@@ -5,13 +5,12 @@
 //  Created by Josep Cerdá Penadés on 5/2/26.
 //
 
-import DCEpubReader
 import SwiftUI
 
 final class MainViewModel: ObservableObject {
 
     @Published var books: [EBookEntity] = []
-    @Published var selectedEbook: DCEpubBook?
+    @Published var selectedEbook: EpubBook?
     @Published var errorMsg: String?
     @Published var isPickerPresented = false
 
@@ -44,23 +43,18 @@ extension MainViewModel {
         }
     }
 
-    func getEpubBook(book: EBookEntity) -> DCEpubBook? {
+    func getEpubBook(book: EBookEntity) -> EpubBook? {
         guard let url = book.basePath else { return nil }
-        return try? DCEpubParser.parse(from: url)
+        return try? EpubParser.parse(from: url)
     }
 }
 
 // MARK: - DC Reader Coords Protocols
 
 extension MainViewModel: DCReaderCoordsProtocol {
-    func handleCoords(
-        book: DCEpubReader.DCEpubBook,
-        spineIndex: Int,
-        coords: String,
-        chapterURL: URL?,
-        isBookMark: Bool
-    ) {
-        print("spineIndex: \(spineIndex) - coords: \(coords) - chapterURL: \(String(describing: chapterURL)) - isBookMark: \(isBookMark)")
+    func handleCoords(book: EpubBook, spineIndex: Int, coords: String, chapterURL: URL?, isBookMark: Bool) {
+//        print("spineIndex: \(spineIndex) - coords: \(coords) - chapterURL: \(String(describing: chapterURL)) - isBookMark: \(isBookMark)")
+        let markType = isBookMark ? RBookMark.MarkType.bookMark : RBookMark.MarkType.lastPosition
 //        try? useCase.saveBookPosition(
 //            book: currentBook,
 //            spineIndex: spineIndex,
@@ -92,7 +86,7 @@ private extension MainViewModel {
                 destinationRoot: stagingRoot
             )
 
-            let parsedBook = try DCEpubParser.parse(from: unzipRoot)
+            let parsedBook = try EpubParser.parse(from: unzipRoot)
             let finalId = FileHelper.shared.sanitizeFolderName(parsedBook.uniqueIdentifier)
             let finalRoot = booksRoot.appendingPathComponent(finalId, isDirectory: true)
 
@@ -101,7 +95,7 @@ private extension MainViewModel {
             }
             try FileManager.default.moveItem(at: unzipRoot, to: finalRoot)
 
-            let persistedBook = try DCEpubParser.parse(from: finalRoot)
+            let persistedBook = try EpubParser.parse(from: finalRoot)
             try useCase.saveBook(book: persistedBook)
             loadBooks()
         } catch {

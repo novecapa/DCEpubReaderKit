@@ -5,11 +5,10 @@
 //  Created by Josep Cerdá Penadés on 21/12/25.
 //
 
-import DCEpubReader
 import Foundation
 
 protocol BookPositionUseCaseProtocol {
-    func saveBookPosition(book: DCEpubBook,
+    func saveBookPosition(book: EpubBook,
                           spineIndex: Int,
                           coords: String,
                           chapterURL: URL,
@@ -24,7 +23,7 @@ final class BookPositionUseCase: BookPositionUseCaseProtocol {
         self.repository = repository
     }
 
-    func saveBookPosition(book: DCEpubBook,
+    func saveBookPosition(book: EpubBook,
                           spineIndex: Int,
                           coords: String,
                           chapterURL: URL,
