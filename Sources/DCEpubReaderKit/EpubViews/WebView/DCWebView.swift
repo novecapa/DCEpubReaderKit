@@ -9,9 +9,9 @@ import WebKit
 
 final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDelegate {
 
-//    private enum Constants {
-//        static let selectionChanged = "selectionChanged"
-//    }
+    private enum Constants {
+        static let selectionChanged = "selectionChanged"
+    }
 
     var viewModel: DCWebViewModelProtocol!
 
@@ -19,23 +19,23 @@ final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDel
         super.init(frame: frame, configuration: configuration)
         setupBindings()
         setupTapGesture()
-//        injectSelectionListener()
+        injectSelectionListener()
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setupBindings()
         setupTapGesture()
-//        injectSelectionListener()
+        injectSelectionListener()
     }
 
-//    deinit {
-//        teardown()
-//    }
-//
-//    private func teardown() {
-//        self.configuration.userContentController.removeScriptMessageHandler(forName: Constants.selectionChanged)
-//    }
+    deinit {
+        teardown()
+    }
+
+    private func teardown() {
+        self.configuration.userContentController.removeScriptMessageHandler(forName: Constants.selectionChanged)
+    }
 
     private func setupBindings() {}
 
@@ -50,15 +50,17 @@ final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDel
 
     // MARK: - UIGestureRecognizerDelegate
 
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
-                           shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+    func gestureRecognizer(
+        _ gestureRecognizer: UIGestureRecognizer,
+        shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+    ) -> Bool {
         true
     }
 
-//    private func injectSelectionListener() {
-//        teardown()
-//        self.configuration.userContentController.add(self, name: Constants.selectionChanged)
-//    }
+    private func injectSelectionListener() {
+        teardown()
+        self.configuration.userContentController.add(self, name: Constants.selectionChanged)
+    }
 
     func userContentController(_ userContentController: WKUserContentController,
                                didReceive message: WKScriptMessage) {

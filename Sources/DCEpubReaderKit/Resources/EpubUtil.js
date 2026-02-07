@@ -639,42 +639,42 @@
     // --------------------------------------------------
     // Selection bridge (same API, minor cleanups)
     // --------------------------------------------------
-//    (function(){
-//        const HANDLER = 'selectionChanged';
-//        function installSelectionBridge() {
-//            if (window.__dc_selection_listener) document.removeEventListener('selectionchange', window.__dc_selection_listener, true);
-//            let lastKey = '';
-//            let lastSentAt = 0;
-//            let to = null;
-//            const buildKey = (sel)=> sel && sel.rangeCount ? sel.toString() : '';
-//            function notify(){
-//                try{
-//                    const sel = window.getSelection();
-//                    const text = sel ? sel.toString() : '';
-//                    const now = Date.now();
-//                    if (!text){
-//                        const key = '';
-//                        if (lastKey !== key || (now - lastSentAt) > 250){
-//                            if (window.webkit?.messageHandlers?.[HANDLER]) window.webkit.messageHandlers[HANDLER].postMessage({ text: '' });
-//                            lastKey = key; lastSentAt = now;
-//                        }
-//                        return;
-//                    }
-//                    const key = buildKey(sel);
-//                    if (key === lastKey && (now - lastSentAt) < 250) return;
-//                    if (window.webkit?.messageHandlers?.[HANDLER]) window.webkit.messageHandlers[HANDLER].postMessage({ text });
-//                    lastKey = key; lastSentAt = now;
-//                } catch (_) {}
-//            }
-//            function debounced(){ if (to) clearTimeout(to); to = setTimeout(notify, 120); }
-//            document.addEventListener('selectionchange', debounced, true);
-//            window.__dc_selection_listener = debounced;
-//        }
-//        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', installSelectionBridge, { once: true });
-//        else installSelectionBridge();
-//        window.EpubUtil = window.EpubUtil || {};
-//        window.EpubUtil.installSelectionBridge = installSelectionBridge;
-//    })();
+    (function(){
+        const HANDLER = 'selectionChanged';
+        function installSelectionBridge() {
+            if (window.__dc_selection_listener) document.removeEventListener('selectionchange', window.__dc_selection_listener, true);
+            let lastKey = '';
+            let lastSentAt = 0;
+            let to = null;
+            const buildKey = (sel)=> sel && sel.rangeCount ? sel.toString() : '';
+            function notify(){
+                try{
+                    const sel = window.getSelection();
+                    const text = sel ? sel.toString() : '';
+                    const now = Date.now();
+                    if (!text){
+                        const key = '';
+                        if (lastKey !== key || (now - lastSentAt) > 250){
+                            if (window.webkit?.messageHandlers?.[HANDLER]) window.webkit.messageHandlers[HANDLER].postMessage({ text: '' });
+                            lastKey = key; lastSentAt = now;
+                        }
+                        return;
+                    }
+                    const key = buildKey(sel);
+                    if (key === lastKey && (now - lastSentAt) < 250) return;
+                    if (window.webkit?.messageHandlers?.[HANDLER]) window.webkit.messageHandlers[HANDLER].postMessage({ text });
+                    lastKey = key; lastSentAt = now;
+                } catch (_) {}
+            }
+            function debounced(){ if (to) clearTimeout(to); to = setTimeout(notify, 120); }
+            document.addEventListener('selectionchange', debounced, true);
+            window.__dc_selection_listener = debounced;
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', installSelectionBridge, { once: true });
+        else installSelectionBridge();
+        window.EpubUtil = window.EpubUtil || {};
+        window.EpubUtil.installSelectionBridge = installSelectionBridge;
+    })();
     
     // --------------------------------------------------
     // Public API (preserve legacy globals)
