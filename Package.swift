@@ -14,17 +14,37 @@ let package = Package(
         )
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "DCEpubReaderKit",
+            name: "DCEpubCore"
+        ),
+        .target(
+            name: "DCEpubParser",
+            dependencies: ["DCEpubCore"]
+        ),
+        .target(
+            name: "DCEpubRendering",
+            dependencies: ["DCEpubCore"],
             resources: [
                 .process("Resources")
             ]
         ),
+        .target(
+            name: "DCEpubReaderKit",
+            dependencies: [
+                "DCEpubCore",
+                "DCEpubParser",
+                "DCEpubRendering"
+            ]
+        ),
         .testTarget(
             name: "DCEpubReaderKitTests",
-            dependencies: ["DCEpubReaderKit"]
+            dependencies: [
+                "DCEpubCore",
+                "DCEpubParser"
+            ],
+            resources: [
+                .copy("Fixtures")
+            ]
         )
     ]
 )
