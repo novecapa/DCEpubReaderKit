@@ -55,6 +55,12 @@ Built for seamless integration into **SwiftUI** or **UIKit** projects, DCEpubRea
 
 ### Swift Package Manager
 
+Requirements:
+
+- iOS 16.0+
+- Xcode toolchain with Swift Package tools version 6.2 support
+- Product: `DCEpubReaderKit`
+
 In Xcode:
 1. Open **File → Add Packages...**
 2. Add the repository URL:
@@ -63,11 +69,38 @@ In Xcode:
 https://github.com/novecapa/DCEpubReaderKit.git
 ```
 
-or add it to your `Package.swift`:
+3. Select the `DCEpubReaderKit` package product and add it to your app target.
+
+For a versioned dependency, add it to your `Package.swift`:
 
 ```swift
 .package(url: "https://github.com/novecapa/DCEpubReaderKit.git", from: "0.0.1")
 ```
+
+Then add the product to your target dependencies:
+
+```swift
+.target(
+    name: "YourApp",
+    dependencies: [
+        .product(name: "DCEpubReaderKit", package: "DCEpubReaderKit")
+    ]
+)
+```
+
+While the package is under active development, you can also pin a branch:
+
+```swift
+.package(url: "https://github.com/novecapa/DCEpubReaderKit.git", branch: "main")
+```
+
+Import it in Swift files with:
+
+```swift
+import DCEpubReaderKit
+```
+
+> Note: `from: "0.0.1"` resolves the published Git tag `0.0.1`. After changing the package API or resources, create and push a new semantic version tag so other projects can consume the updated release from GitHub.
 
 ---
 
