@@ -17,6 +17,7 @@ extension DCWebView {
         case getCoordsFromSelection
         case getSelectionString
         case highlight(type: HighlightType)
+        case clearSelection
 
         var rawValue: String {
             switch self {
@@ -28,6 +29,8 @@ extension DCWebView {
                 return "window.getSelection().toString()"
             case .highlight(type: let type):
                 return "highlightString('highlight-\(type.rawValue)')"
+            case .clearSelection:
+                return "window.getSelection().removeAllRanges()"
             }
         }
     }
@@ -38,7 +41,8 @@ extension DCWebView {
     }
 
     func shoMenuInteraction() async {
-        guard let selected = await getSelectedText(),
+        guard let selected = await getSelectedText()?.trimmingCharacters(in: .whitespacesAndNewlines),
+              selected.isEmpty == false,
               let rectsString = await getRectsFromSelection(),
               let rectsData = rectsString.data(using: .utf8),
               let jsonArray = try? JSONSerialization.jsonObject(with: rectsData) as? [[String: Any]],
@@ -51,6 +55,7 @@ extension DCWebView {
 
     private func presentSelectionMenu(at rect: CGRect, text: String) {
         removeMenuItems()
+        becomeFirstResponder()
         let menu = UIMenuController.shared
         menu.menuItems = [
             UIMenuItem(title: "Highlight", action: #selector(applyHightLight)),
@@ -82,7 +87,12 @@ extension DCWebView {
         try? await self.evaluateJavaScriptAsync(JSMethod.highlight(type: type).rawValue) as? String
     }
 
+    private func clearJSSelection() async {
+        _ = try? await self.evaluateJavaScriptAsync(JSMethod.clearSelection.rawValue)
+    }
+
     @objc func applyHightLight() {
+        selectionMenuTask?.cancel()
         Task { @MainActor in
             guard let coords = await getCoordsFromSelection(),
                   let selectedText = await getSelectedText(),
@@ -93,11 +103,13 @@ extension DCWebView {
             print(
                 "coords: \(coords) text: \(selectedText) uuid: \(uuid)"
             )
+            await self.clearJSSelection()
             self.removeMenuItems()
         }
     }
 
     @objc func applyUnderline() {
+        selectionMenuTask?.cancel()
         Task { @MainActor [weak self] in
             guard let self else { return }
             guard let coords = await self.getCoordsFromSelection(),
@@ -109,6 +121,7 @@ extension DCWebView {
             print(
                 "coords: \(coords) text: \(selectedText) uuid: \(uuid)"
             )
+            await self.clearJSSelection()
             self.removeMenuItems()
             self.viewModel.showNoote()
         }

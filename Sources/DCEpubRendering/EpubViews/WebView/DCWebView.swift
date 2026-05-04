@@ -15,18 +15,17 @@ final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDel
     }
 
     var viewModel: DCWebViewModelProtocol!
+    var selectionMenuTask: Task<Void, Never>?
 
     override init(frame: CGRect, configuration: WKWebViewConfiguration) {
         super.init(frame: frame, configuration: configuration)
         setupBindings()
-        setupTapGesture()
         injectSelectionListener()
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setupBindings()
-        setupTapGesture()
         injectSelectionListener()
     }
 
@@ -35,19 +34,11 @@ final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDel
     }
 
     private func teardown() {
+        selectionMenuTask?.cancel()
         self.configuration.userContentController.removeScriptMessageHandler(forName: Constants.selectionChanged)
     }
 
     private func setupBindings() {}
-
-    private func setupTapGesture() {
-        let tap = UITapGestureRecognizer(target: self, action: #selector(removeMenuItems))
-        tap.numberOfTapsRequired = 1
-        tap.numberOfTouchesRequired = 1
-        tap.cancelsTouchesInView = false
-        tap.delegate = self
-        self.addGestureRecognizer(tap)
-    }
 
     // MARK: - UIGestureRecognizerDelegate
 
@@ -65,8 +56,18 @@ final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDel
 
     func userContentController(_ userContentController: WKUserContentController,
                                didReceive message: WKScriptMessage) {
-        removeMenuItems()
-        Task { @MainActor [weak self] in
+        selectionMenuTask?.cancel()
+
+        let selectedText = (message.body as? [String: Any])?["text"] as? String
+        guard let selectedText,
+              selectedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
+            removeMenuItems()
+            return
+        }
+
+        selectionMenuTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 150_000_000)
+            guard Task.isCancelled == false else { return }
             await self?.shoMenuInteraction()
         }
     }
