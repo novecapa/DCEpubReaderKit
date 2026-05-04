@@ -84,8 +84,8 @@ extension Object {
 // MARK: Date
 
 extension Date {
-    var timeMillis: Double {
-        (self.timeIntervalSince1970 * 1000.0).rounded()
+    var timeMillis: Int64 {
+        (self.timeIntervalSince1970 * 1000).toInt64
     }
 
     init(milliseconds: Double) {
@@ -96,5 +96,11 @@ extension Date {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "dd/MM/yyyy"
         return dateFormatter.string(from: self)
+    }
+}
+
+extension Double {
+    var toInt64: Int64 {
+        Int64(self)
     }
 }

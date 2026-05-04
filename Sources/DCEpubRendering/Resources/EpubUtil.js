@@ -101,6 +101,18 @@
     }
     
     function scrollToFirstPage() { window.scrollTo(0, 0); }
+
+    function scrollToCoordsHorizontal(mark) {
+        const page = Math.max(0, getPageFromCoords(mark) - 1);
+        window.scrollTo(window.innerWidth * page, 0);
+        return page;
+    }
+
+    function scrollToCoordsVertical(mark) {
+        const page = Math.max(0, getPageFromCoordsVertical(mark) - 1);
+        window.scrollTo(0, window.innerHeight * page);
+        return page;
+    }
     
     function scrollToFirstHorizontalPage() { return scrollToFirstPage(); }
     
@@ -683,6 +695,8 @@
         applyHorizontalPagination,
         scrollToLastHorizontalPage,
         scrollToFirstHorizontalPage,
+        scrollToCoordsHorizontal,
+        scrollToCoordsVertical,
         applyVerticalPagination,
         scrollToLastVerticalPage,
         getCoordFromNode,

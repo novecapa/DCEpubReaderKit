@@ -7,11 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		722EB11A2FA896850021BAB9 /* EBookPositionEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 722EB1192FA896850021BAB9 /* EBookPositionEntity.swift */; };
+		722EB11D2FA898670021BAB9 /* BookPositionDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 722EB11C2FA898670021BAB9 /* BookPositionDTO.swift */; };
 		728C60932F3637F100F6DC6C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 728C608E2F3637F100F6DC6C /* Assets.xcassets */; };
 		728C60942F3637F100F6DC6C /* EBookEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 728C60762F3637F100F6DC6C /* EBookEntity.swift */; };
 		728C60952F3637F100F6DC6C /* RealmHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 728C607D2F3637F100F6DC6C /* RealmHelper.swift */; };
 		728C60962F3637F100F6DC6C /* RBookMark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 728C60682F3637F100F6DC6C /* RBookMark.swift */; };
-		728C60972F3637F100F6DC6C /* BookPositionDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 728C606D2F3637F100F6DC6C /* BookPositionDTO.swift */; };
 		728C60982F3637F100F6DC6C /* RealmError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 728C607C2F3637F100F6DC6C /* RealmError.swift */; };
 		728C60992F3637F100F6DC6C /* BookFileDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 728C606A2F3637F100F6DC6C /* BookFileDatabase.swift */; };
 		728C609A2F3637F100F6DC6C /* BookGridItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 728C60842F3637F100F6DC6C /* BookGridItem.swift */; };
@@ -25,7 +26,6 @@
 		728C60A22F3637F100F6DC6C /* RBook.swift in Sources */ = {isa = PBXBuildFile; fileRef = 728C60672F3637F100F6DC6C /* RBook.swift */; };
 		728C60A32F3637F100F6DC6C /* BookPositionDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 728C606B2F3637F100F6DC6C /* BookPositionDatabase.swift */; };
 		728C60A42F3637F100F6DC6C /* BookPositionUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 728C60792F3637F100F6DC6C /* BookPositionUseCase.swift */; };
-		728C60A52F3637F100F6DC6C /* BookPositionRemote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 728C606F2F3637F100F6DC6C /* BookPositionRemote.swift */; };
 		728C60A62F3637F100F6DC6C /* BookFileRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 728C60722F3637F100F6DC6C /* BookFileRepository.swift */; };
 		728C60A72F3637F100F6DC6C /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 728C60812F3637F100F6DC6C /* Utils.swift */; };
 		728C60A82F3637F100F6DC6C /* EpubFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 728C60802F3637F100F6DC6C /* EpubFileManager.swift */; };
@@ -52,13 +52,13 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		722EB1192FA896850021BAB9 /* EBookPositionEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EBookPositionEntity.swift; sourceTree = "<group>"; };
+		722EB11C2FA898670021BAB9 /* BookPositionDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookPositionDTO.swift; sourceTree = "<group>"; };
 		728C60102F36377E00F6DC6C /* Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		728C60672F3637F100F6DC6C /* RBook.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RBook.swift; sourceTree = "<group>"; };
 		728C60682F3637F100F6DC6C /* RBookMark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RBookMark.swift; sourceTree = "<group>"; };
 		728C606A2F3637F100F6DC6C /* BookFileDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookFileDatabase.swift; sourceTree = "<group>"; };
 		728C606B2F3637F100F6DC6C /* BookPositionDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookPositionDatabase.swift; sourceTree = "<group>"; };
-		728C606D2F3637F100F6DC6C /* BookPositionDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookPositionDTO.swift; sourceTree = "<group>"; };
-		728C606F2F3637F100F6DC6C /* BookPositionRemote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookPositionRemote.swift; sourceTree = "<group>"; };
 		728C60722F3637F100F6DC6C /* BookFileRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookFileRepository.swift; sourceTree = "<group>"; };
 		728C60732F3637F100F6DC6C /* BookPositionRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookPositionRepository.swift; sourceTree = "<group>"; };
 		728C60762F3637F100F6DC6C /* EBookEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EBookEntity.swift; sourceTree = "<group>"; };
@@ -117,6 +117,7 @@
 		728C60692F3637F100F6DC6C /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				722EB11C2FA898670021BAB9 /* BookPositionDTO.swift */,
 				728C60672F3637F100F6DC6C /* RBook.swift */,
 				728C60682F3637F100F6DC6C /* RBookMark.swift */,
 			);
@@ -133,28 +134,10 @@
 			path = Database;
 			sourceTree = "<group>";
 		};
-		728C606E2F3637F100F6DC6C /* DTO */ = {
-			isa = PBXGroup;
-			children = (
-				728C606D2F3637F100F6DC6C /* BookPositionDTO.swift */,
-			);
-			path = DTO;
-			sourceTree = "<group>";
-		};
-		728C60702F3637F100F6DC6C /* Remote */ = {
-			isa = PBXGroup;
-			children = (
-				728C606E2F3637F100F6DC6C /* DTO */,
-				728C606F2F3637F100F6DC6C /* BookPositionRemote.swift */,
-			);
-			path = Remote;
-			sourceTree = "<group>";
-		};
 		728C60712F3637F100F6DC6C /* Datasource */ = {
 			isa = PBXGroup;
 			children = (
 				728C606C2F3637F100F6DC6C /* Database */,
-				728C60702F3637F100F6DC6C /* Remote */,
 			);
 			path = Datasource;
 			sourceTree = "<group>";
@@ -180,6 +163,7 @@
 		728C60772F3637F100F6DC6C /* Entities */ = {
 			isa = PBXGroup;
 			children = (
+				722EB1192FA896850021BAB9 /* EBookPositionEntity.swift */,
 				728C60762F3637F100F6DC6C /* EBookEntity.swift */,
 			);
 			path = Entities;
@@ -407,11 +391,12 @@
 				728C60942F3637F100F6DC6C /* EBookEntity.swift in Sources */,
 				728C60952F3637F100F6DC6C /* RealmHelper.swift in Sources */,
 				728C60962F3637F100F6DC6C /* RBookMark.swift in Sources */,
-				728C60972F3637F100F6DC6C /* BookPositionDTO.swift in Sources */,
 				728C60982F3637F100F6DC6C /* RealmError.swift in Sources */,
 				728C60992F3637F100F6DC6C /* BookFileDatabase.swift in Sources */,
 				728C609A2F3637F100F6DC6C /* BookGridItem.swift in Sources */,
+				722EB11D2FA898670021BAB9 /* BookPositionDTO.swift in Sources */,
 				728C609B2F3637F100F6DC6C /* BookFileUseCase.swift in Sources */,
+				722EB11A2FA896850021BAB9 /* EBookPositionEntity.swift in Sources */,
 				728C609C2F3637F100F6DC6C /* FileHelper.swift in Sources */,
 				728C614B2F3643D900F6DC6C /* UseCase.swift in Sources */,
 				728C609D2F3637F100F6DC6C /* CustomExtensions.swift in Sources */,
@@ -422,7 +407,6 @@
 				728C60A22F3637F100F6DC6C /* RBook.swift in Sources */,
 				728C60A32F3637F100F6DC6C /* BookPositionDatabase.swift in Sources */,
 				728C60A42F3637F100F6DC6C /* BookPositionUseCase.swift in Sources */,
-				728C60A52F3637F100F6DC6C /* BookPositionRemote.swift in Sources */,
 				728C60A62F3637F100F6DC6C /* BookFileRepository.swift in Sources */,
 				728C60A72F3637F100F6DC6C /* Utils.swift in Sources */,
 				728C60A82F3637F100F6DC6C /* EpubFileManager.swift in Sources */,

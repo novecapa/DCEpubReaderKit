@@ -29,12 +29,13 @@ final class RBookMark: Object {
     @Persisted var chapterId: String = ""
     @Persisted var chapterTitle: String = ""
     @Persisted var pageNumber: Int = 0
+    @Persisted var spineIndex: Int = 0
     @Persisted var textNote: String = ""
     @Persisted var type: String = ""
     @Persisted var lastcoords: String = ""
     @Persisted var lastchapterid: String = ""
-    @Persisted var dateCreated: Double = 0
-    @Persisted var dateUpdated: Double = 0
+    @Persisted var dateCreated: Int64 = 0
+    @Persisted var dateUpdated: Int64 = 0
     @Persisted var state: Bool = true
 
     var compoundLastPosition: String {

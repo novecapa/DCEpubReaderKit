@@ -25,6 +25,8 @@ extension DCChapterWebView {
         case scrollToFirstPage
         case getCoordsFirstNodeOfPageHorizontal(page: Int)
         case getCoordsFirstNodeOfPageVertical(page: Int)
+        case scrollToCoordsHorizontal(String)
+        case scrollToCoordsVertical(String)
         case clearTextSelection
 
         var rawValue: String {
@@ -43,6 +45,10 @@ extension DCChapterWebView {
                 return "getCoordsFirstNodeOfPageHorizontal(\(page))"
             case .getCoordsFirstNodeOfPageVertical(let page):
                 return "getCoordsFirstNodeOfPageVertical(\(page))"
+            case .scrollToCoordsHorizontal(let coords):
+                return "scrollToCoordsHorizontal(\(coords.jsStringLiteral))"
+            case .scrollToCoordsVertical(let coords):
+                return "scrollToCoordsVertical(\(coords.jsStringLiteral))"
             case .clearTextSelection:
                 return "clearTextSelection()"
             }
@@ -63,15 +69,18 @@ extension DCChapterWebView {
         let spineIndex: Int
         let userPreferences: DCUserPreferencesProtocol
         let onAction: (DCChapterViewAction) -> Void
+        private var pendingInitialCoords: String?
 
         init(opensExternalLinks: Bool = true,
              spineIndex: Int,
+             initialCoords: String?,
              userPreferences: DCUserPreferencesProtocol,
              onAction: @escaping (DCChapterViewAction) -> Void) {
             self.opensExternalLinks = opensExternalLinks
             self.spineIndex = spineIndex
             self.userPreferences = userPreferences
             self.onAction = onAction
+            self.pendingInitialCoords = initialCoords
             super.init()
         }
 
@@ -108,6 +117,16 @@ extension DCChapterWebView {
             )
         }
 
+        @MainActor
+        private func restoreInitialPositionIfNeeded(on webView: WKWebView) async {
+            guard let coords = pendingInitialCoords, !coords.isEmpty else { return }
+            pendingInitialCoords = nil
+            let method: JSMethod = orientation == .horizontal ?
+                .scrollToCoordsHorizontal(coords) :
+                .scrollToCoordsVertical(coords)
+            _ = try? await webView.evaluateJavaScriptAsync(method.rawValue)
+        }
+
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             Task { @MainActor [weak self] in
                 guard let self else { return }
@@ -120,6 +139,8 @@ extension DCChapterWebView {
                                                spineIndex: self.spineIndex))
                 }
 
+                try? await Task.sleep(nanoseconds: Constants.settleDelay)
+                await self.restoreInitialPositionIfNeeded(on: webView)
                 try? await Task.sleep(nanoseconds: Constants.settleDelay)
                 self.scrollViewDidEndDecelerating(webView.scrollView)
                 self.setInteractivity(true, on: webView, animated: true)
@@ -318,6 +339,17 @@ private extension DCChapterWebView.Coordinator {
                 DCChapterWebView.JSMethod.clearTextSelection.rawValue
             )
         }
+    }
+}
+
+private extension String {
+    var jsStringLiteral: String {
+        guard JSONSerialization.isValidJSONObject([self]),
+              let data = try? JSONSerialization.data(withJSONObject: [self]),
+              let literal = String(data: data, encoding: .utf8) else {
+            return "\"\""
+        }
+        return String(literal.dropFirst().dropLast())
     }
 }
 #endif

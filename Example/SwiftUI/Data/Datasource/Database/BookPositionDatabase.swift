@@ -15,7 +15,7 @@ protocol BookPositionDatabaseProtocol {
                           coords: String,
                           chapterURL: URL,
                           markType: RBookMark.MarkType) throws
-    // TODO: Get book position
+    func getBookPosition(book: DCEpubBook) throws -> BookPositionDTO?
 }
 
 final class BookPositionDatabase: BookPositionDatabaseProtocol {
@@ -38,6 +38,7 @@ final class BookPositionDatabase: BookPositionDatabaseProtocol {
                     mark.bookTitle = book.bookTitle
                     mark.lastcoords = coords
                     mark.lastchapterid = chapterURL.lastPathComponent
+                    mark.spineIndex = spineIndex
                     mark.dateUpdated = nowMillis
                 }
             } else {
@@ -47,7 +48,9 @@ final class BookPositionDatabase: BookPositionDatabaseProtocol {
                 mark.bookTitle = book.bookTitle
                 mark.lastcoords = coords
                 mark.lastchapterid = chapterURL.lastPathComponent
+                mark.spineIndex = spineIndex
                 mark.dateCreated = nowMillis
+                mark.dateUpdated = nowMillis
                 mark.compoundKey = mark.compoundLastPosition
                 try realm.write {
                     realm.add(mark, update: .modified)
@@ -60,6 +63,7 @@ final class BookPositionDatabase: BookPositionDatabaseProtocol {
             mark.coords = coords
             mark.bookTitle = book.bookTitle
             mark.chapterId = chapterURL.lastPathComponent
+            mark.spineIndex = spineIndex
             mark.dateCreated = nowMillis
             mark.compoundKey = mark.compoundBookmark
             try realm.write {
@@ -69,6 +73,50 @@ final class BookPositionDatabase: BookPositionDatabaseProtocol {
             break
         }
     }
+
+    func getBookPosition(book: DCEpubBook) throws -> BookPositionDTO? {
+        let realm = try Realm()
+        guard let mark = realm.objects(RBookMark.self).filter(
+            """
+            uuid = '\(book.uniqueIdentifier)' AND
+            type = '\(RBookMark.MarkType.lastPosition.rawValue)'
+            """
+        ).first else {
+            return nil
+        }
+
+        let storedSpineIndex = mark.spineIndex
+        let resolvedSpineIndex = resolveSpineIndex(
+            storedSpineIndex,
+            chapterId: mark.lastchapterid,
+            book: book
+        )
+
+        return BookPositionDTO(
+            spineIndex: resolvedSpineIndex,
+            coords: mark.lastcoords,
+            chapterId: mark.lastchapterid,
+            dateUpdated: mark.dateUpdated
+        )
+    }
+
+    private func resolveSpineIndex(_ storedSpineIndex: Int,
+                                   chapterId: String,
+                                   book: DCEpubBook) -> Int {
+        if !chapterId.isEmpty, let index = book.spine.firstIndex(where: { spineItem in
+            guard let manifestItem = book.manifest.first(where: { $0.id == spineItem.idref }) else {
+                return false
+            }
+            return URL(fileURLWithPath: manifestItem.href).lastPathComponent == chapterId
+        }) {
+            return index
+        }
+
+        if storedSpineIndex >= 0 && storedSpineIndex < book.spine.count {
+            return storedSpineIndex
+        }
+        return 0
+    }
 }
 
 final class BookPositionDatabaseMock: BookPositionDatabaseProtocol {
@@ -77,4 +125,8 @@ final class BookPositionDatabaseMock: BookPositionDatabaseProtocol {
                           coords: String,
                           chapterURL: URL,
                           markType: RBookMark.MarkType) throws {}
+
+    func getBookPosition(book: DCEpubBook) throws -> BookPositionDTO? {
+        nil
+    }
 }

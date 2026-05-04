@@ -23,8 +23,8 @@ final class RBook: Object {
     @Persisted var bookVersion: String = ""
     @Persisted var bookDate: String = ""
     @Persisted var descriptionHTML: String = ""
-    @Persisted var createdAt: Double = 0
-    @Persisted var updatedAt: Double = 0
+    @Persisted var createdAt: Int64 = 0
+    @Persisted var updatedAt: Int64 = 0
 
     public override static func primaryKey() -> String {
         return Constants.primaryKey

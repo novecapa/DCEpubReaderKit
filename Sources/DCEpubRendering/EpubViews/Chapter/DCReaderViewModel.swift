@@ -35,15 +35,18 @@ final class DCReaderViewModel: ObservableObject {
 
     private let book: DCEpubBook
     private let spineIndex: Int
+    private let initialCoords: String?
     private let userPreferencesProtocol: DCUserPreferencesProtocol
     private let delegate: DCReaderCoordsProtocol?
 
     public init(book: DCEpubBook,
                 spineIndex: Int,
+                initialCoords: String? = nil,
                 userPreferencesProtocol: DCUserPreferencesProtocol,
                 delegate: DCReaderCoordsProtocol?) {
         self.book = book
         self.spineIndex = spineIndex
+        self.initialCoords = initialCoords
         self.userPreferencesProtocol = userPreferencesProtocol
         self.delegate = delegate
 
@@ -77,6 +80,11 @@ final class DCReaderViewModel: ObservableObject {
 
     func readerConfigId(for idx: Int) -> String {
         "\(idx)-\(textFont)-\(desktopMode)-\(textSize)-\(orientation)"
+    }
+
+    func initialCoords(for idx: Int) -> String? {
+        guard idx == spineIndex else { return nil }
+        return initialCoords
     }
 
     var pageInfo: String {

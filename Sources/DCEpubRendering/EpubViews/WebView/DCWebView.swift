@@ -89,13 +89,13 @@ final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDel
 
 extension WKWebView {
     @MainActor
-    func evaluateJavaScriptAsync(_ javaScript: String) async throws {
-        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
-            self.evaluateJavaScript(javaScript) { _, error in
+    func evaluateJavaScriptAsync(_ javaScript: String) async throws -> String? {
+        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<String?, Error>) in
+            self.evaluateJavaScript(javaScript) { result, error in
                 if let error = error {
                     cont.resume(throwing: error)
                 } else {
-                    cont.resume(returning: ())
+                    cont.resume(returning: result as? String)
                 }
             }
         }

@@ -14,6 +14,7 @@ protocol BookPositionUseCaseProtocol {
                           coords: String,
                           chapterURL: URL,
                           markType: RBookMark.MarkType) throws
+    func getBookPosition(book: DCEpubBook) throws -> BookPositionDTO?
 }
 
 final class BookPositionUseCase: BookPositionUseCaseProtocol {
@@ -36,5 +37,9 @@ final class BookPositionUseCase: BookPositionUseCaseProtocol {
             chapterURL: chapterURL,
             markType: markType
         )
+    }
+
+    func getBookPosition(book: DCEpubBook) throws -> BookPositionDTO? {
+        try repository.getBookPosition(book: book)
     }
 }

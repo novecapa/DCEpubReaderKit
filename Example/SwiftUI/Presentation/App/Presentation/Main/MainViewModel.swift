@@ -49,6 +49,10 @@ extension MainViewModel {
         guard let url = book.basePath else { return nil }
         return try? DCEpubParser.parse(from: url)
     }
+
+    func initialBookPosition(for book: DCEpubBook) -> BookPositionDTO? {
+        try? useCase.bookPosition.getBookPosition(book: book)
+    }
 }
 
 // MARK: - DC Reader Coords Protocols

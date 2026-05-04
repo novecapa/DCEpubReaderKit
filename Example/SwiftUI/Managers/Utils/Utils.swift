@@ -10,7 +10,7 @@ import SystemConfiguration
 import UIKit
 
 protocol UtilsProtocol {
-    var currentMillis: Double { get }
+    var currentMillis: Int64 { get }
     var documentsDirectory: URL { get }
     var fileManager: FileManager { get }
     func createDirectory(directoryName: String)
@@ -42,7 +42,7 @@ class Utils: UtilsProtocol {
     }
 
     // MARK: - Date
-    var currentMillis: Double {
+    var currentMillis: Int64 {
         Date().timeMillis
     }
 

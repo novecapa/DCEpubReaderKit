@@ -12,12 +12,14 @@ final class DCChapterWebViewBuilder {
     func build(chapterURL: URL,
                readAccessURL: URL,
                spineIndex: Int,
+               initialCoords: String?,
                userPreferences: DCUserPreferencesProtocol,
                onAction: @escaping (DCChapterViewAction) -> Void) -> DCChapterWebView {
         let viewModel = DCChapterWebViewModel(
             chapterURL: chapterURL,
             readAccessURL: readAccessURL,
             spineIndex: spineIndex,
+            initialCoords: initialCoords,
             userPreferences: userPreferences,
             onAction: onAction
         )

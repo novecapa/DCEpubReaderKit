@@ -73,6 +73,7 @@ public struct DCReaderView: View {
             chapterURL: chapterURL,
             readAccessURL: viewModel.opfDirectoryURL,
             spineIndex: idx,
+            initialCoords: viewModel.initialCoords(for: idx),
             userPreferences: viewModel.userPreferences
         ) { [weak viewModel] action in
             viewModel?.handle(action, chapterURL: chapterURL)

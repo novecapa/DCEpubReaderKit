@@ -13,11 +13,13 @@ public final class DCReaderViewBuilder {
     @MainActor
     public static func build(_ book: DCEpubBook,
                              spineIndex: Int,
+                             initialCoords: String? = nil,
                              delegate: DCReaderCoordsProtocol?) -> DCReaderView {
         let userPreferences: DCUserPreferencesProtocol = DCUserPreferences(userPreferences: UserDefaults.standard)
         let viewModel = DCReaderViewModel(
             book: book,
             spineIndex: spineIndex,
+            initialCoords: initialCoords,
             userPreferencesProtocol: userPreferences,
             delegate: delegate
         )
@@ -35,6 +37,7 @@ final class DCReaderViewBuilderMock {
         let viewModel = DCReaderViewModel(
             book: book,
             spineIndex: spineIndex,
+            initialCoords: nil,
             userPreferencesProtocol: userPreferences,
             delegate: nil
         )
