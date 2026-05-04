@@ -74,7 +74,7 @@ https://github.com/novecapa/DCEpubReaderKit.git
 For a versioned dependency, add it to your `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/novecapa/DCEpubReaderKit.git", from: "0.0.1")
+.package(url: "https://github.com/novecapa/DCEpubReaderKit.git", from: "0.0.2")
 ```
 
 Then add the product to your target dependencies:
