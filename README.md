@@ -39,12 +39,12 @@ Most EPUB solutions are either:
 ### 🖍️ User interaction
 - Text selection
 - Highlights
-- Bookmarks
-- Notes (planned)
+- Bookmarks (planned)
+- Notes
 
 ### 🎨 Reader customization
 - Font size & family
-- Themes (light, dark, sepia…)
+- Themes (light, dark, red…)
 - Layout tuning (line height, margins)
 
 ### 🔍 Search
