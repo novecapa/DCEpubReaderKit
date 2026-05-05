@@ -1,4 +1,3 @@
-#if os(iOS)
 //
 //  DCReaderChapterView.swift
 //  DCEpubReaderKit
@@ -62,6 +61,9 @@ public struct DCReaderView: View {
             .sheet(isPresented: $viewModel.showSettings) {
                 sheetSettingsView
             }
+            .sheet(isPresented: $viewModel.showNote) {
+                DCNotesViewBuilder().build(viewModel.bookId, coords: "", chapterId: "")
+            }
         }
         .onChange(of: viewModel.currentSelection) { _ in
             viewModel.updateCurrentPage()
@@ -74,7 +76,9 @@ public struct DCReaderView: View {
             readAccessURL: viewModel.opfDirectoryURL,
             spineIndex: idx,
             initialCoords: viewModel.initialCoords(for: idx),
-            userPreferences: viewModel.userPreferences
+            userPreferences: viewModel.userPreferences,
+            bookId: viewModel.bookId,
+            highlightStore: viewModel.highlightStore
         ) { [weak viewModel] action in
             viewModel?.handle(action, chapterURL: chapterURL)
         }
@@ -93,5 +97,4 @@ public struct DCReaderView: View {
     }
 }
 
-#endif
 #endif

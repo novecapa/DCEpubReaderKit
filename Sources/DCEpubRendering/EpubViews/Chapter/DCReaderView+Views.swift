@@ -1,4 +1,3 @@
-#if os(iOS)
 //
 //  DCReaderView+Toolbar.swift
 //  DCEpubReaderKit
@@ -75,4 +74,3 @@ extension DCReaderView {
         }
     }
 }
-#endif

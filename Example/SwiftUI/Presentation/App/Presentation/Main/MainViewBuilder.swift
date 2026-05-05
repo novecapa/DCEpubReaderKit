@@ -8,6 +8,7 @@
 import Foundation
 
 final class MainViewBuilder {
+    @MainActor
     func build() -> MainView {
         let useCase = UseCase()
         let viewModel = MainViewModel(useCase: useCase)

@@ -1,4 +1,3 @@
-#if os(iOS)
 //
 //  DCUserPreferencesProtocol.swift
 //  DCEpubReaderKit
@@ -98,4 +97,3 @@ extension UserDefaults: DCUserPreferencesProtocol {
         }
     }
 }
-#endif

@@ -1,4 +1,3 @@
-#if os(iOS)
 //
 //  DCNotesView.swift
 //  DCEpubReaderKit
@@ -27,7 +26,7 @@ struct DCNotesView: View {
                         .tint(Color(.backgroundNight))
                 }
                 Spacer()
-                Text("Notes - Book title")
+                Text("Notes")
                     .font(.system(size: 14))
                     .tint(Color(.backgroundNight))
                 EmptyView()
@@ -45,4 +44,3 @@ struct DCNotesView: View {
 #Preview {
     DCNotesViewBuilderMock().build()
 }
-#endif

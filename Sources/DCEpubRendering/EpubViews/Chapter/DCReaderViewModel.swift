@@ -1,4 +1,3 @@
-#if os(iOS)
 //
 //  DCReaderViewModel.swift
 //  DCEpubReaderKit
@@ -38,17 +37,20 @@ final class DCReaderViewModel: ObservableObject {
     private let initialCoords: String?
     private let userPreferencesProtocol: DCUserPreferencesProtocol
     private let delegate: DCReaderCoordsProtocol?
+    let highlightStore: (any DCHighlightStoreProtocol)?
 
     public init(book: DCEpubBook,
                 spineIndex: Int,
                 initialCoords: String? = nil,
                 userPreferencesProtocol: DCUserPreferencesProtocol,
-                delegate: DCReaderCoordsProtocol?) {
+                delegate: DCReaderCoordsProtocol?,
+                highlightStore: (any DCHighlightStoreProtocol)? = nil) {
         self.book = book
         self.spineIndex = spineIndex
         self.initialCoords = initialCoords
         self.userPreferencesProtocol = userPreferencesProtocol
         self.delegate = delegate
+        self.highlightStore = highlightStore
 
         // Initial values
         self.currentSelection = spineIndex
@@ -64,6 +66,10 @@ final class DCReaderViewModel: ObservableObject {
         self.canTouch = true
         self.showSettings = false
         self.settingsSheetHeight = 0
+    }
+
+    var bookId: String {
+        book.uniqueIdentifier
     }
 
     var bookSpines: [DCSpineItem] {
@@ -213,4 +219,3 @@ final class DCReaderViewModel: ObservableObject {
         chapterViewModels[index] = viewModel
     }
 }
-#endif

@@ -1,4 +1,3 @@
-#if os(iOS)
 //
 //  DCFonts.swift
 //  DCEpubReaderKit
@@ -56,4 +55,3 @@ extension Font {
        Font(style.uiFont)
    }
 }
-#endif

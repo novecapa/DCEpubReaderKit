@@ -1,4 +1,3 @@
-#if os(iOS)
 //
 //  DCUserPreferencesTypes.swift
 //  DCEpubReaderKit
@@ -193,4 +192,3 @@ enum DCBookrOrientation: String {
         .horizontal
     ]
 }
-#endif

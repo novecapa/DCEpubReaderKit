@@ -1,4 +1,3 @@
-#if os(iOS)
 //
 //  DCNotesViewBuilder.swift
 //  DCEpubReaderKit
@@ -29,4 +28,3 @@ final class DCNotesViewBuilderMock {
         return view
     }
 }
-#endif

@@ -1,4 +1,3 @@
-#if os(iOS)
 //
 //  DCReaderSettingsViewModel.swift
 //  DCEpubReaderKit
@@ -37,4 +36,3 @@ final class DCReaderSettingsViewModel: ObservableObject {
         userPreferences.getDesktopMode().textColor
     }
 }
-#endif

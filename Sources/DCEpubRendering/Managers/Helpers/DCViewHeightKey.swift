@@ -1,4 +1,3 @@
-#if os(iOS)
 //
 //  DCViewHeightKey.swift
 //  DCEpubReaderKit
@@ -26,4 +25,3 @@ extension View {
         .onPreferenceChange(DCViewHeightKey.self, perform: perform)
     }
 }
-#endif

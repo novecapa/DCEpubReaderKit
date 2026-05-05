@@ -1,4 +1,3 @@
-#if os(iOS)
 //
 //  DCChapterWebView.swift
 //  DCEpubReaderKit
@@ -138,4 +137,3 @@ struct DCChapterWebView: UIViewRepresentable {
         return coordinator
     }
 }
-#endif

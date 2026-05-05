@@ -1,4 +1,3 @@
-#if os(iOS)
 //
 //  DCReaderSettingsViewBuilder.swift
 //  DCEpubReaderKit
@@ -24,4 +23,3 @@ final class DCReaderSettingsViewBuilder {
         return view
     }
 }
-#endif

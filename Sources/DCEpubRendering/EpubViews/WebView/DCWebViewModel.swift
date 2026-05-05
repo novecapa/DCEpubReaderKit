@@ -1,4 +1,3 @@
-#if os(iOS)
 //
 //  DCWebViewModel.swift
 //  DCEpubReaderKit
@@ -6,6 +5,9 @@
 //  Created by Josep Cerdá Penadés on 26/11/25.
 //
 
+import DCEpubCore
+
+@MainActor
 final class DCWebViewModel: DCWebViewModelProtocol {
 
     var refresh: (() -> Void)?
@@ -19,5 +21,20 @@ final class DCWebViewModel: DCWebViewModelProtocol {
     func showNoote() {
         router.showNoote()
     }
+
+    func saveHighlight(_ highlight: DCHighlight) async {
+        await router.saveHighlight(highlight)
+    }
+
+    func loadHighlights() async -> [DCHighlight] {
+        await router.loadHighlights()
+    }
+
+    func deleteHighlight(uuid: String) async {
+        await router.deleteHighlight(uuid: uuid)
+    }
+
+    var currentBookId: String { router.currentBookId }
+    var currentChapterId: String { router.currentChapterId }
+    var currentSpineIndex: Int { router.currentSpineIndex }
 }
-#endif

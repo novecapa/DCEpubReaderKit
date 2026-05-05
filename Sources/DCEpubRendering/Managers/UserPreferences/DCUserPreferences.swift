@@ -1,4 +1,3 @@
-#if os(iOS)
 //
 //  DCUserPreferences.swift
 //  DCEpubReaderKit
@@ -43,4 +42,3 @@ final class DCUserPreferences: DCUserPreferencesProtocol {
         userPreferences.getBookOrientation()
     }
 }
-#endif

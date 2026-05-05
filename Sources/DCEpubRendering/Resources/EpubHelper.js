@@ -99,7 +99,12 @@
     function callHighlightURL(elm){
         const rectStr = getRectForSelectedText(elm);
         thisHighlight = elm || thisHighlight;
-        try { window.location = URL_HIGHLIGHT + encodeURIComponent(rectStr); } catch { /* no-op */ }
+        const id = thisHighlight ? thisHighlight.id : null;
+        if (id && window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.highlightTapped) {
+            window.webkit.messageHandlers.highlightTapped.postMessage({ uuid: id, rect: rectStr });
+        } else {
+            try { window.location = URL_HIGHLIGHT + encodeURIComponent(rectStr); } catch { /* no-op */ }
+        }
     }
     
     function highlightString(style){

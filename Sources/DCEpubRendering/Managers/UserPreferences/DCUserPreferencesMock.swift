@@ -1,4 +1,3 @@
-#if os(iOS)
 //
 //  DCUserPreferencesMock.swift
 //  DCEpubReaderKit
@@ -26,4 +25,3 @@ final class DCUserPreferencesMock: DCUserPreferencesProtocol {
         .horizontal
     }
 }
-#endif

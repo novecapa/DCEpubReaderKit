@@ -1,4 +1,3 @@
-#if os(iOS)
 //
 //  DCWebView+Highlights.swift
 //  DCEpubReaderKit
@@ -7,6 +6,7 @@
 //
 
 import WebKit
+import DCEpubCore
 
 // MARK: - DCWebView Highlights
 
@@ -18,6 +18,8 @@ extension DCWebView {
         case getSelectionString
         case highlight(type: HighlightType)
         case clearSelection
+        case highlightCoords(coords: String, cssClass: String, uuid: String, text: String)
+        case removeHighlightById(uuid: String)
 
         var rawValue: String {
             switch self {
@@ -31,7 +33,19 @@ extension DCWebView {
                 return "highlightString('highlight-\(type.rawValue)')"
             case .clearSelection:
                 return "window.getSelection().removeAllRanges()"
+            case let .highlightCoords(coords, cssClass, uuid, text):
+                return "highlightCoords(\(jsLiteral(coords)),\(jsLiteral(cssClass)),\(jsLiteral(uuid)),\(jsLiteral(text)))"
+            case let .removeHighlightById(uuid):
+                return "removeHighlightById(\(jsLiteral(uuid)))"
             }
+        }
+
+        private func jsLiteral(_ str: String) -> String {
+            guard let data = try? JSONSerialization.data(withJSONObject: [str]),
+                  let json = String(data: data, encoding: .utf8) else {
+                return "\"\""
+            }
+            return String(json.dropFirst().dropLast())
         }
     }
 
@@ -100,9 +114,16 @@ extension DCWebView {
                   let uuid = await highlightSelection(type: .yellow) else {
                 return
             }
-            print(
-                "coords: \(coords) text: \(selectedText) uuid: \(uuid)"
+            let highlight = DCHighlight(
+                uuid: uuid,
+                bookId: viewModel.currentBookId,
+                chapterId: viewModel.currentChapterId,
+                spineIndex: viewModel.currentSpineIndex,
+                type: .highlight,
+                text: selectedText,
+                coords: coords
             )
+            await viewModel.saveHighlight(highlight)
             await self.clearJSSelection()
             self.removeMenuItems()
         }
@@ -118,13 +139,41 @@ extension DCWebView {
                   let uuid = await self.highlightSelection(type: .underline) else {
                 return
             }
-            print(
-                "coords: \(coords) text: \(selectedText) uuid: \(uuid)"
+            let highlight = DCHighlight(
+                uuid: uuid,
+                bookId: viewModel.currentBookId,
+                chapterId: viewModel.currentChapterId,
+                spineIndex: viewModel.currentSpineIndex,
+                type: .note,
+                text: selectedText,
+                coords: coords
             )
+            await viewModel.saveHighlight(highlight)
             await self.clearJSSelection()
             self.removeMenuItems()
             self.viewModel.showNoote()
         }
     }
+
+    // Removes the highlight span from the DOM without touching the store.
+    func removeHighlight(uuid: String) async {
+        _ = try? await self.evaluateJavaScriptAsync(JSMethod.removeHighlightById(uuid: uuid).rawValue)
+    }
+
+    // Injects all persisted highlights for the current chapter into the DOM.
+    // Sorted descending by coords (legacy behavior) to avoid offset shifts.
+    func loadHighlights() async {
+        let highlights = await viewModel.loadHighlights()
+        let sorted = highlights.sorted { $0.coords > $1.coords }
+        for h in sorted {
+            let cssClass = h.type == .highlight ? "highlight-yellow" : "highlight-underline"
+            let js = JSMethod.highlightCoords(
+                coords: h.coords,
+                cssClass: cssClass,
+                uuid: h.uuid,
+                text: h.text
+            ).rawValue
+            _ = try? await self.evaluateJavaScriptAsync(js)
+        }
+    }
 }
-#endif

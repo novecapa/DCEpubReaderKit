@@ -1,4 +1,3 @@
-#if os(iOS)
 //
 //  DCChapterWebViewModel.swift
 //  DCEpubReaderKit
@@ -7,7 +6,9 @@
 //
 
 import SwiftUI
+import DCEpubCore
 
+@MainActor
 final class DCChapterWebViewModel: ObservableObject {
 
     var showNotes: Bool = false
@@ -22,35 +23,55 @@ final class DCChapterWebViewModel: ObservableObject {
     let initialCoords: String?
     let userPreferences: DCUserPreferencesProtocol
     let onAction: (DCChapterViewAction) -> Void
+    let bookId: String
+    let highlightStore: (any DCHighlightStoreProtocol)?
 
     init(chapterURL: URL,
          readAccessURL: URL,
          spineIndex: Int,
          initialCoords: String?,
          userPreferences: DCUserPreferencesProtocol,
+         bookId: String,
+         highlightStore: (any DCHighlightStoreProtocol)?,
          onAction: @escaping (DCChapterViewAction) -> Void) {
         self.chapterURL = chapterURL
         self.readAccessURL = readAccessURL
         self.spineIndex = spineIndex
         self.initialCoords = initialCoords
         self.userPreferences = userPreferences
+        self.bookId = bookId
+        self.highlightStore = highlightStore
         self.onAction = onAction
     }
 }
 
 extension DCChapterWebViewModel: DCWebViewRouterProtocol {
+
     func showNoote() {
         onAction(.showNote)
     }
 
-    @MainActor
+    func saveHighlight(_ highlight: DCHighlight) async {
+        await highlightStore?.save(highlight)
+    }
+
+    func loadHighlights() async -> [DCHighlight] {
+        await highlightStore?.highlights(bookId: bookId, chapterId: currentChapterId) ?? []
+    }
+
+    func deleteHighlight(uuid: String) async {
+        await highlightStore?.delete(uuid: uuid)
+    }
+
+    var currentBookId: String { bookId }
+    var currentChapterId: String { chapterURL.lastPathComponent }
+    var currentSpineIndex: Int { spineIndex }
+
     func updateCurrentPage(target: Int?) {
         coordinator?.updateCurrentPageInternal(target: target)
     }
 
-    @MainActor
     func saveBookmark() {
         coordinator?.saveBookMark()
     }
 }
-#endif

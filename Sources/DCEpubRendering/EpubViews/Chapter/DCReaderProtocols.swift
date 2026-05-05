@@ -1,4 +1,3 @@
-#if os(iOS)
 //
 //  DCReaderProtocols.swift
 //  DCEpubReaderKit
@@ -16,4 +15,3 @@ public protocol DCReaderCoordsProtocol {
                       chapterURL: URL?,
                       isBookMark: Bool)
 }
-#endif

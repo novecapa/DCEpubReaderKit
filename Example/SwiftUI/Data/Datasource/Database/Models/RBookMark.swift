@@ -23,6 +23,7 @@ final class RBookMark: Object {
 
     @Persisted var compoundKey: String = ""
     @Persisted var uuid: String = ""
+    @Persisted var bookId: String = ""
     @Persisted var bookTitle: String = ""
     @Persisted var text: String = ""
     @Persisted var coords: String = ""
@@ -45,6 +46,9 @@ final class RBookMark: Object {
     var compoundBookmark: String {
         "\(uuid)-\(coords)-\(chapterId)"
     }
+
+    // For highlights/notes: primary key is the JS-generated uuid (unique per highlight)
+    var compoundHighlight: String { uuid }
 
     public override static func primaryKey() -> String {
         return Constants.primaryKey

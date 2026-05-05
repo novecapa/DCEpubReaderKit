@@ -1,4 +1,3 @@
-#if os(iOS)
 //
 //  DCWebViewBuilder.swift
 //  DCEpubReaderKit
@@ -19,4 +18,3 @@ final class DCWebViewBuilder {
         return view
     }
 }
-#endif

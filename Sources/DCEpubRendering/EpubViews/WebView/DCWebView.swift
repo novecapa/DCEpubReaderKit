@@ -1,4 +1,3 @@
-#if os(iOS)
 //
 //  DCWebView.swift
 //  DCEpubReaderKit
@@ -12,6 +11,7 @@ final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDel
 
     private enum Constants {
         static let selectionChanged = "selectionChanged"
+        static let highlightTapped  = "highlightTapped"
     }
 
     var viewModel: DCWebViewModelProtocol!
@@ -20,13 +20,13 @@ final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDel
     override init(frame: CGRect, configuration: WKWebViewConfiguration) {
         super.init(frame: frame, configuration: configuration)
         setupBindings()
-        injectSelectionListener()
+        injectMessageHandlers()
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setupBindings()
-        injectSelectionListener()
+        injectMessageHandlers()
     }
 
     deinit {
@@ -35,7 +35,8 @@ final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDel
 
     private func teardown() {
         selectionMenuTask?.cancel()
-        self.configuration.userContentController.removeScriptMessageHandler(forName: Constants.selectionChanged)
+        configuration.userContentController.removeScriptMessageHandler(forName: Constants.selectionChanged)
+        configuration.userContentController.removeScriptMessageHandler(forName: Constants.highlightTapped)
     }
 
     private func setupBindings() {}
@@ -49,28 +50,91 @@ final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDel
         true
     }
 
-    private func injectSelectionListener() {
+    private func injectMessageHandlers() {
         teardown()
-        self.configuration.userContentController.add(self, name: Constants.selectionChanged)
+        configuration.userContentController.add(self, name: Constants.selectionChanged)
+        configuration.userContentController.add(self, name: Constants.highlightTapped)
     }
+
+    // MARK: - WKScriptMessageHandler
 
     func userContentController(_ userContentController: WKUserContentController,
                                didReceive message: WKScriptMessage) {
-        selectionMenuTask?.cancel()
+        switch message.name {
+        case Constants.selectionChanged:
+            handleSelectionChanged(message.body)
+        case Constants.highlightTapped:
+            handleHighlightTapped(message.body)
+        default:
+            break
+        }
+    }
 
-        let selectedText = (message.body as? [String: Any])?["text"] as? String
+    private func handleSelectionChanged(_ body: Any) {
+        selectionMenuTask?.cancel()
+        let selectedText = (body as? [String: Any])?["text"] as? String
         guard let selectedText,
               selectedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
             removeMenuItems()
             return
         }
-
         selectionMenuTask = Task { @MainActor [weak self] in
             try? await Task.sleep(nanoseconds: 150_000_000)
             guard Task.isCancelled == false else { return }
             await self?.shoMenuInteraction()
         }
     }
+
+    private func handleHighlightTapped(_ body: Any) {
+        guard let dict = body as? [String: Any],
+              let uuid = dict["uuid"] as? String,
+              !uuid.isEmpty else { return }
+
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            let highlights = await self.viewModel.loadHighlights()
+            guard let highlight = highlights.first(where: { $0.uuid == uuid }) else { return }
+
+            if highlight.type == .note {
+                self.showNoteOptionsAlert(uuid: uuid)
+            } else {
+                self.showDeleteHighlightAlert(uuid: uuid)
+            }
+        }
+    }
+
+    private func showNoteOptionsAlert(uuid: String) {
+        guard let vc = parentViewController else { return }
+        let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: "Edit Note", style: .default) { [weak self] _ in
+            self?.viewModel.showNoote()
+        })
+        alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                await self.viewModel.deleteHighlight(uuid: uuid)
+                await self.removeHighlight(uuid: uuid)
+            }
+        })
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        vc.present(alert, animated: true)
+    }
+
+    private func showDeleteHighlightAlert(uuid: String) {
+        guard let vc = parentViewController else { return }
+        let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: "Delete Highlight", style: .destructive) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                await self.viewModel.deleteHighlight(uuid: uuid)
+                await self.removeHighlight(uuid: uuid)
+            }
+        })
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        vc.present(alert, animated: true)
+    }
+
+    // MARK: - UIMenuController
 
     override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
         if action == #selector(applyHightLight) ||
@@ -83,6 +147,19 @@ final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDel
 
     override var canBecomeFirstResponder: Bool {
         return true
+    }
+}
+
+// MARK: - Responder chain helper
+
+private extension DCWebView {
+    var parentViewController: UIViewController? {
+        var responder: UIResponder? = self
+        while let r = responder {
+            if let vc = r as? UIViewController { return vc }
+            responder = r.next
+        }
+        return nil
     }
 }
 
@@ -102,4 +179,3 @@ extension WKWebView {
         }
     }
 }
-#endif

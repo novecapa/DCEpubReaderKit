@@ -1,4 +1,3 @@
-#if os(iOS)
 //
 //  DCReaderSettingsView.swift
 //  DCEpubReaderKit
@@ -134,5 +133,4 @@ struct DCReaderSettingsView: View {
         )
 }
 
-#endif
 #endif

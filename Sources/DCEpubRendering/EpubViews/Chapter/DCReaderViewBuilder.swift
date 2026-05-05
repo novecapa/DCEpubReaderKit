@@ -1,4 +1,3 @@
-#if os(iOS)
 //
 //  DCReaderViewBuilder.swift
 //  DCEpubReaderKit
@@ -14,14 +13,16 @@ public final class DCReaderViewBuilder {
     public static func build(_ book: DCEpubBook,
                              spineIndex: Int,
                              initialCoords: String? = nil,
-                             delegate: DCReaderCoordsProtocol?) -> DCReaderView {
+                             delegate: DCReaderCoordsProtocol?,
+                             highlightStore: (any DCHighlightStoreProtocol)? = nil) -> DCReaderView {
         let userPreferences: DCUserPreferencesProtocol = DCUserPreferences(userPreferences: UserDefaults.standard)
         let viewModel = DCReaderViewModel(
             book: book,
             spineIndex: spineIndex,
             initialCoords: initialCoords,
             userPreferencesProtocol: userPreferences,
-            delegate: delegate
+            delegate: delegate,
+            highlightStore: highlightStore
         )
         DCFonts.registerAllFontsIfNeeded()
         let view = DCReaderView(viewModel: viewModel)
@@ -45,4 +46,3 @@ final class DCReaderViewBuilderMock {
         return view
     }
 }
-#endif

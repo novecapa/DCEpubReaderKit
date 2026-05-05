@@ -1,4 +1,3 @@
-#if os(iOS)
 //
 //  DCNotesViewModel.swift
 //  DCEpubReaderKit
@@ -12,4 +11,3 @@ final class DCNotesViewModel: ObservableObject {
 
     @State var note: String = ""
 }
-#endif

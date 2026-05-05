@@ -34,7 +34,8 @@ struct MainView: View {
                                     ebook,
                                     spineIndex: initialPosition?.spineIndex ?? 0,
                                     initialCoords: initialPosition?.coords,
-                                    delegate: viewModel
+                                    delegate: viewModel,
+                                    highlightStore: viewModel.highlightStore
                                 )
                             }
                         } label: {

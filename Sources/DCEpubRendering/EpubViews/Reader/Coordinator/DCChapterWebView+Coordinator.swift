@@ -1,4 +1,3 @@
-#if os(iOS)
 //
 //  DCChapterWebView+Coordinator.swift
 //  DCEpubReaderKit
@@ -141,43 +140,24 @@ extension DCChapterWebView {
 
                 try? await Task.sleep(nanoseconds: Constants.settleDelay)
                 await self.restoreInitialPositionIfNeeded(on: webView)
+                await self.lazyWebView?.loadHighlights()
                 try? await Task.sleep(nanoseconds: Constants.settleDelay)
                 self.scrollViewDidEndDecelerating(webView.scrollView)
                 self.setInteractivity(true, on: webView, animated: true)
             }
         }
 
-        private func webView(_ webView: WKWebView,
-                             decidePolicyFor navigationAction: WKNavigationAction,
-                             decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        func webView(_ webView: WKWebView,
+                     decidePolicyFor navigationAction: WKNavigationAction,
+                     decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
             guard let url = navigationAction.request.url else {
                 decisionHandler(.cancel); return
             }
+            // highlight:// is handled via postMessage (highlightTapped); cancel the fallback navigation.
             if url.scheme == "highlight" {
-                let decoded = url.absoluteString.removingPercentEncoding ?? ""
-                if decoded == "" { return }
-
-                let index = decoded.index(decoded.startIndex, offsetBy: 12)
-                let highlightstring = decoded[..<index]
-                _ = NSCoder.cgRect(
-                    for: decoded.replacingOccurrences(
-                        of: highlightstring, with: "")
-                )
-                // Remove selected text
-                removeSelectedText(lazyWebView)
-                webView.evaluateJavaScript("getThisHighlight()") { (result, _) in
-                    let highlightUUID = result as? String ?? ""
-                    print("highlightID: \(highlightUUID)")
-                    // TODO: --
-//                    let marktype = DCRBookMark.getHighlightType(bookId: self.bookid, uuid: highlightUUID)
-//                    if marktype == DCRBookMark.kHighLight {
-//                        self.webView.createHighlightMenu(rect: rect)
-//                    } else if marktype == DCRBookMark.kNote   {
-//                        self.webView.createNoteMenu(rect: rect)
-//                    }
-                }
-            } else if url.scheme == "file" {}
-
+                decisionHandler(.cancel)
+                return
+            }
             decisionHandler(.allow)
         }
 
@@ -352,4 +332,3 @@ private extension String {
         return String(literal.dropFirst().dropLast())
     }
 }
-#endif

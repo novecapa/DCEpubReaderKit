@@ -9,6 +9,7 @@ import Combine
 import DCEpubReaderKit
 import SwiftUI
 
+@MainActor
 final class MainViewModel: ObservableObject {
 
     @Published var books: [EBookEntity] = []
@@ -20,6 +21,10 @@ final class MainViewModel: ObservableObject {
 
     init(useCase: UseCaseProtocol) {
         self.useCase = useCase
+    }
+
+    var highlightStore: any DCHighlightStoreProtocol {
+        useCase.highlightStore
     }
 }
 

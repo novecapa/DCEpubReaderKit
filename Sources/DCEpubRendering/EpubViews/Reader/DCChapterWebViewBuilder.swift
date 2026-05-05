@@ -1,4 +1,3 @@
-#if os(iOS)
 //
 //  DCChapterWebViewBuilder.swift
 //  DCEpubReaderKit
@@ -7,13 +6,17 @@
 //
 
 import Foundation
+import DCEpubCore
 
 final class DCChapterWebViewBuilder {
+    @MainActor
     func build(chapterURL: URL,
                readAccessURL: URL,
                spineIndex: Int,
                initialCoords: String?,
                userPreferences: DCUserPreferencesProtocol,
+               bookId: String,
+               highlightStore: (any DCHighlightStoreProtocol)?,
                onAction: @escaping (DCChapterViewAction) -> Void) -> DCChapterWebView {
         let viewModel = DCChapterWebViewModel(
             chapterURL: chapterURL,
@@ -21,10 +24,11 @@ final class DCChapterWebViewBuilder {
             spineIndex: spineIndex,
             initialCoords: initialCoords,
             userPreferences: userPreferences,
+            bookId: bookId,
+            highlightStore: highlightStore,
             onAction: onAction
         )
         let view = DCChapterWebView(viewModel: viewModel)
         return view
     }
 }
-#endif
