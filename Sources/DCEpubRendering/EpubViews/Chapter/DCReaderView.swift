@@ -62,7 +62,13 @@ public struct DCReaderView: View {
                 sheetSettingsView
             }
             .sheet(isPresented: $viewModel.showNote) {
-                DCNotesViewBuilder().build(viewModel.bookId, coords: "", chapterId: "")
+                if let highlight = viewModel.pendingNoteHighlight {
+                    DCNotesViewBuilder().build(
+                        highlight: highlight,
+                        highlightStore: viewModel.highlightStore,
+                        userPreferences: viewModel.userPreferences
+                    )
+                }
             }
         }
         .onChange(of: viewModel.currentSelection) { _ in

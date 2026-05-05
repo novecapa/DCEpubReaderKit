@@ -18,8 +18,8 @@ final class DCWebViewModel: DCWebViewModelProtocol {
         self.router = router
     }
 
-    func showNoote() {
-        router.showNoote()
+    func showNoote(highlight: DCHighlight) {
+        router.showNoote(highlight: highlight)
     }
 
     func saveHighlight(_ highlight: DCHighlight) async {

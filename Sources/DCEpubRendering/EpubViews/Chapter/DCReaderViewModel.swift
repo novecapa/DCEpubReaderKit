@@ -29,6 +29,7 @@ final class DCReaderViewModel: ObservableObject {
     @Published var settingsSheetHeight: CGFloat = 0
 
     @Published var showNote: Bool = false
+    @Published var pendingNoteHighlight: DCHighlight?
 
     var chapterViewModels: [Int: DCChapterWebViewModel] = [:]
 
@@ -137,8 +138,9 @@ final class DCReaderViewModel: ObservableObject {
         case .navigateToPreviousChapter:
             navigateToPreviousChapter()
 
-        case .showNote:
-            showNote.toggle()
+        case let .showNote(highlight):
+            pendingNoteHighlight = highlight
+            showNote = true
         }
     }
 

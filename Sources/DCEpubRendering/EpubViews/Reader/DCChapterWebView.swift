@@ -7,6 +7,7 @@
 
 import SwiftUI
 import WebKit
+import DCEpubCore
 
 enum DCChapterViewAction {
     case totalPageCount(count: Int, spineIndex: Int)
@@ -15,7 +16,7 @@ enum DCChapterViewAction {
     case coordsFirstNodeOfPage(orientation: DCBookrOrientation, spineIndex: Int, coords: String, isBookMark: Bool)
     case navigateToNextChapter
     case navigateToPreviousChapter
-    case showNote
+    case showNote(highlight: DCHighlight)
 }
 
 struct DCChapterWebView: UIViewRepresentable {

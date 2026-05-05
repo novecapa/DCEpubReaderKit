@@ -6,6 +6,7 @@
 //
 
 import WebKit
+import DCEpubCore
 
 final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDelegate {
 
@@ -96,24 +97,24 @@ final class DCWebView: WKWebView, WKScriptMessageHandler, UIGestureRecognizerDel
             guard let highlight = highlights.first(where: { $0.uuid == uuid }) else { return }
 
             if highlight.type == .note {
-                self.showNoteOptionsAlert(uuid: uuid)
+                self.showNoteOptionsAlert(highlight: highlight)
             } else {
                 self.showDeleteHighlightAlert(uuid: uuid)
             }
         }
     }
 
-    private func showNoteOptionsAlert(uuid: String) {
+    private func showNoteOptionsAlert(highlight: DCHighlight) {
         guard let vc = parentViewController else { return }
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         alert.addAction(UIAlertAction(title: "Edit Note", style: .default) { [weak self] _ in
-            self?.viewModel.showNoote()
+            self?.viewModel.showNoote(highlight: highlight)
         })
         alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
             Task { @MainActor [weak self] in
                 guard let self else { return }
-                await self.viewModel.deleteHighlight(uuid: uuid)
-                await self.removeHighlight(uuid: uuid)
+                await self.viewModel.deleteHighlight(uuid: highlight.uuid)
+                await self.removeHighlight(uuid: highlight.uuid)
             }
         })
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))

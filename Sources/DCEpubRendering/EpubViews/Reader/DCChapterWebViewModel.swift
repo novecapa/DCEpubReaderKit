@@ -47,8 +47,8 @@ final class DCChapterWebViewModel: ObservableObject {
 
 extension DCChapterWebViewModel: DCWebViewRouterProtocol {
 
-    func showNoote() {
-        onAction(.showNote)
+    func showNoote(highlight: DCHighlight) {
+        onAction(.showNote(highlight: highlight))
     }
 
     func saveHighlight(_ highlight: DCHighlight) async {

@@ -10,7 +10,7 @@ import DCEpubCore
 
 @MainActor
 protocol DCWebViewModelProtocol {
-    func showNoote()
+    func showNoote(highlight: DCHighlight)
     func saveHighlight(_ highlight: DCHighlight) async
     func loadHighlights() async -> [DCHighlight]
     func deleteHighlight(uuid: String) async
@@ -22,7 +22,7 @@ protocol DCWebViewModelProtocol {
 
 @MainActor
 protocol DCWebViewRouterProtocol {
-    func showNoote()
+    func showNoote(highlight: DCHighlight)
     func saveHighlight(_ highlight: DCHighlight) async
     func loadHighlights() async -> [DCHighlight]
     func deleteHighlight(uuid: String) async

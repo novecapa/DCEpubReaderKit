@@ -23,12 +23,12 @@ struct DCNotesView: View {
                     dismiss()
                 } label: {
                     Image(systemName: "xmark")
-                        .tint(Color(.backgroundNight))
+                        .tint(viewModel.textColor)
                 }
                 Spacer()
                 Text("Notes")
                     .font(.system(size: 14))
-                    .tint(Color(.backgroundNight))
+                    .tint(viewModel.textColor)
                 EmptyView()
                 Spacer()
             }
@@ -36,7 +36,10 @@ struct DCNotesView: View {
             TextEditor(text: $viewModel.note)
                 .cornerRadius(16)
                 .padding(16)
-                .background(.gray)
+                .background(viewModel.backgroundColor)
+                .onChange(of: viewModel.note) { newNote in
+                    viewModel.noteDidChange(newNote)
+                }
         }
     }
 }

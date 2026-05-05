@@ -151,7 +151,7 @@ extension DCWebView {
             await viewModel.saveHighlight(highlight)
             await self.clearJSSelection()
             self.removeMenuItems()
-            self.viewModel.showNoote()
+            self.viewModel.showNoote(highlight: highlight)
         }
     }
 
