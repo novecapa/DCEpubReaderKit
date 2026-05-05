@@ -26,9 +26,6 @@ let package = Package(
             dependencies: ["DCEpubCore"],
             resources: [
                 .process("Resources")
-            ],
-            swiftSettings: [
-                .swiftLanguageMode(.v5)
             ]
         ),
         .target(

@@ -149,8 +149,10 @@ enum DCDesktopMode: String {
 
     var iconColor: Color {
         switch self {
-        case .lihgt, .dark:
-                .gray
+        case .lihgt:
+            Color(.backgroundLight)
+        case .dark:
+            Color(.backgroundNight)
         case .red:
                 .red
         }
