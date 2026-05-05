@@ -23,27 +23,35 @@ struct DCNotesView: View {
                     dismiss()
                 } label: {
                     Image(systemName: "xmark")
-                        .tint(viewModel.textColor)
+                        .foregroundStyle(viewModel.textColor)
                 }
                 Spacer()
                 Text("Notes")
-                    .font(.system(size: 14))
-                    .tint(viewModel.textColor)
+                    .font(.system(size: 15))
+                    .foregroundStyle(viewModel.textColor)
                 EmptyView()
                 Spacer()
             }
             .padding(.horizontal, 16)
+            .frame(height: 54)
             TextEditor(text: $viewModel.note)
+                .scrollContentBackground(.hidden)
+                .background(viewModel.backgroundColor.opacity(0.6))
                 .cornerRadius(16)
                 .padding(16)
-                .background(viewModel.backgroundColor)
+                .foregroundStyle(viewModel.textColor)
                 .onChange(of: viewModel.note) { newNote in
                     viewModel.noteDidChange(newNote)
                 }
         }
+        .background(viewModel.backgroundColor)
     }
 }
+
+#if DEBUG
 
 #Preview {
     DCNotesViewBuilderMock().build()
 }
+
+#endif
