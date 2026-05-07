@@ -12,6 +12,7 @@ public struct DCHighlight: Codable, Sendable, Equatable {
     public enum MarkType: String, Codable, Sendable {
         case highlight = "H"
         case note = "N"
+        case bookMark = "B"
     }
 
     public let uuid: String
