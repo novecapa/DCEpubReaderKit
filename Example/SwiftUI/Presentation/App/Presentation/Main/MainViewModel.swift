@@ -55,7 +55,7 @@ extension MainViewModel {
         return try? DCEpubParser.parse(from: url)
     }
 
-    func initialBookPosition(for book: DCEpubBook) -> BookPositionDTO? {
+    func initialBookPosition(for book: DCEpubBook) -> EBookPositionEntity? {
         try? useCase.bookPosition.getBookPosition(book: book)
     }
 }

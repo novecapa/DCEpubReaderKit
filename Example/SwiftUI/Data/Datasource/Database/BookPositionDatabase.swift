@@ -15,7 +15,7 @@ protocol BookPositionDatabaseProtocol {
                           coords: String,
                           chapterURL: URL,
                           markType: RBookMark.MarkType) throws
-    func getBookPosition(book: DCEpubBook) throws -> BookPositionDTO?
+    func getBookPosition(book: DCEpubBook) throws -> EBookPositionEntity?
 }
 
 final class BookPositionDatabase: BookPositionDatabaseProtocol {
@@ -74,7 +74,7 @@ final class BookPositionDatabase: BookPositionDatabaseProtocol {
         }
     }
 
-    func getBookPosition(book: DCEpubBook) throws -> BookPositionDTO? {
+    func getBookPosition(book: DCEpubBook) throws -> EBookPositionEntity? {
         let realm = try Realm()
         guard let mark = realm.objects(RBookMark.self).filter(
             """
@@ -92,7 +92,7 @@ final class BookPositionDatabase: BookPositionDatabaseProtocol {
             book: book
         )
 
-        return BookPositionDTO(
+        return EBookPositionEntity(
             spineIndex: resolvedSpineIndex,
             coords: mark.lastcoords,
             chapterId: mark.lastchapterid,
@@ -126,7 +126,7 @@ final class BookPositionDatabaseMock: BookPositionDatabaseProtocol {
                           chapterURL: URL,
                           markType: RBookMark.MarkType) throws {}
 
-    func getBookPosition(book: DCEpubBook) throws -> BookPositionDTO? {
+    func getBookPosition(book: DCEpubBook) throws -> EBookPositionEntity? {
         nil
     }
 }

@@ -14,7 +14,7 @@ protocol BookPositionRepositoryProtocol {
                           coords: String,
                           chapterURL: URL,
                           markType: RBookMark.MarkType) throws
-    func getBookPosition(book: DCEpubBook) throws -> BookPositionDTO?
+    func getBookPosition(book: DCEpubBook) throws -> EBookPositionEntity?
 }
 
 final class BookPositionRepository: BookPositionRepositoryProtocol {
@@ -39,7 +39,7 @@ final class BookPositionRepository: BookPositionRepositoryProtocol {
         )
     }
 
-    func getBookPosition(book: DCEpubBook) throws -> BookPositionDTO? {
+    func getBookPosition(book: DCEpubBook) throws -> EBookPositionEntity? {
         guard let dto = try database.getBookPosition(book: book) else {
             return nil
         }

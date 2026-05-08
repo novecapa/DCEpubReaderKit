@@ -9,5 +9,5 @@ struct EBookPositionEntity: Equatable {
     let spineIndex: Int
     let coords: String
     let chapterId: String
-    let dateUpdated: Double
+    let dateUpdated: Int64
 }
