@@ -68,18 +68,15 @@ extension DCChapterWebView {
         let spineIndex: Int
         let userPreferences: DCUserPreferencesProtocol
         let onAction: (DCChapterViewAction) -> Void
-        private var pendingInitialCoords: String?
 
         init(opensExternalLinks: Bool = true,
              spineIndex: Int,
-             initialCoords: String?,
              userPreferences: DCUserPreferencesProtocol,
              onAction: @escaping (DCChapterViewAction) -> Void) {
             self.opensExternalLinks = opensExternalLinks
             self.spineIndex = spineIndex
             self.userPreferences = userPreferences
             self.onAction = onAction
-            self.pendingInitialCoords = initialCoords
             super.init()
         }
 
@@ -118,8 +115,7 @@ extension DCChapterWebView {
 
         @MainActor
         private func restoreInitialPositionIfNeeded(on webView: WKWebView) async {
-            guard let coords = pendingInitialCoords, !coords.isEmpty else { return }
-            pendingInitialCoords = nil
+            guard let coords = viewModel?.consumeInitialCoords(), !coords.isEmpty else { return }
             let method: JSMethod = orientation == .horizontal ?
                 .scrollToCoordsHorizontal(coords) :
                 .scrollToCoordsVertical(coords)

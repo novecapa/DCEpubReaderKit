@@ -38,20 +38,17 @@ final class DCReaderViewModel: ObservableObject {
     private let initialCoords: String?
     private let userPreferencesProtocol: DCUserPreferencesProtocol
     private let delegate: DCReaderCoordsProtocol?
-    let highlightStore: (any DCHighlightStoreProtocol)?
 
     public init(book: DCEpubBook,
                 spineIndex: Int,
                 initialCoords: String? = nil,
                 userPreferencesProtocol: DCUserPreferencesProtocol,
-                delegate: DCReaderCoordsProtocol?,
-                highlightStore: (any DCHighlightStoreProtocol)? = nil) {
+                delegate: DCReaderCoordsProtocol?) {
         self.book = book
         self.spineIndex = spineIndex
         self.initialCoords = initialCoords
         self.userPreferencesProtocol = userPreferencesProtocol
         self.delegate = delegate
-        self.highlightStore = highlightStore
 
         // Initial values
         self.currentSelection = spineIndex
@@ -219,5 +216,40 @@ final class DCReaderViewModel: ObservableObject {
             return
         }
         chapterViewModels[index] = viewModel
+    }
+}
+
+extension DCReaderViewModel: DCChapterReaderContextProtocol {
+    var currentBook: DCEpubBook { book }
+
+    func consumeInitialCoords(for spineIndex: Int, chapterURL: URL) -> String? {
+        guard spineIndex == self.spineIndex else { return nil }
+        guard chapterURL == book.chapterURL(forSpineIndex: spineIndex) else { return nil }
+        return initialCoords
+    }
+
+    func showNote(highlight: DCHighlight) {
+        pendingNoteHighlight = highlight
+        showNote = true
+    }
+
+    func save(highlight: DCHighlight) async {
+        await delegate?.save(highlight: highlight)
+    }
+
+    func deleteHighlight(uuid: String) async {
+        await delegate?.deleteHighlight(uuid: uuid, book: book)
+    }
+
+    func highlights(for chapterId: String) async -> [DCHighlight] {
+        if let chapterHighlights = await delegate?.highlights(for: book, chapterId: chapterId) {
+            return chapterHighlights
+        }
+
+        if let allHighlights = await delegate?.highlights(for: book) {
+            return allHighlights.filter { $0.chapterId == chapterId }
+        }
+
+        return []
     }
 }

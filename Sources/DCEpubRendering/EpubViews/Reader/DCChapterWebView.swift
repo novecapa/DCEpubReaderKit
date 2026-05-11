@@ -130,7 +130,6 @@ struct DCChapterWebView: UIViewRepresentable {
 
     func makeCoordinator() -> Coordinator {
         let coordinator = Coordinator(spineIndex: viewModel.spineIndex,
-                                      initialCoords: viewModel.initialCoords,
                                       userPreferences: viewModel.userPreferences,
                                       onAction: viewModel.onAction)
         coordinator.viewModel = viewModel

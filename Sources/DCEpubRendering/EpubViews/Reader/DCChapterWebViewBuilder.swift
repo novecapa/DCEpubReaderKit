@@ -13,19 +13,15 @@ final class DCChapterWebViewBuilder {
     func build(chapterURL: URL,
                readAccessURL: URL,
                spineIndex: Int,
-               initialCoords: String?,
                userPreferences: DCUserPreferencesProtocol,
-               bookId: String,
-               highlightStore: (any DCHighlightStoreProtocol)?,
+               readerContext: any DCChapterReaderContextProtocol,
                onAction: @escaping (DCChapterViewAction) -> Void) -> DCChapterWebView {
         let viewModel = DCChapterWebViewModel(
             chapterURL: chapterURL,
             readAccessURL: readAccessURL,
             spineIndex: spineIndex,
-            initialCoords: initialCoords,
             userPreferences: userPreferences,
-            bookId: bookId,
-            highlightStore: highlightStore,
+            readerContext: readerContext,
             onAction: onAction
         )
         let view = DCChapterWebView(viewModel: viewModel)

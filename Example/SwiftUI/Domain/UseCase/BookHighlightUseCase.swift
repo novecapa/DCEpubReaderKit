@@ -10,6 +10,7 @@ import Foundation
 
 protocol BookHighlightUseCaseProtocol {
     func saveHighlight(_ highlight: DCHighlight) throws
+    func highlights(bookId: String) throws -> [DCHighlight]
     func highlights(bookId: String, chapterId: String) throws -> [DCHighlight]
     func deleteHighlight(uuid: String) throws
 }
@@ -24,6 +25,10 @@ final class BookHighlightUseCase: BookHighlightUseCaseProtocol {
 
     func saveHighlight(_ highlight: DCHighlight) throws {
         try repository.saveHighlight(highlight)
+    }
+
+    func highlights(bookId: String) throws -> [DCHighlight] {
+        try repository.highlights(bookId: bookId)
     }
 
     func highlights(bookId: String, chapterId: String) throws -> [DCHighlight] {

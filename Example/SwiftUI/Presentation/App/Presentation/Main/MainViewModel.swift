@@ -58,6 +58,10 @@ extension MainViewModel {
     func initialBookPosition(for book: DCEpubBook) -> EBookPositionEntity? {
         try? useCase.bookPosition.getBookPosition(book: book)
     }
+
+    func bookHighlights(for book: DCEpubBook) async -> [DCHighlight] {
+        await highlightStore.highlights(bookId: book.uniqueIdentifier)
+    }
 }
 
 // MARK: - DC Reader Coords Protocols
@@ -86,6 +90,22 @@ extension MainViewModel: DCReaderCoordsProtocol {
             chapterURL: chapterURL,
             markType: .lastPosition
         )
+    }
+
+    func highlights(for book: DCEpubBook) async -> [DCHighlight]? {
+        await highlightStore.highlights(bookId: book.uniqueIdentifier)
+    }
+
+    func highlights(for book: DCEpubBook, chapterId: String) async -> [DCHighlight]? {
+        await highlightStore.highlights(bookId: book.uniqueIdentifier, chapterId: chapterId)
+    }
+
+    func save(highlight: DCHighlight) async {
+        await highlightStore.save(highlight)
+    }
+
+    func deleteHighlight(uuid: String, book: DCEpubBook) async {
+        await highlightStore.delete(uuid: uuid)
     }
 }
 

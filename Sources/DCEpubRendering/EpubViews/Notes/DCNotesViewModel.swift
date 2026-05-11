@@ -14,15 +14,15 @@ final class DCNotesViewModel: ObservableObject {
     @Published var note: String
 
     private var highlight: DCHighlight
-    private let highlightStore: (any DCHighlightStoreProtocol)?
+    private let readerContext: any DCChapterReaderContextProtocol
     private let userPreferences: DCUserPreferencesProtocol
     private var saveTask: Task<Void, Never>?
 
     init(highlight: DCHighlight,
-         highlightStore: (any DCHighlightStoreProtocol)?,
+         readerContext: any DCChapterReaderContextProtocol,
          userPreferences: DCUserPreferencesProtocol) {
         self.highlight = highlight
-        self.highlightStore = highlightStore
+        self.readerContext = readerContext
         self.userPreferences = userPreferences
         self.note = highlight.note
     }
@@ -44,7 +44,7 @@ final class DCNotesViewModel: ObservableObject {
             updated.note = text
             updated.dateUpdated = Date().timeIntervalSince1970
             highlight = updated
-            await highlightStore?.save(updated)
+            await readerContext.save(highlight: updated)
         }
     }
 }

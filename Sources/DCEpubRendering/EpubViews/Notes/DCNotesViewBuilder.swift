@@ -11,11 +11,11 @@ import DCEpubCore
 final class DCNotesViewBuilder {
     @MainActor
     func build(highlight: DCHighlight,
-               highlightStore: (any DCHighlightStoreProtocol)?,
+               readerContext: any DCChapterReaderContextProtocol,
                userPreferences: DCUserPreferencesProtocol) -> DCNotesView {
         let viewModel = DCNotesViewModel(
             highlight: highlight,
-            highlightStore: highlightStore,
+            readerContext: readerContext,
             userPreferences: userPreferences
         )
         return DCNotesView(viewModel: viewModel)
@@ -36,9 +36,21 @@ final class DCNotesViewBuilderMock {
         )
         let viewModel = DCNotesViewModel(
             highlight: highlight,
-            highlightStore: nil,
+            readerContext: DCNotesPreviewContext(),
             userPreferences: DCUserPreferencesMock()
         )
         return DCNotesView(viewModel: viewModel)
     }
+}
+
+@MainActor
+private final class DCNotesPreviewContext: DCChapterReaderContextProtocol {
+    let currentBook = DCEpubBook.mock
+    let bookId = "preview-book"
+
+    func consumeInitialCoords(for spineIndex: Int, chapterURL: URL) -> String? { nil }
+    func showNote(highlight: DCHighlight) {}
+    func save(highlight: DCHighlight) async {}
+    func deleteHighlight(uuid: String) async {}
+    func highlights(for chapterId: String) async -> [DCHighlight] { [] }
 }

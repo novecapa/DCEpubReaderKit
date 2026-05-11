@@ -20,28 +20,29 @@ final class DCChapterWebViewModel: ObservableObject {
     let readAccessURL: URL
     /// Index of the spine that this view represents (used for disambiguating async callbacks).
     let spineIndex: Int
-    let initialCoords: String?
     let userPreferences: DCUserPreferencesProtocol
     let onAction: (DCChapterViewAction) -> Void
-    let bookId: String
-    let highlightStore: (any DCHighlightStoreProtocol)?
+    private let readerContext: any DCChapterReaderContextProtocol
+    private var hasConsumedInitialCoords = false
 
     init(chapterURL: URL,
          readAccessURL: URL,
          spineIndex: Int,
-         initialCoords: String?,
          userPreferences: DCUserPreferencesProtocol,
-         bookId: String,
-         highlightStore: (any DCHighlightStoreProtocol)?,
+         readerContext: any DCChapterReaderContextProtocol,
          onAction: @escaping (DCChapterViewAction) -> Void) {
         self.chapterURL = chapterURL
         self.readAccessURL = readAccessURL
         self.spineIndex = spineIndex
-        self.initialCoords = initialCoords
         self.userPreferences = userPreferences
-        self.bookId = bookId
-        self.highlightStore = highlightStore
+        self.readerContext = readerContext
         self.onAction = onAction
+    }
+
+    func consumeInitialCoords() -> String? {
+        guard hasConsumedInitialCoords == false else { return nil }
+        hasConsumedInitialCoords = true
+        return readerContext.consumeInitialCoords(for: spineIndex, chapterURL: chapterURL)
     }
 }
 
@@ -52,18 +53,18 @@ extension DCChapterWebViewModel: DCWebViewRouterProtocol {
     }
 
     func saveHighlight(_ highlight: DCHighlight) async {
-        await highlightStore?.save(highlight)
+        await readerContext.save(highlight: highlight)
     }
 
     func loadHighlights() async -> [DCHighlight] {
-        await highlightStore?.highlights(bookId: bookId, chapterId: currentChapterId) ?? []
+        await readerContext.highlights(for: currentChapterId)
     }
 
     func deleteHighlight(uuid: String) async {
-        await highlightStore?.delete(uuid: uuid)
+        await readerContext.deleteHighlight(uuid: uuid)
     }
 
-    var currentBookId: String { bookId }
+    var currentBookId: String { readerContext.bookId }
     var currentChapterId: String { chapterURL.lastPathComponent }
     var currentSpineIndex: Int { spineIndex }
 

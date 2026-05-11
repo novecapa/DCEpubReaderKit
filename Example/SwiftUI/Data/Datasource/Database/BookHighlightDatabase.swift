@@ -11,6 +11,7 @@ import RealmSwift
 
 protocol BookHighlightDatabaseProtocol {
     func saveHighlight(_ highlight: DCHighlight) throws
+    func highlights(bookId: String) throws -> [DCHighlight]
     func highlights(bookId: String, chapterId: String) throws -> [DCHighlight]
     func deleteHighlight(uuid: String) throws
 }
@@ -39,6 +40,19 @@ final class BookHighlightDatabase: BookHighlightDatabaseProtocol {
         }
     }
 
+    func highlights(bookId: String) throws -> [DCHighlight] {
+        let realm = try Realm()
+        let types = [RBookMark.MarkType.hightLihgt.rawValue,
+                     RBookMark.MarkType.note.rawValue]
+        return realm.objects(RBookMark.self)
+            .filter("bookId == %@ AND type IN %@", bookId, types)
+            .sorted(by: [
+                SortDescriptor(keyPath: "spineIndex", ascending: true),
+                SortDescriptor(keyPath: "dateCreated", ascending: true)
+            ])
+            .map { $0.toHighlight() }
+    }
+
     func highlights(bookId: String, chapterId: String) throws -> [DCHighlight] {
         let realm = try Realm()
         let types = [RBookMark.MarkType.hightLihgt.rawValue,
@@ -46,6 +60,9 @@ final class BookHighlightDatabase: BookHighlightDatabaseProtocol {
         return realm.objects(RBookMark.self)
             .filter("bookId == %@ AND chapterId == %@ AND type IN %@",
                     bookId, chapterId, types)
+            .sorted(by: [
+                SortDescriptor(keyPath: "dateCreated", ascending: true)
+            ])
             .map { $0.toHighlight() }
     }
 

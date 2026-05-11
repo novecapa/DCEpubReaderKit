@@ -21,6 +21,10 @@ final class BookHighlightStore: DCHighlightStoreProtocol {
         try? useCase.saveHighlight(highlight)
     }
 
+    func highlights(bookId: String) async -> [DCHighlight] {
+        (try? useCase.highlights(bookId: bookId)) ?? []
+    }
+
     func highlights(bookId: String, chapterId: String) async -> [DCHighlight] {
         (try? useCase.highlights(bookId: bookId, chapterId: chapterId)) ?? []
     }

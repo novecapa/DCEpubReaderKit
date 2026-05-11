@@ -65,7 +65,7 @@ public struct DCReaderView: View {
                 if let highlight = viewModel.pendingNoteHighlight {
                     DCNotesViewBuilder().build(
                         highlight: highlight,
-                        highlightStore: viewModel.highlightStore,
+                        readerContext: viewModel,
                         userPreferences: viewModel.userPreferences
                     )
                 }
@@ -81,10 +81,8 @@ public struct DCReaderView: View {
             chapterURL: chapterURL,
             readAccessURL: viewModel.opfDirectoryURL,
             spineIndex: idx,
-            initialCoords: viewModel.initialCoords(for: idx),
             userPreferences: viewModel.userPreferences,
-            bookId: viewModel.bookId,
-            highlightStore: viewModel.highlightStore
+            readerContext: viewModel
         ) { [weak viewModel] action in
             viewModel?.handle(action, chapterURL: chapterURL)
         }
