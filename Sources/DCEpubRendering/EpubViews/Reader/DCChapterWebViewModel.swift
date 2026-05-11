@@ -75,4 +75,8 @@ extension DCChapterWebViewModel: DCWebViewRouterProtocol {
     func saveBookmark() {
         coordinator?.saveBookMark()
     }
+
+    func scrollToHighlight(coords: String) {
+        coordinator?.scrollToHighlight(coords: coords)
+    }
 }

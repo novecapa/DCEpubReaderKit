@@ -34,6 +34,12 @@ extension DCReaderView {
                         .tint(.gray)
                 }
                 Button {
+                    viewModel.showMarks = true
+                } label: {
+                    Image(systemName: "highlighter")
+                        .tint(.gray)
+                }
+                Button {
                     viewModel.showSettings.toggle()
                 } label: {
                     Image(systemName: "gear")
@@ -47,6 +53,26 @@ extension DCReaderView {
 // MARK: Sheet DCReaderSettingsView
 
 extension DCReaderView {
+    var sheetMarksView: some View {
+        NavigationStack {
+            DCMarksViewBuilder().build(
+                highlightsProvider: {
+                    await viewModel.allHighlights()
+                },
+                onSelect: { highlight in
+                    viewModel.navigate(to: highlight)
+                }
+            )
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Close") {
+                        viewModel.showMarks = false
+                    }
+                }
+            }
+        }
+    }
+
     var sheetSettingsView: some View {
         ZStack {
             viewModel.backgroundColor

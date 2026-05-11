@@ -28,10 +28,12 @@ final class DCReaderViewModel: ObservableObject {
     @Published var showSettings: Bool = false
     @Published var settingsSheetHeight: CGFloat = 0
 
+    @Published var showMarks: Bool = false
     @Published var showNote: Bool = false
     @Published var pendingNoteHighlight: DCHighlight?
 
     var chapterViewModels: [Int: DCChapterWebViewModel] = [:]
+    private var pendingNavigationCoordsBySpineIndex: [Int: String] = [:]
 
     private let book: DCEpubBook
     private let spineIndex: Int
@@ -64,6 +66,7 @@ final class DCReaderViewModel: ObservableObject {
         self.canTouch = true
         self.showSettings = false
         self.settingsSheetHeight = 0
+        self.showMarks = false
     }
 
     var bookId: String {
@@ -207,8 +210,43 @@ final class DCReaderViewModel: ObservableObject {
     }
 
     @MainActor
+    func handleSelectionDidChange() {
+        defer {
+            previousSelection = currentSelection
+        }
+
+        if let coords = pendingNavigationCoordsBySpineIndex.removeValue(forKey: currentSelection),
+           let chapterViewModel = chapterViewModels[currentSelection] {
+            chapterViewModel.scrollToHighlight(coords: coords)
+            return
+        }
+
+        chapterViewModels[currentSelection]?.updateCurrentPage(
+            target: currentSelection < previousSelection ? currentSelection : nil
+        )
+    }
+
+    @MainActor
     func saveBookMark() {
         chapterViewModels[currentSelection]?.saveBookmark()
+    }
+
+    func allHighlights() async -> [DCHighlight] {
+        let highlights = await delegate?.highlights(for: book) ?? []
+        return highlights.sorted { $0.dateUpdated > $1.dateUpdated }
+    }
+
+    @MainActor
+    func navigate(to highlight: DCHighlight) {
+        showMarks = false
+
+        if highlight.spineIndex == currentSelection {
+            chapterViewModels[currentSelection]?.scrollToHighlight(coords: highlight.coords)
+            return
+        }
+
+        pendingNavigationCoordsBySpineIndex[highlight.spineIndex] = highlight.coords
+        currentSelection = highlight.spineIndex
     }
 
     func registerChapterViewModel(_ viewModel: DCChapterWebViewModel, for index: Int) {
@@ -223,6 +261,9 @@ extension DCReaderViewModel: DCChapterReaderContextProtocol {
     var currentBook: DCEpubBook { book }
 
     func consumeInitialCoords(for spineIndex: Int, chapterURL: URL) -> String? {
+        if let coords = pendingNavigationCoordsBySpineIndex.removeValue(forKey: spineIndex) {
+            return coords
+        }
         guard spineIndex == self.spineIndex else { return nil }
         guard chapterURL == book.chapterURL(forSpineIndex: spineIndex) else { return nil }
         return initialCoords

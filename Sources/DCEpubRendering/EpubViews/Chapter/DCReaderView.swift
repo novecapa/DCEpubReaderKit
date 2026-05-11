@@ -61,6 +61,9 @@ public struct DCReaderView: View {
             .sheet(isPresented: $viewModel.showSettings) {
                 sheetSettingsView
             }
+            .sheet(isPresented: $viewModel.showMarks) {
+                sheetMarksView
+            }
             .sheet(isPresented: $viewModel.showNote) {
                 if let highlight = viewModel.pendingNoteHighlight {
                     DCNotesViewBuilder().build(
@@ -72,7 +75,7 @@ public struct DCReaderView: View {
             }
         }
         .onChange(of: viewModel.currentSelection) { _ in
-            viewModel.updateCurrentPage()
+            viewModel.handleSelectionDidChange()
         }
     }
 

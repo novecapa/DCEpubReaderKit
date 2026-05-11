@@ -13,7 +13,7 @@ extension DCChapterWebView {
     enum Constants {
         static let spineIndex = "spineIndex"
         static let fadeDuration: TimeInterval = 0.25
-        static let settleDelay: UInt64 = 250_000_000
+        static let settleDelay: UInt64 = 350_000_000
     }
 
     private enum JSMethod {
@@ -188,6 +188,21 @@ extension DCChapterWebView {
                         isBookMark: true)
                     )
                 }
+            }
+        }
+
+        func scrollToHighlight(coords: String) {
+            guard coords.isEmpty == false else { return }
+            Task { @MainActor [weak self] in
+                guard let self, let webView = self.lazyWebView else { return }
+                self.setInteractivity(false, on: webView, animated: true)
+                try? await Task.sleep(nanoseconds: Constants.settleDelay)
+                let method: JSMethod = self.orientation == .horizontal ?
+                    .scrollToCoordsHorizontal(coords) :
+                    .scrollToCoordsVertical(coords)
+                await self.scrollAndReport(method, webView: webView)
+                try? await Task.sleep(nanoseconds: Constants.settleDelay)
+                self.setInteractivity(true, on: webView, animated: true)
             }
         }
     }
